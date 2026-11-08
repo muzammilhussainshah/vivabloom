@@ -91,7 +91,7 @@ export const AI_TASKS = [
 export const TEXT_MODEL_OPTIONS = [
   "gpt-4o-mini", "gpt-4o", "gpt-4.1-mini", "gpt-4.1", "o4-mini",
   // Groq (free tier, needs GROQ_API_KEY) — the "groq/" prefix routes the call to Groq.
-  "groq/llama-3.3-70b-versatile", "groq/openai/gpt-oss-120b", "groq/llama-3.1-8b-instant",
+  "groq/openai/gpt-oss-120b", "groq/openai/gpt-oss-20b", "groq/qwen/qwen3.8-27b",
 ];
 export const IMAGE_MODEL_OPTIONS = ["gemini-3.1-flash-image", "gemini-2.5-flash-image"];
 
