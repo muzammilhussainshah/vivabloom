@@ -1,0 +1,153 @@
+@import "tailwindcss";
+@import "@monocoupon/config/tokens.css";
+
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-serif: var(--font-playfair);
+  --font-script: var(--font-pacifico);
+}
+
+body {
+  background: var(--surface);
+  color: var(--text);
+}
+
+/* VivaBloom polish: soft selection, friendly focus ring, tighter display type. */
+::selection {
+  background: color-mix(in srgb, var(--brand-primary) 28%, white);
+  color: var(--text);
+}
+
+:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+h1,
+h2,
+h3 {
+  letter-spacing: -0.015em;
+}
+
+/*
+ * Legacy-browser repairs. Each one is a no-op on modern engines, but without
+ * them the coupon ticket loses its edges entirely on pre-2022 browsers.
+ *
+ * 1. Tailwind's `border` utility emits `border-style: var(--tw-border-style)`,
+ *    and that variable only receives its `solid` default from an `@property`
+ *    rule (Safari 16.4+, Chrome 85+). Tailwind does ship a fallback, but its
+ *    feature query targets Safari and Firefox only — so on older Chromium the
+ *    variable is empty, the declaration is invalid at computed-value time,
+ *    `border-style` resolves to `none`, and every plain `border` vanishes
+ *    (measured: border-width 1px -> 0px). Declaring the default ourselves
+ *    fixes all of them at once. Utilities like `border-dashed` set the same
+ *    variable through a class selector, so they still outrank this and keep
+ *    working.
+ */
+*,
+::before,
+::after,
+::backdrop {
+  --tw-border-style: solid;
+}
+
+/*
+ * 2. The ticket's tinted body. `color-mix()` is Safari 16.2+ / Chrome 111+, and
+ *    CouponTicket applies it as an *inline* style — so Tailwind's `@supports`
+ *    fallback machinery never sees it and the declaration is simply dropped,
+ *    leaving the card with no fill and no visible boundary against the page.
+ *    Routing it through a variable lets us supply a real fallback: a plain
+ *    surface tone that still reads as a distinct card.
+ */
+:root {
+  /*
+   * Opaque white, deliberately. The modern value mixes only 10% brand into
+   * white, so plain white is a near-exact match for it. It must stay opaque
+   * and must NOT reference --surface-muted: the scissors badge reuses this
+   * value to mask the dashed divider behind it, so anything translucent lets
+   * the dashes show through, and a theme can legitimately set --surface-muted
+   * equal to --surface (the live theme does), which would make the card the
+   * same colour as the page.
+   */
+  --ticket-bg: var(--surface-muted);
+}
+
+@supports (color: color-mix(in srgb, red 10%, white)) {
+  :root {
+    --ticket-bg: color-mix(in srgb, var(--brand-primary) 12%, var(--surface-muted));
+  }
+}
+
+/*
+ * 3. Without `color-mix()`, Tailwind's fallback for an `/opacity` colour is the
+ *    *solid* colour — it cannot compute 25% of a runtime variable. So the
+ *    perforation and the card edge both render at full brand strength and read
+ *    as harsh lines slicing across the page. Restore the intended softness
+ *    using mechanisms that work everywhere: a neutral border token, and real
+ *    `opacity` on the divider.
+ */
+@supports not (color: color-mix(in lab, red, red)) {
+  .coupon-card {
+    border-color: var(--border);
+  }
+
+  /* Safe to use opacity here: the divider is an empty element, so there is no
+     child content for it to wash out. */
+  .coupon-perforation {
+    opacity: 0.35;
+  }
+}
+
+/*
+ * `aspect-ratio` is Safari 15+ / Chrome 88+. Below that the property is dropped
+ * and every image box collapses to zero height — cards lose their picture area
+ * and the page reflows around it. Restores the box with the pre-aspect-ratio
+ * padding trick: a zero-width ::before whose *percentage* top padding resolves
+ * against the container's width, giving height = width * ratio.
+ *
+ * Only safe because every one of these classes is on a RemoteImage wrapper,
+ * which is `relative` with a single `fill` (absolutely positioned) <img> and no
+ * in-flow children — so the pseudo-element is the only thing establishing
+ * height and can't push real content down. If you ever put an aspect-* class on
+ * a container with normal in-flow children, do NOT extend this list to it; the
+ * padding would stack on top of the content's own height.
+ *
+ * Modern browsers evaluate the feature query once and skip the whole block, so
+ * this costs nothing at runtime and cannot affect their rendering.
+ */
+
+/*
+ * `aspect-ratio` is Safari 15+ / Chrome 88+. Below that the property is dropped
+ * and every image box collapses to zero height — cards lose their picture area
+ * and the page reflows around it. Restores the box with the pre-aspect-ratio
+ * padding trick: a zero-width ::before whose *percentage* top padding resolves
+ * against the container's width, giving height = width * ratio.
+ *
+ * Only safe because every one of these classes is on a RemoteImage wrapper,
+ * which is `relative` with a single `fill` (absolutely positioned) <img> and no
+ * in-flow children — so the pseudo-element is the only thing establishing
+ * height and can't push real content down. If you ever put an aspect-* class on
+ * a container with normal in-flow children, do NOT extend this list to it; the
+ * padding would stack on top of the content's own height.
+ *
+ * Modern browsers evaluate the feature query once and skip the whole block, so
+ * this costs nothing at runtime and cannot affect their rendering.
+ */
+@supports not (aspect-ratio: 1) {
+  .aspect-square::before,
+  .aspect-video::before,
+  .aspect-\[4\/3\]::before {
+    content: "";
+    display: block;
+  }
+  .aspect-square::before {
+    padding-top: 100%;
+  }
+  .aspect-video::before {
+    padding-top: 56.25%; /* 9/16 */
+  }
+  .aspect-\[4\/3\]::before {
+    padding-top: 75%; /* 3/4 */
+  }
+}

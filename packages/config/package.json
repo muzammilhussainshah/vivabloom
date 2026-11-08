@@ -1,0 +1,11 @@
+{
+  "name": "@monocoupon/config",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    "./tokens.css": "./src/tokens.css",
+    "./tsconfig.base.json": "./tsconfig.base.json",
+    "./eslint-preset": "./eslint-preset.mjs",
+    "./postcss-flatten-layers": "./postcss-flatten-layers.cjs"
+  }
+}

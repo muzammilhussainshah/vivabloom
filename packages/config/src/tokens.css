@@ -1,0 +1,78 @@
+/*
+ * VivaBloom shared design tokens — light "bloom" (white + soft indigo) default palette.
+ *
+ * Palette rationale: brand colors have TWO distinct jobs — button backgrounds
+ * (need to hold contrast against white button text) and direct text/links
+ * (need to hold contrast against the light surface). A color tuned only for
+ * one job goes muddy or unreadable in the other, so each was picked/checked
+ * against both roles based on how it's actually used in the codebase:
+ *   - Primary (violet, #7c6cf0): the core brand color — header bar,
+ *     primary CTA buttons — tuned for white-text-on-top contrast (~3.4:1,
+ *     fine for bold/large UI elements).
+ *   - Secondary (plum, #5b4bd5): used almost exclusively as button/
+ *     badge backgrounds (never small body text), so it's tuned for stronger
+ *     white-text contrast (6.4:1).
+ *   - Accent (fuchsia, #c2379b): used exclusively as direct text
+ *     ("Verified" labels, discount labels, links), never a button background,
+ *     so it's tuned for text-on-light-surface contrast (5:1) instead.
+ * Surface (blush) is the main page background — where page content sits.
+ * Surface-muted is a separate, lighter tone used for badges/chips/muted
+ * panels; it is deliberately NOT reused for the footer, since it needs to
+ * stay light for those other uses. Text is near-black (not pure #000) to
+ * avoid harsh edges.
+ * The footer is its own fixed dark section (footer-bg) independent of the
+ * rest of the light theme — components on it use hardcoded light text
+ * rather than the (dark) --text/--text-muted tokens.
+ * Values live as plain CSS custom properties so both apps can share/override
+ * them, then get exposed to Tailwind v4 via the `@theme inline` block below.
+ */
+
+:root {
+  --brand-primary: #7c6cf0;
+  --brand-primary-hover: #1a8459;
+  --brand-secondary: #5b4bd5;
+  --brand-secondary-hover: #0f5934;
+  --brand-accent: #c2379b;
+  --brand-accent-hover: #126c34;
+
+  --surface: #f7f8ff;
+  --surface-muted: #ffffff;
+  --text: #1e2440;
+  --text-muted: #6b7391;
+  --border: #e4e8f5;
+  --footer-bg: #1f1b3d;
+
+  /* Fixed editorial accent for the blog — deliberately NOT part of admin
+     theming (unlike every other color above, which flows from SiteSettings
+     .themeTokens via apps/web/app/layout.tsx's themeStyle). This site's
+     brand-accent/brand-secondary are already gold-toned (a "Forest & Gold"
+     theme, admin-configured), so gold itself needs no new fixed token —
+     this teal exists purely to give the category-tint palette a third real
+     hue alongside the two admin greens/golds. Used sparingly: category-tint
+     tiles/spotlights. */
+  --accent-teal: #2f6f6a;
+  --accent-teal-hover: #285e5a;
+
+  --radius-base: 0.75rem;
+}
+
+@theme inline {
+  --color-brand-primary: var(--brand-primary);
+  --color-brand-primary-hover: var(--brand-primary-hover);
+  --color-brand-secondary: var(--brand-secondary);
+  --color-brand-secondary-hover: var(--brand-secondary-hover);
+  --color-brand-accent: var(--brand-accent);
+  --color-brand-accent-hover: var(--brand-accent-hover);
+
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-text: var(--text);
+  --color-text-muted: var(--text-muted);
+  --color-border: var(--border);
+  --color-footer-bg: var(--footer-bg);
+
+  --color-accent-teal: var(--accent-teal);
+  --color-accent-teal-hover: var(--accent-teal-hover);
+
+  --radius-base: var(--radius-base);
+}

@@ -1,0 +1,47 @@
+{
+  "name": "admin",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3001",
+    "build": "next build",
+    "start": "next start -p 3001",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@google/genai": "^2.11.0",
+    "@monocoupon/db": "workspace:*",
+    "@monocoupon/keywords": "workspace:*",
+    "@monocoupon/validation": "workspace:*",
+    "@tiptap/extension-link": "^2.11.5",
+    "@tiptap/pm": "^2.11.5",
+    "@tiptap/react": "^2.11.5",
+    "@tiptap/starter-kit": "^2.11.5",
+    "@upstash/ratelimit": "^2.0.8",
+    "@upstash/redis": "^1.38.0",
+    "@vercel/blob": "^2.6.1",
+    "bcryptjs": "^2.4.3",
+    "next": "16.2.10",
+    "next-auth": "5.0.0-beta.31",
+    "openai": "^6.46.0",
+    "pdfkit": "^0.19.1",
+    "react": "19.2.4",
+    "recharts": "^2.15.0",
+    "react-dom": "19.2.4",
+    "ua-parser-js": "^2.0.10"
+  },
+  "devDependencies": {
+    "@monocoupon/config": "workspace:*",
+    "@tailwindcss/postcss": "^4",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^20",
+    "@types/pdfkit": "^0.17.6",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.10",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}

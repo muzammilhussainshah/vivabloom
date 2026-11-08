@@ -1,0 +1,33 @@
+{
+  "name": "@monocoupon/db",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "seed": "tsx src/seed.ts",
+    "import-keywords": "tsx src/importKeywordTemplate.ts",
+    "import-locales": "tsx src/importKeywordLocales.ts",
+    "analyze-keywords": "tsx src/analyzeKeywords.ts",
+    "rank-keywords": "tsx src/rankKeywords.ts",
+    "locale-keywords": "tsx src/generateLocaleKeywords.ts",
+    "backfill-product-slugs": "tsx src/backfillProductSlugs.ts",
+    "backfill-bundle-slugs": "tsx src/backfillBundleSlugs.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "mongoose": "^8.9.0"
+  },
+  "devDependencies": {
+    "@monocoupon/config": "workspace:*",
+    "@monocoupon/keywords": "workspace:*",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^20",
+    "dotenv": "^16.4.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5"
+  }
+}

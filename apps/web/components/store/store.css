@@ -1,0 +1,242 @@
+/*
+ * Store-page-redesign-only styles: typography scale, keyframes, and the
+ * mobile/desktop breakpoint switch, exactly as specified in
+ * design_handoff_store_page/README.md. Scoped by only ever being imported
+ * from app/(store)/layout.tsx, so none of this reaches (site) pages.
+ *
+ * Layout/spacing uses ordinary Tailwind utility classes in the components
+ * themselves; this file only carries what Tailwind's default scale can't
+ * express cleanly — exact type specs, the non-standard 900px breakpoint, and
+ * animations — the same division of labor globals.css already uses for the
+ * legacy coupon-ticket's perforated divider.
+ */
+
+.store-scope {
+  text-wrap: pretty;
+  /*
+   * Safety net: several sections (product/proof/related-articles rails) are
+   * deliberately horizontally scrollable via their own overflow-x:auto on
+   * mobile, using a negative-margin bleed to reach the viewport edge. That's
+   * contained by design, but this guards the page itself against ever
+   * scrolling sideways if any of that math is ever off by a pixel.
+   *
+   * `clip`, not `hidden`: the CSS Overflow spec forces overflow-y's *used*
+   * value to `auto` whenever overflow-x is anything other than `visible` and
+   * overflow-y itself is left `visible` — so a plain `overflow-x: hidden`
+   * here silently turned this wrapper into its own vertical scroll
+   * container too, which broke the independent horizontal touch-scroll on
+   * the rails nested inside it (this was a real regression: related-articles
+   * went from "no scroll" to "can't scroll, only shows 1.5 cards"). `clip`
+   * doesn't carry that scroll-container side effect — it just clips, which
+   * is all this rule ever needed. Safari 16+/Chrome 90+/Firefox 102+; the
+   * `hidden` fallback below reintroduces the old (rarer) bug only on
+   * browsers this old, which is an acceptable trade for those visitors.
+   */
+  overflow-x: hidden;
+  overflow-x: clip;
+}
+
+/* Font-family helpers. Body default (Figtree) is set inline on the layout's
+   wrapper via next/font's CSS variable, so it inherits everywhere; these two
+   opt specific elements (headings, mono labels/codes) into the other faces. */
+.font-store-serif {
+  font-family: var(--font-source-serif), serif;
+}
+.font-store-mono {
+  font-family: var(--font-plex-mono), monospace;
+}
+
+/* ---- Typography scale (mobile-first, desktop overrides at 900px) ---- */
+
+/*
+ * 56px, not the README's 74px: at 74px, realistic store names ("off Tabs
+ * Chocolate", "off FurLife Petcare") wrap the value and suffix onto two
+ * lines on a ~343px-wide mobile card, while the same content comfortably
+ * fits one line on desktop's 448px card — a real visual inconsistency
+ * (single-line on desktop, two-line on mobile) the design's fixed px values
+ * didn't anticipate. Verified empirically (measuring rendered row height at
+ * several sizes against real store names): 56px keeps this on one line with
+ * a safe margin for names in the current catalog; the desktop size is
+ * unchanged since desktop already fits without wrapping.
+ */
+.sv-voucher-value {
+  font-size: 56px;
+  font-weight: 700;
+  line-height: 0.85;
+  letter-spacing: -0.04em;
+}
+/*
+ * discountLabel isn't always a bare "$80"/"20%" — admins can write phrases
+ * like "Up To 10%" or "Buy 1 Get 1". Those don't fit at the 56/88px sizes
+ * above (tuned for 2-4 characters) without wrapping and blowing up the whole
+ * voucher card, so longer labels step down in size. Thresholds chosen by
+ * measuring real candidate strings against the card's available width.
+ */
+.sv-voucher-value--md {
+  font-size: 34px;
+}
+.sv-voucher-value--sm {
+  font-size: 26px;
+}
+.sv-voucher-suffix {
+  font-size: 16px;
+  font-weight: 800;
+}
+.sv-section-heading {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.024em;
+}
+.sv-subsection-heading {
+  font-size: 21px;
+  font-weight: 700;
+}
+.sv-hero-lede {
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+.sv-body {
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+.sv-caption {
+  font-size: 12px;
+}
+.sv-mono-eyebrow {
+  font-size: 9.5px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+.sv-primary-cta {
+  font-size: 16.5px;
+  font-weight: 800;
+}
+
+@media (min-width: 900px) {
+  .sv-voucher-value {
+    font-size: 88px;
+    line-height: 0.84;
+  }
+  .sv-voucher-value--md {
+    font-size: 56px;
+  }
+  .sv-voucher-value--sm {
+    font-size: 40px;
+  }
+  .sv-voucher-suffix {
+    font-size: 25px;
+  }
+  .sv-section-heading {
+    font-size: 32px;
+  }
+  .sv-subsection-heading {
+    font-size: 26px;
+  }
+  .sv-hero-lede {
+    font-size: 17px;
+  }
+  .sv-body {
+    font-size: 14.5px;
+    line-height: 1.55;
+  }
+  .sv-caption {
+    font-size: 13px;
+  }
+  .sv-mono-eyebrow {
+    font-size: 10.5px;
+  }
+  .sv-primary-cta {
+    font-size: 17px;
+  }
+}
+
+/* ---- Keyframes ---- */
+
+@keyframes sv-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+.sv-pulse-dot {
+  animation: sv-pulse 2.4s ease-in-out infinite;
+}
+.sv-pulse-dot-fast {
+  animation: sv-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes sv-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.sv-spinner {
+  animation: sv-spin 1.1s linear infinite;
+}
+
+/* CTA countdown ring (OfferVoucher.tsx) — fixed 26px badge next to the "Get
+ * the Deal" button's label so the button's text length never changes tick
+ * to tick, keeping its height (and everything below it) static. */
+.sv-countdown-ring {
+  position: relative;
+  display: inline-flex;
+  height: 26px;
+  width: 26px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+}
+.sv-countdown-ring svg {
+  position: absolute;
+  inset: 0;
+}
+.sv-countdown-number {
+  position: relative;
+  font-family: var(--font-plex-mono), monospace;
+  font-size: 12px;
+  font-weight: 800;
+}
+@keyframes sv-countdown-drain {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: var(--sv-countdown-circumference);
+  }
+}
+.sv-countdown-progress {
+  /* duration comes from the inline `animationDuration` style (CountdownRing
+     passes the full countdown span, e.g. 3s) so it stays in sync with the
+     actual timer instead of being a separately-maintained magic number here */
+  animation-name: sv-countdown-drain;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sv-pulse-dot,
+  .sv-pulse-dot-fast,
+  .sv-spinner,
+  .sv-countdown-progress {
+    animation: none;
+  }
+}
+
+/* ---- Sticky mobile bar clearance ----
+ * Matches StickyMobileBar.tsx's own height: ~16px top padding + content +
+ * 16px base bottom padding, plus whatever the device's home-indicator safe
+ * area adds on top (the bar's background extends into that area; page
+ * content needs to clear the same total height or the bar covers it). */
+.store-scope {
+  padding-bottom: calc(104px + env(safe-area-inset-bottom, 0px));
+}
+@media (min-width: 900px) {
+  .store-scope {
+    padding-bottom: 0;
+  }
+}

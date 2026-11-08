@@ -1,0 +1,25 @@
+{
+  "name": "monocoupon",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "pnpm@10.12.4",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "db:seed": "pnpm --filter @monocoupon/db seed",
+    "db:import-keywords": "pnpm --filter @monocoupon/db import-keywords",
+    "db:import-locales": "pnpm --filter @monocoupon/db import-locales",
+    "keywords:analyze": "pnpm --filter @monocoupon/db analyze-keywords",
+    "keywords:rank": "pnpm --filter @monocoupon/db rank-keywords",
+    "keywords:locale": "pnpm --filter @monocoupon/db locale-keywords"
+  },
+  "devDependencies": {
+    "turbo": "^2",
+    "typescript": "^5"
+  }
+}

@@ -1,0 +1,21 @@
+@import "tailwindcss";
+@import "@monocoupon/config/tokens.css";
+
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--surface);
+  color: var(--text);
+}
+
+::selection {
+  background: color-mix(in srgb, var(--brand-primary) 28%, white);
+}
+
+:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
