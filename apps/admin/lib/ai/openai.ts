@@ -56,6 +56,19 @@ function apiModel(model: string): string {
   return model.startsWith(GROQ_PREFIX) ? model.slice(GROQ_PREFIX.length) : model;
 }
 
+/**
+ * Groq's gpt-oss models think before answering and that thinking counts against the
+ * token cap, so a tight cap truncates the JSON mid-object. Give Groq calls more room
+ * and ask for light reasoning (these are short copywriting jobs).
+ */
+function tokenCap(model: string, tokens: number): number {
+  return model.startsWith(GROQ_PREFIX) ? Math.max(tokens * 4, 2000) : tokens;
+}
+
+function groqParams(model: string): { reasoning_effort?: "low" } {
+  return model.startsWith(GROQ_PREFIX) && model.includes("gpt-oss") ? { reasoning_effort: "low" } : {};
+}
+
 function getClient(model: string): OpenAI {
   // The SDK defaults to a 10-minute timeout and 2 automatic retries, so a
   // slow call can hold a request open for half an hour with the UI stuck on
@@ -88,7 +101,8 @@ export async function generateText(
   const openai = getClient(model);
   const response = await openai.chat.completions.create({
     model: apiModel(model),
-    max_tokens: 700,
+    max_tokens: tokenCap(model, 700),
+    ...groqParams(model),
     temperature: 0.7,
     messages: [
       { role: "system", content: TEXT_SYSTEM_PROMPT },
@@ -317,7 +331,7 @@ export async function generateAdCopy(
       {
         model: apiModel(model),
         max_completion_tokens: AD_COPY_MAX_COMPLETION_TOKENS,
-        ...(reasoning ? { reasoning_effort: effort } : { temperature: 0.7 }),
+        ...(reasoning ? { reasoning_effort: effort } : { temperature: 0.7, ...groqParams(model) }),
         response_format: { type: "json_object" },
         messages: [
           { role: "system", content: AD_COPY_SYSTEM_PROMPT },
@@ -493,7 +507,8 @@ export async function generateSiteLinkCopy(
 
   const response = await openai.chat.completions.create({
     model: apiModel(model),
-    max_tokens: 700,
+    max_tokens: tokenCap(model, 700),
+    ...groqParams(model),
     temperature: 0.8,
     response_format: { type: "json_object" },
     messages: [
@@ -548,7 +563,8 @@ export async function generateBlogTopics(
 
   const response = await openai.chat.completions.create({
     model: apiModel(model),
-    max_tokens: 700,
+    max_tokens: tokenCap(model, 700),
+    ...groqParams(model),
     temperature: 0.9,
     response_format: { type: "json_object" },
     messages: [
@@ -606,7 +622,8 @@ export async function generateArticle(
 
   const response = await openai.chat.completions.create({
     model: apiModel(model),
-    max_tokens: 1400,
+    max_tokens: tokenCap(model, 1400),
+    ...groqParams(model),
     temperature: 0.7,
     response_format: { type: "json_object" },
     messages: [
@@ -655,7 +672,8 @@ export async function generateCategorySuggestions(
 
   const response = await openai.chat.completions.create({
     model: apiModel(model),
-    max_tokens: 500,
+    max_tokens: tokenCap(model, 500),
+    ...groqParams(model),
     temperature: 0.8,
     response_format: { type: "json_object" },
     messages: [
@@ -711,7 +729,8 @@ export async function generateCategoryContent(
 
   const response = await openai.chat.completions.create({
     model: apiModel(model),
-    max_tokens: 400,
+    max_tokens: tokenCap(model, 400),
+    ...groqParams(model),
     temperature: 0.7,
     response_format: { type: "json_object" },
     messages: [

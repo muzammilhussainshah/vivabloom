@@ -40,18 +40,18 @@ Do not force ${label} references into every line — only where they read natura
 // ===========================================================================
 
 export const AI_MODELS = {
-  /** OpenAI chat models used for text generation. */
+  /** Chat models used for text generation (Groq by default; OpenAI ids like "gpt-4o-mini" also work). */
   text: {
-    blogDraft: "gpt-4o-mini",
-    blogTags: "gpt-4o-mini",
-    blogTopics: "gpt-4o-mini",
-    article: "gpt-4o-mini",
-    storeDescription: "gpt-4o-mini",
-    couponDescription: "gpt-4o-mini",
-    adCopy: "gpt-5.4-mini",
-    siteLinkCopy: "gpt-4o-mini",
-    categorySuggest: "gpt-4o-mini",
-    categoryContent: "gpt-4o-mini",
+    blogDraft: "groq/openai/gpt-oss-120b",
+    blogTags: "groq/openai/gpt-oss-120b",
+    blogTopics: "groq/openai/gpt-oss-120b",
+    article: "groq/openai/gpt-oss-120b",
+    storeDescription: "groq/openai/gpt-oss-120b",
+    couponDescription: "groq/openai/gpt-oss-120b",
+    adCopy: "groq/openai/gpt-oss-120b",
+    siteLinkCopy: "groq/openai/gpt-oss-120b",
+    categorySuggest: "groq/openai/gpt-oss-120b",
+    categoryContent: "groq/openai/gpt-oss-120b",
   },
   /** Gemini models used for image generation. */
   image: {
