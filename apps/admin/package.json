@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^1.6.0",
     "@google/genai": "^2.11.0",
     "@monocoupon/db": "workspace:*",
     "@monocoupon/keywords": "workspace:*",
@@ -27,8 +28,8 @@
     "openai": "^6.46.0",
     "pdfkit": "^0.19.1",
     "react": "19.2.4",
-    "recharts": "^2.15.0",
     "react-dom": "19.2.4",
+    "recharts": "^2.15.0",
     "ua-parser-js": "^2.0.10"
   },
   "devDependencies": {
