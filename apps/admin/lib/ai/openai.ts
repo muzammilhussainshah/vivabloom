@@ -46,16 +46,35 @@ export type {
 };
 
 let client: OpenAI | null = null;
+let groqClient: OpenAI | null = null;
 
-function getClient(): OpenAI {
+/** Model ids starting with "groq/" run on Groq (OpenAI-compatible API); everything else on OpenAI. */
+const GROQ_PREFIX = "groq/";
+
+/** The model id to send to the provider (drops the "groq/" routing prefix). */
+function apiModel(model: string): string {
+  return model.startsWith(GROQ_PREFIX) ? model.slice(GROQ_PREFIX.length) : model;
+}
+
+function getClient(model: string): OpenAI {
+  // The SDK defaults to a 10-minute timeout and 2 automatic retries, so a
+  // slow call can hold a request open for half an hour with the UI stuck on
+  // "Generating…". Fail fast enough to show the user an error instead.
+  if (model.startsWith(GROQ_PREFIX)) {
+    const apiKey = process.env.GROQ_API_KEY;
+    if (!apiKey) {
+      throw new Error("GROQ_API_KEY is not set. Add it to apps/admin/.env.local.");
+    }
+    if (!groqClient) {
+      groqClient = new OpenAI({ apiKey, baseURL: "https://api.groq.com/openai/v1", timeout: 60_000, maxRetries: 1 });
+    }
+    return groqClient;
+  }
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     throw new Error("OPENAI_API_KEY is not set. Add it to apps/admin/.env.local.");
   }
   if (!client) {
-    // The SDK defaults to a 10-minute timeout and 2 automatic retries, so a
-    // slow call can hold a request open for half an hour with the UI stuck on
-    // "Generating…". Fail fast enough to show the user an error instead.
     client = new OpenAI({ apiKey, timeout: 60_000, maxRetries: 1 });
   }
   return client;
@@ -66,9 +85,9 @@ export async function generateText(
   prompt: string,
   model: string = AI_MODELS.text.blogDraft
 ): Promise<string> {
-  const openai = getClient();
+  const openai = getClient(model);
   const response = await openai.chat.completions.create({
-    model,
+    model: apiModel(model),
     max_tokens: 700,
     temperature: 0.7,
     messages: [
@@ -283,7 +302,7 @@ export async function generateAdCopy(
   args: Parameters<typeof adCopyPrompt>[0],
   model: string = AI_MODELS.text.adCopy
 ): Promise<GeneratedAdCopy> {
-  const openai = getClient();
+  const openai = getClient(model);
   const headlineSlots = new Map(AD_HEADLINE_CATEGORIES.map((c) => [c.key as string, c.slots as number]));
   const descriptionSlots = new Map(AD_DESCRIPTION_THEMES.map((t) => [t.key as string, 1]));
   const offerSlots = AD_HEADLINE_CATEGORIES.find((c) => c.key === "offer")?.slots ?? 2;
@@ -296,7 +315,7 @@ export async function generateAdCopy(
     const reasoning = isReasoningModel(model);
     const response = await openai.chat.completions.create(
       {
-        model,
+        model: apiModel(model),
         max_completion_tokens: AD_COPY_MAX_COMPLETION_TOKENS,
         ...(reasoning ? { reasoning_effort: effort } : { temperature: 0.7 }),
         response_format: { type: "json_object" },
@@ -470,10 +489,10 @@ export async function generateSiteLinkCopy(
   args: Parameters<typeof siteLinkCopyPrompt>[0],
   model: string = AI_MODELS.text.siteLinkCopy
 ): Promise<GeneratedSiteLinkCopy> {
-  const openai = getClient();
+  const openai = getClient(model);
 
   const response = await openai.chat.completions.create({
-    model,
+    model: apiModel(model),
     max_tokens: 700,
     temperature: 0.8,
     response_format: { type: "json_object" },
@@ -525,10 +544,10 @@ export async function generateBlogTopics(
   args: Parameters<typeof blogTopicsPrompt>[0],
   model: string = AI_MODELS.text.blogTopics
 ): Promise<GeneratedBlogTopics> {
-  const openai = getClient();
+  const openai = getClient(model);
 
   const response = await openai.chat.completions.create({
-    model,
+    model: apiModel(model),
     max_tokens: 700,
     temperature: 0.9,
     response_format: { type: "json_object" },
@@ -583,10 +602,10 @@ export async function generateArticle(
   /** BLOG_COUNTRIES code — see localRelevanceBlock in ./prompts. Omit for a country-agnostic article. */
   country?: string | null
 ): Promise<GeneratedArticle> {
-  const openai = getClient();
+  const openai = getClient(model);
 
   const response = await openai.chat.completions.create({
-    model,
+    model: apiModel(model),
     max_tokens: 1400,
     temperature: 0.7,
     response_format: { type: "json_object" },
@@ -632,10 +651,10 @@ export async function generateCategorySuggestions(
   args: Parameters<typeof categorySuggestPrompt>[0],
   model: string = AI_MODELS.text.categorySuggest
 ): Promise<GeneratedCategorySuggestions> {
-  const openai = getClient();
+  const openai = getClient(model);
 
   const response = await openai.chat.completions.create({
-    model,
+    model: apiModel(model),
     max_tokens: 500,
     temperature: 0.8,
     response_format: { type: "json_object" },
@@ -688,10 +707,10 @@ export async function generateCategoryContent(
   args: Parameters<typeof categoryContentPrompt>[0],
   model: string = AI_MODELS.text.categoryContent
 ): Promise<GeneratedCategoryContent> {
-  const openai = getClient();
+  const openai = getClient(model);
 
   const response = await openai.chat.completions.create({
-    model,
+    model: apiModel(model),
     max_tokens: 400,
     temperature: 0.7,
     response_format: { type: "json_object" },

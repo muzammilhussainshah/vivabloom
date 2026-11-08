@@ -86,9 +86,13 @@ export const AI_TASKS = [
 
 /**
  * Selectable models for the admin dropdowns. Edit these lists to add/remove
- * choices — availability still depends on your OpenAI/Gemini API access.
+ * choices — availability still depends on your OpenAI/Groq/Gemini API access.
  */
-export const TEXT_MODEL_OPTIONS = ["gpt-4o-mini", "gpt-4o", "gpt-4.1-mini", "gpt-4.1", "o4-mini"];
+export const TEXT_MODEL_OPTIONS = [
+  "gpt-4o-mini", "gpt-4o", "gpt-4.1-mini", "gpt-4.1", "o4-mini",
+  // Groq (free tier, needs GROQ_API_KEY) — the "groq/" prefix routes the call to Groq.
+  "groq/llama-3.3-70b-versatile", "groq/openai/gpt-oss-120b", "groq/llama-3.1-8b-instant",
+];
 export const IMAGE_MODEL_OPTIONS = ["gemini-3.1-flash-image", "gemini-2.5-flash-image"];
 
 /** The model set in code (AI_MODELS) for a task — the default when unset in the UI. */
