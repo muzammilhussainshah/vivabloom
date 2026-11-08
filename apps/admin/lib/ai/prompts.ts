@@ -53,11 +53,11 @@ export const AI_MODELS = {
     categorySuggest: "groq/openai/gpt-oss-120b",
     categoryContent: "groq/openai/gpt-oss-120b",
   },
-  /** Gemini models used for image generation. */
+  /** Models used for image generation (Cloudflare FLUX by default; Gemini ids also work). */
   image: {
-    blogCover: "gemini-3.1-flash-image",
-    heroBackground: "gemini-3.1-flash-image",
-    categoryImage: "gemini-3.1-flash-image",
+    blogCover: "cloudflare/@cf/black-forest-labs/flux-1-schnell",
+    heroBackground: "cloudflare/@cf/black-forest-labs/flux-1-schnell",
+    categoryImage: "cloudflare/@cf/black-forest-labs/flux-1-schnell",
   },
 } as const;
 
@@ -93,7 +93,12 @@ export const TEXT_MODEL_OPTIONS = [
   // Groq (free tier, needs GROQ_API_KEY) — the "groq/" prefix routes the call to Groq.
   "groq/openai/gpt-oss-120b", "groq/openai/gpt-oss-20b", "groq/qwen/qwen3.8-27b",
 ];
-export const IMAGE_MODEL_OPTIONS = ["gemini-3.1-flash-image", "gemini-2.5-flash-image"];
+export const IMAGE_MODEL_OPTIONS = [
+  // Cloudflare Workers AI (free daily allowance, needs CLOUDFLARE_ACCOUNT_ID + CLOUDFLARE_API_TOKEN).
+  "cloudflare/@cf/black-forest-labs/flux-1-schnell",
+  // Gemini image models need billing enabled on the Google AI Studio project.
+  "gemini-3.1-flash-image", "gemini-2.5-flash-image",
+];
 
 /** The model set in code (AI_MODELS) for a task — the default when unset in the UI. */
 export function codeDefaultModel(task?: string | null): string {

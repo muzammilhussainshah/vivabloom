@@ -1,5 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import { AI_MODELS } from "./prompts";
+import { generateCloudflareImage, isCloudflareModel } from "./cloudflare";
 
 let client: GoogleGenAI | null = null;
 
@@ -27,6 +28,8 @@ export async function generateImage(
   prompt: string,
   model: string = AI_MODELS.image.blogCover
 ): Promise<GeneratedImage> {
+  if (isCloudflareModel(model)) return generateCloudflareImage(prompt, model);
+
   const ai = getClient();
 
   const response = await ai.models.generateContent({
