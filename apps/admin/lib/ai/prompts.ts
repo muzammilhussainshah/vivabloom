@@ -86,13 +86,9 @@ export const AI_TASKS = [
 
 /**
  * Selectable models for the admin dropdowns. Edit these lists to add/remove
- * choices — availability still depends on your OpenAI/Anthropic/Gemini API access.
+ * choices — availability still depends on your OpenAI/Gemini API access.
  */
-export const TEXT_MODEL_OPTIONS = [
-  "gpt-4o-mini", "gpt-4o", "gpt-4.1-mini", "gpt-4.1", "o4-mini",
-  // Claude (needs ANTHROPIC_API_KEY) — pick per task on the AI Models page.
-  "claude-sonnet-5-5", "claude-opus-5-5", "claude-haiku-5-5",
-];
+export const TEXT_MODEL_OPTIONS = ["gpt-4o-mini", "gpt-4o", "gpt-4.1-mini", "gpt-4.1", "o4-mini"];
 export const IMAGE_MODEL_OPTIONS = ["gemini-3.1-flash-image", "gemini-2.5-flash-image"];
 
 /** The model set in code (AI_MODELS) for a task — the default when unset in the UI. */

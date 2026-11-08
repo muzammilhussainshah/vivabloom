@@ -1,5 +1,4 @@
 import OpenAI from "openai";
-import { claudeComplete, isClaudeModel } from "./claude";
 import {
   AD_COPY_SYSTEM_PROMPT,
   AD_DESCRIPTION_COUNT,
@@ -62,41 +61,11 @@ function getClient(): OpenAI {
   return client;
 }
 
-/**
- * JSON-mode completion for the simple (non-reasoning) tasks. Routes to Claude when
- * the chosen model is a Claude id, otherwise uses OpenAI exactly as before.
- */
-async function jsonCompletion(opts: {
-  model: string;
-  system: string;
-  user: string;
-  maxTokens: number;
-  temperature: number;
-}): Promise<string | null> {
-  if (isClaudeModel(opts.model)) {
-    return claudeComplete({ model: opts.model, system: opts.system, prompt: opts.user, maxTokens: opts.maxTokens, json: true });
-  }
-  const response = await getClient().chat.completions.create({
-    model: opts.model,
-    max_tokens: opts.maxTokens,
-    temperature: opts.temperature,
-    response_format: { type: "json_object" },
-    messages: [
-      { role: "system", content: opts.system },
-      { role: "user", content: opts.user },
-    ],
-  });
-  return response.choices[0]?.message?.content ?? null;
-}
-
 /** Generates short marketing/editorial copy. Capped output length to bound cost. */
 export async function generateText(
   prompt: string,
   model: string = AI_MODELS.text.blogDraft
 ): Promise<string> {
-  if (isClaudeModel(model)) {
-    return claudeComplete({ model, system: TEXT_SYSTEM_PROMPT, prompt, maxTokens: 700 });
-  }
   const openai = getClient();
   const response = await openai.chat.completions.create({
     model,
@@ -324,25 +293,6 @@ export async function generateAdCopy(
     effort: AdCopyReasoningEffort = AD_COPY_REASONING_EFFORT,
     timeoutMs: number = AD_COPY_REQUEST_TIMEOUT_MS
   ): Promise<{ headlines: AdCandidate[]; descriptions: AdCandidate[] }> {
-    if (isClaudeModel(model)) {
-      const text = await claudeComplete({
-        model,
-        system: AD_COPY_SYSTEM_PROMPT,
-        prompt: adCopyPrompt({ ...args, extraNotes: [args.extraNotes, extraNotes].filter(Boolean).join("\n") }),
-        maxTokens: AD_COPY_MAX_COMPLETION_TOKENS,
-        json: true,
-      });
-      let parsedClaude: Record<string, unknown>;
-      try {
-        parsedClaude = JSON.parse(text);
-      } catch {
-        throw new Error("Claude returned malformed JSON.");
-      }
-      return {
-        headlines: toCandidates(parsedClaude.headlines),
-        descriptions: toCandidates(parsedClaude.descriptions),
-      };
-    }
     const reasoning = isReasoningModel(model);
     const response = await openai.chat.completions.create(
       {
@@ -520,13 +470,20 @@ export async function generateSiteLinkCopy(
   args: Parameters<typeof siteLinkCopyPrompt>[0],
   model: string = AI_MODELS.text.siteLinkCopy
 ): Promise<GeneratedSiteLinkCopy> {
-  const raw = await jsonCompletion({
+  const openai = getClient();
+
+  const response = await openai.chat.completions.create({
     model,
-    system: SITE_LINK_SYSTEM_PROMPT,
-    user: siteLinkCopyPrompt(args),
-    maxTokens: 700,
+    max_tokens: 700,
     temperature: 0.8,
+    response_format: { type: "json_object" },
+    messages: [
+      { role: "system", content: SITE_LINK_SYSTEM_PROMPT },
+      { role: "user", content: siteLinkCopyPrompt(args) },
+    ],
   });
+
+  const raw = response.choices[0]?.message?.content;
   if (!raw) throw new Error("OpenAI returned an empty response.");
   let parsed: Record<string, unknown>;
   try {
@@ -568,13 +525,20 @@ export async function generateBlogTopics(
   args: Parameters<typeof blogTopicsPrompt>[0],
   model: string = AI_MODELS.text.blogTopics
 ): Promise<GeneratedBlogTopics> {
-  const raw = await jsonCompletion({
+  const openai = getClient();
+
+  const response = await openai.chat.completions.create({
     model,
-    system: BLOG_TOPICS_SYSTEM_PROMPT,
-    user: blogTopicsPrompt(args),
-    maxTokens: 700,
+    max_tokens: 700,
     temperature: 0.9,
+    response_format: { type: "json_object" },
+    messages: [
+      { role: "system", content: BLOG_TOPICS_SYSTEM_PROMPT },
+      { role: "user", content: blogTopicsPrompt(args) },
+    ],
   });
+
+  const raw = response.choices[0]?.message?.content;
   if (!raw) {
     throw new Error("OpenAI returned an empty response.");
   }
@@ -619,13 +583,20 @@ export async function generateArticle(
   /** BLOG_COUNTRIES code — see localRelevanceBlock in ./prompts. Omit for a country-agnostic article. */
   country?: string | null
 ): Promise<GeneratedArticle> {
-  const raw = await jsonCompletion({
+  const openai = getClient();
+
+  const response = await openai.chat.completions.create({
     model,
-    system: ARTICLE_SYSTEM_PROMPT,
-    user: articlePrompt({ topic, storeName, products, country }),
-    maxTokens: 1400,
+    max_tokens: 1400,
     temperature: 0.7,
+    response_format: { type: "json_object" },
+    messages: [
+      { role: "system", content: ARTICLE_SYSTEM_PROMPT },
+      { role: "user", content: articlePrompt({ topic, storeName, products, country }) },
+    ],
   });
+
+  const raw = response.choices[0]?.message?.content;
   if (!raw) {
     throw new Error("OpenAI returned an empty response.");
   }
@@ -661,13 +632,20 @@ export async function generateCategorySuggestions(
   args: Parameters<typeof categorySuggestPrompt>[0],
   model: string = AI_MODELS.text.categorySuggest
 ): Promise<GeneratedCategorySuggestions> {
-  const raw = await jsonCompletion({
+  const openai = getClient();
+
+  const response = await openai.chat.completions.create({
     model,
-    system: CATEGORY_SUGGEST_SYSTEM_PROMPT,
-    user: categorySuggestPrompt(args),
-    maxTokens: 500,
+    max_tokens: 500,
     temperature: 0.8,
+    response_format: { type: "json_object" },
+    messages: [
+      { role: "system", content: CATEGORY_SUGGEST_SYSTEM_PROMPT },
+      { role: "user", content: categorySuggestPrompt(args) },
+    ],
   });
+
+  const raw = response.choices[0]?.message?.content;
   if (!raw) throw new Error("OpenAI returned an empty response.");
   let parsed: Record<string, unknown>;
   try {
@@ -710,13 +688,20 @@ export async function generateCategoryContent(
   args: Parameters<typeof categoryContentPrompt>[0],
   model: string = AI_MODELS.text.categoryContent
 ): Promise<GeneratedCategoryContent> {
-  const raw = await jsonCompletion({
+  const openai = getClient();
+
+  const response = await openai.chat.completions.create({
     model,
-    system: CATEGORY_CONTENT_SYSTEM_PROMPT,
-    user: categoryContentPrompt(args),
-    maxTokens: 400,
+    max_tokens: 400,
     temperature: 0.7,
+    response_format: { type: "json_object" },
+    messages: [
+      { role: "system", content: CATEGORY_CONTENT_SYSTEM_PROMPT },
+      { role: "user", content: categoryContentPrompt(args) },
+    ],
   });
+
+  const raw = response.choices[0]?.message?.content;
   if (!raw) throw new Error("OpenAI returned an empty response.");
   let parsed: Record<string, unknown>;
   try {
