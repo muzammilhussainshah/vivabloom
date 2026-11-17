@@ -43,7 +43,7 @@ export function ContactForm() {
 
   if (status === "submitted") {
     return (
-      <p className="rounded-base border border-border bg-surface-muted p-4 text-sm text-brand-accent">
+      <p className="rounded-xl border border-brand-primary/20 bg-brand-primary/10 p-4 text-sm font-medium text-brand-primary">
         Thanks for reaching out — we&apos;ll get back to you soon.
       </p>
     );
@@ -51,31 +51,33 @@ export function ContactForm() {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-      <div className="flex flex-col gap-1">
-        <label htmlFor="name" className="text-sm font-medium">
-          Name
-        </label>
-        <input
-          id="name"
-          name="name"
-          type="text"
-          required
-          className="rounded-base border border-border bg-surface px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
-        />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="name" className="text-sm font-medium">
+            Name
+          </label>
+          <input
+            id="name"
+            name="name"
+            type="text"
+            required
+            className="w-full rounded-xl border border-border bg-surface px-3.5 py-2.5 text-sm text-text transition-shadow placeholder:text-text-muted focus:border-brand-primary focus:outline-none focus:ring-4 focus:ring-brand-primary/15"
+          />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="email" className="text-sm font-medium">
+            Email
+          </label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            required
+            className="w-full rounded-xl border border-border bg-surface px-3.5 py-2.5 text-sm text-text transition-shadow placeholder:text-text-muted focus:border-brand-primary focus:outline-none focus:ring-4 focus:ring-brand-primary/15"
+          />
+        </div>
       </div>
-      <div className="flex flex-col gap-1">
-        <label htmlFor="email" className="text-sm font-medium">
-          Email
-        </label>
-        <input
-          id="email"
-          name="email"
-          type="email"
-          required
-          className="rounded-base border border-border bg-surface px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
-        />
-      </div>
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-1.5">
         <label htmlFor="phone" className="text-sm font-medium">
           Phone <span className="text-text-muted">(optional)</span>
         </label>
@@ -83,10 +85,10 @@ export function ContactForm() {
           id="phone"
           name="phone"
           type="tel"
-          className="rounded-base border border-border bg-surface px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
+          className="w-full rounded-xl border border-border bg-surface px-3.5 py-2.5 text-sm text-text transition-shadow placeholder:text-text-muted focus:border-brand-primary focus:outline-none focus:ring-4 focus:ring-brand-primary/15"
         />
       </div>
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-1.5">
         <label htmlFor="message" className="text-sm font-medium">
           Message
         </label>
@@ -95,7 +97,7 @@ export function ContactForm() {
           name="message"
           required
           rows={5}
-          className="rounded-base border border-border bg-surface px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
+          className="w-full rounded-xl border border-border bg-surface px-3.5 py-2.5 text-sm text-text transition-shadow placeholder:text-text-muted focus:border-brand-primary focus:outline-none focus:ring-4 focus:ring-brand-primary/15"
         />
       </div>
       {TURNSTILE_SITE_KEY && (
@@ -107,11 +109,11 @@ export function ContactForm() {
       <button
         type="submit"
         disabled={status === "submitting"}
-        className="self-start rounded-base bg-brand-primary px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-primary-hover disabled:opacity-60"
+        className="self-start rounded-full bg-brand-primary px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-primary-hover disabled:opacity-60"
       >
         {status === "submitting" ? "Sending…" : "Submit"}
       </button>
-      {error && <p className="text-sm text-brand-secondary">{error}</p>}
+      {error && <p className="text-sm text-red-600">{error}</p>}
     </form>
   );
 }

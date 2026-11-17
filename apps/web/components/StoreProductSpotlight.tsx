@@ -253,41 +253,50 @@ export function StoreProductSpotlight({
   const [lead, ...rest] = items;
 
   return (
-    <section className="flex flex-col gap-4 border-b border-border pb-10 last:border-b-0">
-      <div className="flex flex-col gap-1.5">
-        <Link
-          href={`/stores/${group.store.slug}`}
-          className="inline-flex w-fit items-center gap-2 text-sm font-semibold text-text hover:text-brand-primary"
-        >
+    <section className="flex flex-col gap-5 border-b border-border pb-10 last:border-b-0">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex min-w-0 items-center gap-3">
           {group.store.logo && (
             <RemoteImage
               src={group.store.logo}
               alt={group.store.name}
-              sizes="28px"
-              className="h-7 w-7 rounded-full bg-surface-muted"
+              sizes="44px"
+              className="h-11 w-11 shrink-0 overflow-hidden rounded-xl border border-border bg-surface-muted"
               imgClassName="object-contain"
             />
           )}
-          {group.store.name}
-          <span aria-hidden="true">→</span>
-        </Link>
-
-        {(!!group.store.categories?.length || group.store.shortDescription) && (
-          <div className="flex flex-wrap items-center gap-2 pl-9 text-xs text-text-muted">
-            {group.store.categories?.map((c) => (
-              <Link
-                key={c._id}
-                href={`/category/${c.slug}`}
-                className="rounded-full bg-surface-muted px-2 py-0.5 font-medium text-text-muted hover:text-brand-primary"
-              >
-                {c.name}
-              </Link>
-            ))}
-            {group.store.shortDescription && (
-              <span className="line-clamp-1">{group.store.shortDescription}</span>
+          <div className="flex min-w-0 flex-col gap-1">
+            <Link
+              href={`/stores/${group.store.slug}`}
+              className="w-fit font-serif text-xl font-semibold leading-tight text-text transition-colors hover:text-brand-primary"
+            >
+              {group.store.name}
+            </Link>
+            {(!!group.store.categories?.length || group.store.shortDescription) && (
+              <div className="flex flex-wrap items-center gap-2 text-xs text-text-muted">
+                {group.store.categories?.map((c) => (
+                  <Link
+                    key={c._id}
+                    href={`/category/${c.slug}`}
+                    className="rounded-full bg-brand-primary/10 px-2.5 py-0.5 font-medium text-brand-primary transition-colors hover:bg-brand-primary/15"
+                  >
+                    {c.name}
+                  </Link>
+                ))}
+                {group.store.shortDescription && <span className="line-clamp-1">{group.store.shortDescription}</span>}
+              </div>
             )}
           </div>
-        )}
+        </div>
+        <Link
+          href={`/stores/${group.store.slug}`}
+          className="group/visit inline-flex items-center gap-2 rounded-full border border-border bg-surface-muted px-4 py-2 text-sm font-semibold text-text transition-colors hover:border-brand-primary/40 hover:text-brand-primary"
+        >
+          Visit store
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true" className="transition-transform group-hover/visit:translate-x-0.5">
+            <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </Link>
       </div>
 
       {items.length === 1 && (

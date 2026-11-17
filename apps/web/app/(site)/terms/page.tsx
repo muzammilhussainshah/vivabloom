@@ -1,14 +1,12 @@
 import type { Metadata } from "next";
+import { PageHeader } from "@/components/PageHeader";
 
 export const metadata: Metadata = { title: "Terms of Service", alternates: { canonical: "/terms" } };
 
 export default function TermsPage() {
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-6 px-5 py-10 sm:px-8">
-      <div>
-        <h1 className="font-serif text-3xl font-extrabold text-brand-accent sm:text-5xl">Terms of Service</h1>
-        <p className="mt-1 text-sm text-text-muted">Last updated: July 2026</p>
-      </div>
+    <div className="mx-auto flex max-w-3xl flex-col gap-6 px-5 py-10 sm:px-8 sm:py-14">
+      <PageHeader eyebrow="Legal" title="Terms of Service" meta="Last updated: July 2026" />
 
       <p className="text-text-muted">
         By accessing or using monocoupon.com (the &quot;Site&quot;), you agree to these Terms of Service. If you

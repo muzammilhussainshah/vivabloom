@@ -7,6 +7,7 @@ import { RemoteImage } from "@/components/RemoteImage";
 import { CatalogCard } from "@/components/CatalogCard";
 import { ProductDetailActions } from "@/components/ProductDetailActions";
 import { breadcrumbJsonLd, productJsonLd } from "@/lib/seo";
+import { BackLink } from "@/components/BackLink";
 
 export const revalidate = 1800;
 
@@ -48,9 +49,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
         ])}
       />
 
-      <Link href="/products" className="text-sm text-brand-primary hover:underline">
-        ← All products
-      </Link>
+      <BackLink href="/products">All products</BackLink>
 
       <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
         <RemoteImage
@@ -78,7 +77,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             {item.store.name}
           </Link>
 
-          <h1 className="text-2xl font-bold text-text sm:text-3xl">{item.name}</h1>
+          <h1 className="text-balance font-serif text-3xl font-bold leading-tight tracking-tight text-text sm:text-4xl">{item.name}</h1>
 
           {item.description && <p className="whitespace-pre-line text-sm leading-relaxed text-text-muted">{item.description}</p>}
 
@@ -93,7 +92,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
 
       {relatedItems.length > 0 && (
         <div className="flex flex-col gap-4">
-          <h2 className="text-lg font-semibold">You Might Also Like</h2>
+          <h2 className="font-serif text-2xl font-bold tracking-tight">You Might Also Like</h2>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
             {relatedItems.map((r) => (
               <CatalogCard key={`${r.kind}-${r.data._id}`} item={r} />

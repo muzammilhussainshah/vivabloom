@@ -63,14 +63,14 @@ export default async function DealsPage({
     >
       <div
         className="pointer-events-none absolute -right-24 -top-24 h-[300px] w-[300px] rounded-full md:h-[520px] md:w-[520px]"
-        style={{ background: "var(--accent-stripe)" }}
+        style={{ background: "rgba(255,255,255,0.05)" }}
         aria-hidden="true"
       />
 
-      <div className="relative mx-auto max-w-7xl px-5 py-14 sm:px-8">
+      <div className="relative mx-auto max-w-6xl px-5 py-14 sm:px-8">
         <div className="mx-auto max-w-xl text-center">
-          <p className="font-store-mono text-xs uppercase tracking-[0.22em]" style={{ color: "var(--success)" }}>
-            {visible.length} verified {visible.length === 1 ? "offer" : "offers"}
+          <p className="text-xs font-semibold uppercase tracking-[0.18em]" style={{ color: "var(--success)" }}>
+            {visible.length > 0 ? `${visible.length} verified ${visible.length === 1 ? "offer" : "offers"}` : "Verified offers"}
           </p>
           <h1 className="font-store-serif mt-4 text-4xl font-bold sm:text-5xl" style={{ color: "var(--page)" }}>
             Deals &amp; Discounts
@@ -88,9 +88,30 @@ export default async function DealsPage({
         </div>
 
         {visible.length === 0 ? (
-          <p className="mt-16 text-center" style={{ color: "var(--on-primary-soft)" }}>
-            No verified deals in this category yet — check back soon.
-          </p>
+          <div
+            className="mx-auto mt-12 flex max-w-md flex-col items-center gap-3 rounded-2xl px-6 py-10 text-center"
+            style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)" }}
+          >
+            <span className="flex h-12 w-12 items-center justify-center rounded-full" style={{ background: "rgba(255,255,255,0.1)" }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M3.5 12.2V4.5a1 1 0 0 1 1-1h7.7l8.3 8.3a1 1 0 0 1 0 1.4l-7.3 7.3a1 1 0 0 1-1.4 0l-8.3-8.3Z" />
+                <circle cx="8" cy="8" r="1.4" />
+              </svg>
+            </span>
+            <p className="font-store-serif text-xl font-semibold" style={{ color: "var(--page)" }}>
+              No verified deals here yet
+            </p>
+            <p className="text-sm" style={{ color: "var(--on-primary-soft)" }}>
+              We only list offers we&apos;ve tested ourselves. Check back soon, or browse the stores we track.
+            </p>
+            <Link
+              href="/stores"
+              className="mt-2 rounded-full px-5 py-2 text-sm font-semibold transition-opacity hover:opacity-90"
+              style={{ background: "var(--accent)", color: "var(--on-accent)" }}
+            >
+              Browse all stores
+            </Link>
+          </div>
         ) : (
           <div className="mt-10 grid grid-cols-1 items-stretch gap-10 sm:grid-cols-2 2xl:grid-cols-3">
             {visible.map((entry) => (

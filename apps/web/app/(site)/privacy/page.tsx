@@ -1,14 +1,12 @@
 import type { Metadata } from "next";
+import { PageHeader } from "@/components/PageHeader";
 
 export const metadata: Metadata = { title: "Privacy Policy", alternates: { canonical: "/privacy" } };
 
 export default function PrivacyPage() {
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-6 px-5 py-10 sm:px-8">
-      <div>
-        <h1 className="font-serif text-3xl font-extrabold text-brand-accent sm:text-5xl">Privacy Policy</h1>
-        <p className="mt-1 text-sm text-text-muted">Last updated: July 2026</p>
-      </div>
+    <div className="mx-auto flex max-w-3xl flex-col gap-6 px-5 py-10 sm:px-8 sm:py-14">
+      <PageHeader eyebrow="Legal" title="Privacy Policy" meta="Last updated: July 2026" />
 
       <p className="text-text-muted">
         This Privacy Policy explains how VivaBloom (&quot;we&quot;, &quot;us&quot;) collects, uses, and protects

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { PageHeader } from "@/components/PageHeader";
 
 export const metadata: Metadata = { title: "About Us", alternates: { canonical: "/about" } };
 
@@ -48,18 +49,21 @@ const WHY_CHOOSE_US = [
 
 export default function AboutPage() {
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-12 px-5 py-10 sm:px-8">
-      <section className="flex flex-col gap-3">
-        <h1 className="font-serif text-3xl font-extrabold text-brand-accent sm:text-5xl">About VivaBloom</h1>
-        <p className="text-text-muted">
-          VivaBloom helps online shoppers find verified coupon codes and deals without digging
-          through outdated forum posts or dodgy browser extensions. We built this site because
-          finding a working discount code shouldn&apos;t be harder than the checkout itself.
-        </p>
-      </section>
+    <div className="mx-auto flex max-w-4xl flex-col gap-12 px-5 py-10 sm:px-8 sm:py-14">
+      <PageHeader
+        eyebrow="About us"
+        title="About VivaBloom"
+        description={
+          <>
+            VivaBloom helps online shoppers find verified coupon codes and deals without digging through
+            outdated forum posts or dodgy browser extensions. We built this site because finding a working
+            discount code shouldn&apos;t be harder than the checkout itself.
+          </>
+        }
+      />
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-xl font-semibold">Our Mission</h2>
+        <h2 className="font-serif text-2xl font-bold tracking-tight">Our Mission</h2>
         <p className="text-text-muted">
           To make saving money online simple and trustworthy — by surfacing real, working
           discounts and being upfront about how we operate.
@@ -67,34 +71,34 @@ export default function AboutPage() {
       </section>
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-xl font-semibold">What We Do</h2>
+        <h2 className="font-serif text-2xl font-bold tracking-tight">What We Do</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           {WHAT_WE_DO.map((item) => (
-            <div key={item.title} className="rounded-base border border-border bg-surface p-4">
-              <p className="font-medium">{item.title}</p>
-              <p className="mt-1 text-sm text-text-muted">{item.description}</p>
+            <div key={item.title} className="flex flex-col gap-2 rounded-2xl border border-border bg-surface-muted p-5 shadow-[0_1px_2px_rgb(0_0_0/0.04)]">
+              <p className="font-semibold text-text">{item.title}</p>
+              <p className="text-sm leading-relaxed text-text-muted">{item.description}</p>
             </div>
           ))}
         </div>
       </section>
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-xl font-semibold">Our Values</h2>
+        <h2 className="font-serif text-2xl font-bold tracking-tight">Our Values</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {VALUES.map((item) => (
-            <div key={item.title} className="rounded-base border border-border bg-surface p-4">
-              <p className="font-medium">{item.title}</p>
-              <p className="mt-1 text-sm text-text-muted">{item.description}</p>
+            <div key={item.title} className="flex flex-col gap-2 rounded-2xl border border-border bg-surface-muted p-5 shadow-[0_1px_2px_rgb(0_0_0/0.04)]">
+              <p className="font-semibold text-text">{item.title}</p>
+              <p className="text-sm leading-relaxed text-text-muted">{item.description}</p>
             </div>
           ))}
         </div>
       </section>
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-xl font-semibold">Why Choose Us</h2>
+        <h2 className="font-serif text-2xl font-bold tracking-tight">Why Choose Us</h2>
         <ol className="flex flex-col gap-3">
           {WHY_CHOOSE_US.map((item, i) => (
-            <li key={i} className="flex gap-3">
+            <li key={i} className="flex items-center gap-3">
               <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-primary text-xs font-semibold text-white">
                 {i + 1}
               </span>
@@ -105,7 +109,7 @@ export default function AboutPage() {
       </section>
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-xl font-semibold">Who Operates VivaBloom</h2>
+        <h2 className="font-serif text-2xl font-bold tracking-tight">Who Operates VivaBloom</h2>
         <p className="text-text-muted">
           VivaBloom is built and run by <strong>AppMash Limited</strong>, a UK-based software solutions
           company. AppMash Limited designs and builds software products for clients as well as its own
@@ -113,7 +117,7 @@ export default function AboutPage() {
           well-researched content. That combination of software engineering and content publishing is what
           shapes how the site is built and maintained.
         </p>
-        <div className="rounded-base border border-border bg-surface p-4 text-sm text-text-muted">
+        <div className="rounded-2xl border border-border bg-surface-muted p-5 text-sm text-text-muted shadow-[0_1px_2px_rgb(0_0_0/0.04)]">
           <p className="font-medium text-text">AppMash Limited</p>
           <p className="mt-1">Office 1875, 87 Dunstall Hill, Wolverhampton, United Kingdom, WV6 0SR</p>
           <p className="mt-1">

@@ -31,16 +31,20 @@ export function CatalogCard({ item, priority = false }: { item: CatalogItem; pri
           className="aspect-square w-full bg-surface-muted"
           priority={priority}
         />
-        {kind === "bundle" && (
-          <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-brand-secondary px-2.5 py-0.5 text-xs font-semibold text-white">
-            <GiftIcon />
-            Bundle
-          </span>
-        )}
-        {percentOff !== null && (
-          <span className="absolute right-2 top-2 rounded-full bg-brand-secondary px-2.5 py-0.5 text-xs font-semibold text-white">
-            -{percentOff}%
-          </span>
+        {(kind === "bundle" || percentOff !== null) && (
+          <div className="absolute left-2 top-2 flex flex-wrap gap-1.5">
+            {percentOff !== null && (
+              <span className="rounded-full bg-brand-secondary px-2.5 py-0.5 text-xs font-semibold text-white shadow">
+                -{percentOff}%
+              </span>
+            )}
+            {kind === "bundle" && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-brand-accent px-2.5 py-0.5 text-xs font-semibold text-white shadow">
+                <GiftIcon />
+                Bundle
+              </span>
+            )}
+          </div>
         )}
       </div>
       <div className="flex flex-col gap-1 p-3">

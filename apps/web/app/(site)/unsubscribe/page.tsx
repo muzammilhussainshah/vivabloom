@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { connectToDatabase, NewsletterSubscriber } from "@monocoupon/db";
+import { PageHeader } from "@/components/PageHeader";
 
 export const metadata: Metadata = { title: "Unsubscribe" };
 export const dynamic = "force-dynamic";
@@ -26,8 +27,7 @@ export default async function UnsubscribePage({
 
   return (
     <div className="mx-auto flex max-w-lg flex-col gap-4 px-5 py-16 text-center sm:px-8">
-      <h1 className="font-serif text-3xl font-extrabold text-brand-accent sm:text-5xl">Unsubscribe</h1>
-      <p className="text-text-muted">{message}</p>
+      <PageHeader eyebrow="Newsletter" title="Unsubscribe" description={message} centered divider={false} />
     </div>
   );
 }

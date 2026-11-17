@@ -3,10 +3,12 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getAllBlogPostSlugs, getBlogPost, type BlogPostCard } from "@/lib/data";
 import { JsonLd } from "@/components/JsonLd";
+import { CoverPlaceholder } from "@/components/CoverPlaceholder";
 import { RemoteImage } from "@/components/RemoteImage";
 import { ProductCard } from "@/components/ProductCard";
 import { BlogViewCounter } from "@/components/BlogViewCounter";
 import { blogPostingJsonLd, breadcrumbJsonLd } from "@/lib/seo";
+import { BackLink } from "@/components/BackLink";
 
 export const revalidate = 1800;
 
@@ -61,22 +63,24 @@ function RelatedArticleItem({ post }: { post: BlogPostCard }) {
   return (
     <Link
       href={`/blog/${post.slug}`}
-      className="group flex gap-3 rounded-base border border-brand-primary/20 p-2 transition-colors hover:border-brand-primary"
-      style={{ backgroundColor: "color-mix(in srgb, var(--brand-primary) 10%, white)" }}
+      className="group flex items-center gap-3 rounded-xl border border-border bg-surface-muted p-2.5 transition-all hover:border-brand-primary/30 hover:shadow-[0_8px_20px_-12px_rgb(0_0_0/0.2)]"
     >
-      {post.coverImage && (
+      {post.coverImage ? (
         <RemoteImage
           src={post.coverImage}
           alt={post.title}
           sizes="64px"
-          className="h-16 w-16 shrink-0 rounded-base"
+          className="h-16 w-16 shrink-0 overflow-hidden rounded-lg"
+          imgClassName="object-cover"
         />
+      ) : (
+        <CoverPlaceholder compact className="h-16 w-16 shrink-0 rounded-lg" />
       )}
-      <div className="flex min-w-0 flex-col justify-center">
-        <p className="line-clamp-2 text-sm font-medium text-text group-hover:text-brand-primary">
+      <div className="flex min-w-0 flex-col justify-center gap-1">
+        <p className="line-clamp-2 text-sm font-semibold leading-snug text-text transition-colors group-hover:text-brand-primary">
           {post.title}
         </p>
-        {date && <p className="mt-1 text-xs text-brand-accent">{date}</p>}
+        {date && <p className="text-xs text-text-muted">{date}</p>}
       </div>
     </Link>
   );
@@ -99,9 +103,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           { name: post.title, path: `/blog/${post.slug}` },
         ])}
       />
-      <Link href="/blog" className="text-sm text-brand-primary hover:underline">
-        ← All articles
-      </Link>
+      <BackLink href="/blog">All articles</BackLink>
 
       {/* Mobile-first: single column; on large screens the related-articles
           rail sits alongside the article. */}
@@ -111,14 +113,14 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
             {post.category && (
               <Link
                 href={`/category/${post.category.slug}`}
-                className="text-xs font-semibold uppercase tracking-wide text-brand-secondary hover:underline"
+                className="w-fit text-xs font-semibold uppercase tracking-[0.14em] text-brand-accent hover:underline"
               >
                 {post.category.name}
               </Link>
             )}
-            <h1 className="text-3xl font-bold sm:text-4xl">{post.title}</h1>
+            <h1 className="text-balance font-serif text-3xl font-bold leading-tight tracking-tight text-text sm:text-[2.6rem]">{post.title}</h1>
 
-            <div className="flex flex-wrap items-center gap-4 text-sm font-medium text-brand-accent">
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm font-medium text-text-muted">
               {date && (
                 <span className="inline-flex items-center gap-1.5">
                   <CalendarIcon />
@@ -141,7 +143,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                 {post.tags.map((tag) => (
                   <li
                     key={tag}
-                    className="rounded-full bg-brand-primary/10 px-3 py-1 text-xs font-medium text-brand-accent"
+                    className="rounded-full bg-brand-primary/10 px-3 py-1 text-xs font-medium text-brand-primary"
                   >
                     {tag}
                   </li>
@@ -156,24 +158,24 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
               alt={post.title}
               priority
               sizes="(min-width: 1024px) 720px, 100vw"
-              className="aspect-video w-full rounded-base"
+              className="aspect-video w-full overflow-hidden rounded-2xl"
             />
           )}
 
           {/* content is HTML from the admin's Tiptap editor — trusted (admin-only authored), not user input */}
           <div
-            className="text-text [&_h2]:mt-6 [&_h2]:text-xl [&_h2]:font-semibold [&_h3]:mt-4 [&_h3]:text-lg [&_h3]:font-semibold [&_p]:my-3 [&_ul]:my-3 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:my-3 [&_ol]:list-decimal [&_ol]:pl-5 [&_a]:text-brand-primary [&_a]:underline"
+            className="text-[17px] leading-[1.75] text-text [&_h2]:mt-10 [&_h2]:mb-1 [&_h2]:font-serif [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:tracking-tight [&_h3]:mt-6 [&_h3]:font-serif [&_h3]:text-xl [&_h3]:font-semibold [&_p]:my-4 [&_ul]:my-4 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:my-4 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:my-1.5 [&_li]:pl-1 [&_a]:text-brand-primary [&_a]:underline [&_a]:underline-offset-2 [&_blockquote]:my-6 [&_blockquote]:border-l-4 [&_blockquote]:border-brand-primary/40 [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-text-muted [&_img]:my-6 [&_img]:rounded-2xl [&_strong]:font-semibold"
             dangerouslySetInnerHTML={{ __html: post.content }}
           />
 
         </article>
 
         {(relatedPosts.length > 0 || relatedProducts.length > 0) && (
-          <aside className="w-full lg:w-80 lg:shrink-0">
+          <aside className="w-full lg:mt-1 lg:w-80 lg:shrink-0">
             <div className="flex flex-col gap-8 lg:sticky lg:top-24">
               {relatedPosts.length > 0 && (
                 <div className="flex flex-col gap-4">
-                  <h2 className="text-lg font-semibold">Related Articles</h2>
+                  <h2 className="font-serif text-xl font-semibold tracking-tight">Related Articles</h2>
                   <div className="flex flex-col gap-3">
                     {relatedPosts.map((p) => (
                       <RelatedArticleItem key={p._id} post={p} />
@@ -184,7 +186,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
               {relatedProducts.length > 0 && (
                 <div className="flex flex-col gap-4">
-                  <h2 className="text-lg font-semibold">You Might Like</h2>
+                  <h2 className="font-serif text-xl font-semibold tracking-tight">You Might Like</h2>
                   <div className="grid grid-cols-2 gap-3">
                     {relatedProducts.map((product) => (
                       <ProductCard key={product._id} product={product} />

@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getAllCategorySlugs, getCategoryDetail } from "@/lib/data";
@@ -6,6 +5,8 @@ import { JsonLd } from "@/components/JsonLd";
 import { BlogCard } from "@/components/BlogCard";
 import { ProductCard } from "@/components/ProductCard";
 import { breadcrumbJsonLd, itemListJsonLd } from "@/lib/seo";
+import { PageHeader } from "@/components/PageHeader";
+import { BackLink } from "@/components/BackLink";
 
 export const revalidate = 600;
 
@@ -35,7 +36,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
   const { category, stores, posts, products } = data;
 
   return (
-    <div className="mx-auto flex max-w-5xl flex-col gap-6 px-5 py-10 sm:px-8">
+    <div className="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-10 sm:px-8 sm:py-12">
       <JsonLd
         data={breadcrumbJsonLd([
           { name: "Home", path: "/" },
@@ -49,17 +50,12 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
       {posts.length > 0 && (
         <JsonLd data={itemListJsonLd(posts.map((p) => ({ name: p.title, path: `/blog/${p.slug}` })))} />
       )}
-      <Link href="/categories" className="text-sm text-brand-primary hover:underline">
-        ← All categories
-      </Link>
-      <div>
-        <h1 className="font-serif text-3xl font-extrabold text-brand-accent sm:text-5xl">{category.name}</h1>
-        {category.description && <p className="mt-1 text-text-muted">{category.description}</p>}
-      </div>
+      <BackLink href="/categories">All categories</BackLink>
+      <PageHeader eyebrow="Category" title={category.name} description={category.description || undefined} />
 
       {products.length > 0 && (
         <section className="flex flex-col gap-4">
-          <h2 className="font-serif text-2xl font-bold">{category.name} Products</h2>
+          <h2 className="font-serif text-2xl font-bold tracking-tight">{category.name} Products</h2>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
             {products.map((product, i) => (
               <ProductCard key={product._id} product={product} priority={i < 4} />
@@ -70,8 +66,8 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
 
       {posts.length > 0 && (
         <section className="flex flex-col gap-4">
-          <h2 className="font-serif text-2xl font-bold">{category.name} Articles</h2>
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
+          <h2 className="font-serif text-2xl font-bold tracking-tight">{category.name} Articles</h2>
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {posts.map((post) => (
               <BlogCard key={post._id} post={post} />
             ))}

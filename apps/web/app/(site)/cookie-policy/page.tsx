@@ -1,14 +1,12 @@
 import type { Metadata } from "next";
+import { PageHeader } from "@/components/PageHeader";
 
 export const metadata: Metadata = { title: "Cookie Policy", alternates: { canonical: "/cookie-policy" } };
 
 export default function CookiePolicyPage() {
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-6 px-5 py-10 sm:px-8">
-      <div>
-        <h1 className="font-serif text-3xl font-extrabold text-brand-accent sm:text-5xl">Cookie Policy</h1>
-        <p className="mt-1 text-sm text-text-muted">Last updated: July 2026</p>
-      </div>
+    <div className="mx-auto flex max-w-3xl flex-col gap-6 px-5 py-10 sm:px-8 sm:py-14">
+      <PageHeader eyebrow="Legal" title="Cookie Policy" meta="Last updated: July 2026" />
 
       <p className="text-text-muted">
         This Cookie Policy explains how VivaBloom, operated by AppMash Limited (Office 1875, 87 Dunstall

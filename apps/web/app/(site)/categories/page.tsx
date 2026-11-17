@@ -3,6 +3,7 @@ import { getAllCategories, type CategoryCard } from "@/lib/data";
 import { JsonLd } from "@/components/JsonLd";
 import { CategoryTile } from "@/components/CategoryTile";
 import { breadcrumbJsonLd, itemListJsonLd } from "@/lib/seo";
+import { PageHeader } from "@/components/PageHeader";
 
 export const revalidate = 3600;
 
@@ -25,13 +26,11 @@ export default async function CategoriesPage() {
       <JsonLd
         data={itemListJsonLd(categories.map((c) => ({ name: c.name, path: `/category/${c.slug}` })))}
       />
-      <header className="flex flex-col gap-3 border-b border-border pb-8">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">Explore</p>
-        <h1 className="font-serif text-3xl font-bold tracking-tight text-text sm:text-5xl">Shop by Category</h1>
-        <p className="max-w-2xl text-base leading-relaxed text-text-muted">
-          Every topic we cover — guides, verified deals and trusted stores, organised in one place.
-        </p>
-      </header>
+      <PageHeader
+        eyebrow="Explore"
+        title="Shop by Category"
+        description="Every topic we cover — guides, verified deals and trusted stores, organised in one place."
+      />
       {categories.length === 0 ? (
         <p className="text-sm text-text-muted">No categories yet.</p>
       ) : (

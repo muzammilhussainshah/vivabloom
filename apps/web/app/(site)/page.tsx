@@ -4,15 +4,14 @@ import { MostReadBand } from "@/components/MostReadBand";
 import { CategorySpotlight } from "@/components/CategorySpotlight";
 import { CategoryMosaic } from "@/components/CategoryMosaic";
 import { LoadMoreArticles } from "@/components/LoadMoreArticles";
-import { NewsletterCta } from "@/components/NewsletterCta";
 
 export const revalidate = 300;
 
 const HERO_DEFAULTS = {
-  overline: "Insights that matter, stories that inspire",
+  overline: "Wellness guides & verified deals",
   heading: "Read. Learn. Grow.",
   description:
-    "Discover powerful ideas, practical tips, and real-world knowledge across tech, business, lifestyle, and more. Stay updated, stay ahead.",
+    "Practical, well-researched guides on supplements, healthy routines and smarter shopping — plus hand-checked deals from brands worth your money.",
 };
 
 /** Kicker label + serif title + a short relevant description of the section — replaces the old icon-before-heading pattern for a quieter, more editorial section header. */
@@ -46,6 +45,7 @@ export default async function Home() {
           description: withLineBreaks(heroDescription),
           heroImage: settings.heroImage,
         }}
+        stats={{ articles: totalPosts, topics: browseCategories.length }}
       />
 
       {/* Most Read — full-bleed band */}
@@ -88,9 +88,6 @@ export default async function Home() {
           <Kicker label="Catch Up" title="Fresh This Week" subtitle="The latest arrivals, freshly published." />
           <LoadMoreArticles initialPosts={initialPosts} total={totalPosts} />
         </section>
-
-        {/* Newsletter CTA */}
-        <NewsletterCta />
       </div>
     </div>
   );
