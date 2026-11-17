@@ -295,15 +295,22 @@ export async function getCategoryDetail(slug: string) {
   // $sample picks a random 12 rather than always the newest — once a
   // category has hundreds of products across its stores, a fixed sort would
   // mean the same handful get all the exposure forever.
-  const products = await Product.aggregate([
-    { $match: { store: { $in: stores.map((s) => s._id) }, isActive: true } },
-    { $sample: { size: 12 } },
+  const storeIds = stores.map((s) => s._id);
+  const [products, bundles] = await Promise.all([
+    Product.aggregate([{ $match: { store: { $in: storeIds }, isActive: true } }, { $sample: { size: 12 } }]),
+    // Bundles are fewer and higher-value, so show the newest rather than a sample.
+    Bundle.find({ store: { $in: storeIds }, isActive: true }).sort({ createdAt: -1 }).limit(6).lean(),
   ]);
+  // Same shape /products uses: bundles first, then products — rendered by CatalogCard.
+  const items: CatalogItem[] = [
+    ...serialize<BundleCard[]>(bundles).map((data) => ({ kind: "bundle" as const, data })),
+    ...serialize<ProductCard[]>(products).map((data) => ({ kind: "product" as const, data })),
+  ];
   return {
     category: serialize<CategoryCard>(category),
     stores: serialize<StoreCard[]>(stores),
     posts: serialize<BlogPostCard[]>(posts),
-    products: serialize<ProductCard[]>(products),
+    items,
   };
 }
 
