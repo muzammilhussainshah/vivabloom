@@ -1,30 +1,48 @@
 /*
- * VivaBloom shared design tokens — light "bloom" (white + soft indigo) default palette.
+ * VivaBloom shared design tokens — "botanical" default palette (wellness:
+ * deep emerald + warm terracotta on a warm off-white).
  *
  * Palette rationale: brand colors have TWO distinct jobs — button backgrounds
  * (need to hold contrast against white button text) and direct text/links
- * (need to hold contrast against the light surface). A color tuned only for
- * one job goes muddy or unreadable in the other, so each was picked/checked
- * against both roles based on how it's actually used in the codebase:
- *   - Primary (violet, #7c6cf0): the core brand color — header bar,
- *     primary CTA buttons — tuned for white-text-on-top contrast (~3.4:1,
- *     fine for bold/large UI elements).
- *   - Secondary (plum, #5b4bd5): used almost exclusively as button/
- *     badge backgrounds (never small body text), so it's tuned for stronger
- *     white-text contrast (6.4:1).
- *   - Accent (fuchsia, #c2379b): used exclusively as direct text
- *     ("Verified" labels, discount labels, links), never a button background,
- *     so it's tuned for text-on-light-surface contrast (5:1) instead.
- * Surface (blush) is the main page background — where page content sits.
- * Surface-muted is a separate, lighter tone used for badges/chips/muted
- * panels; it is deliberately NOT reused for the footer, since it needs to
- * stay light for those other uses. Text is near-black (not pure #000) to
- * avoid harsh edges.
- * The footer is its own fixed dark section (footer-bg) independent of the
- * rest of the light theme — components on it use hardcoded light text
- * rather than the (dark) --text/--text-muted tokens.
- * Values live as plain CSS custom properties so both apps can share/override
- * them, then get exposed to Tailwind v4 via the `@theme inline` block below.
+ * (need to hold contrast against the light surface). Each was checked
+ * against both roles:
+ *   - Primary (emerald, #1f6f5c): the core brand color — logo, active nav,
+ *     primary CTA buttons. White text on it is ~6:1.
+ *   - Secondary (deep green, #164f42): button/badge backgrounds, ~9:1.
+ *   - Accent (terracotta, #c8553d): direct text ("Deals", discount labels,
+ *     links) and the logo's bloom centre — ~4.6:1 on the page surface.
+ * Surface is the page background; surface-muted (white) is cards/panels.
+ * The footer is its own fixed dark section (footer-bg).
+ * These are only defaults: the live values come from SiteSetting.themeTokens
+ * (admin "Theme Colors"), applied inline on <html> by apps/web/app/layout.tsx.
+ */
+
+:root {
+  --brand-primary: #1f6f5c;
+  --brand-primary-hover: #1a5e4e;
+  --brand-secondary: #164f42;
+  --brand-secondary-hover: #134338;
+  --brand-accent: #c8553d;
+  --brand-accent-hover: #aa4834;
+
+  --surface: #f7f8f5;
+  --surface-muted: #ffffff;
+  --text: #17201c;
+  --text-muted: #5f6b66;
+  --border: #e3e8e4;
+  --footer-bg: #0f2a24;
+
+  /* Fixed editorial accent for the blog — deliberately NOT part of admin
+     theming. Gives the category-tint palette a third hue (ochre) that stays
+     distinct from the green primary and terracotta accent. Used sparingly:
+     category-tint tiles/spotlights. */
+  --accent-ochre: #b0853a;
+  --accent-ochre-hover: #94702f;
+
+  --radius-base: 0.75rem;
+}
+
+@theme inline` block below.
  */
 
 :root {
@@ -71,8 +89,8 @@
   --color-border: var(--border);
   --color-footer-bg: var(--footer-bg);
 
-  --color-accent-teal: var(--accent-teal);
-  --color-accent-teal-hover: var(--accent-teal-hover);
+  --color-accent-ochre: var(--accent-ochre);
+  --color-accent-ochre-hover: var(--accent-ochre-hover);
 
   --radius-base: var(--radius-base);
 }

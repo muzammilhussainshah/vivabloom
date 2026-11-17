@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { RemoteImage } from "./RemoteImage";
-import { tintForSlug, tintGradient } from "@/lib/categoryTint";
+import { CoverPlaceholder } from "./CoverPlaceholder";
+import { tintForSlug } from "@/lib/categoryTint";
 import type { BlogPostCard, CategoryRef } from "@/lib/data";
 
 /** "1,234" under 10k, "12.3K" beyond. */
@@ -55,7 +56,7 @@ export function CategorySpotlight({
               imgClassName="object-cover transition-transform duration-500 group-hover:scale-105"
             />
           ) : (
-            <div className="aspect-[16/10] w-full" style={{ background: tintGradient(category.slug) }} />
+            <CoverPlaceholder className="aspect-[16/10] w-full" />
           )}
           <div className="flex flex-col gap-2 p-5">
             <h3 className="text-balance font-serif text-xl font-bold leading-tight text-text group-hover:text-brand-primary sm:text-2xl">
@@ -82,7 +83,7 @@ export function CategorySpotlight({
                   imgClassName="object-cover"
                 />
               ) : (
-                <div className="aspect-square w-24 shrink-0 rounded-2xl" style={{ background: tintGradient(post.category?.slug ?? post.slug) }} />
+                <CoverPlaceholder compact className="aspect-square w-24 shrink-0 rounded-2xl" />
               )}
               <div className="flex min-w-0 flex-col gap-1">
                 <p className="line-clamp-3 font-serif text-base font-semibold leading-snug text-text group-hover:text-brand-primary">

@@ -338,10 +338,10 @@ export function Header({ categories = [] }: { categories?: CategoryRef[] }) {
   const categoriesActive = isActivePath(pathname, "/category") || isActivePath(pathname, "/categories");
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-surface-muted">
-      <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-5 sm:px-8">
+    <header className="sticky top-0 z-50 border-b border-border bg-surface-muted/90 backdrop-blur-md supports-[backdrop-filter]:bg-surface-muted/80">
+      <div className="mx-auto flex h-[68px] max-w-6xl items-center gap-6 px-5 sm:px-8">
         <Link href="/" onClick={() => setMenuOpen(false)} className="shrink-0">
-          <Logo markColor="var(--brand-primary)" glyphColor="#fff" wordmarkColor="var(--brand-primary)" />
+          <Logo />
         </Link>
 
         <SearchBar className="hidden max-w-sm flex-1 md:block" />
@@ -360,8 +360,8 @@ export function Header({ categories = [] }: { categories?: CategoryRef[] }) {
           <CategoriesDropdown categories={categories} active={categoriesActive} />
           <Link
             href={DEALS_LINK.href}
-            className={`whitespace-nowrap rounded-full px-3.5 py-1.5 text-[13px] font-semibold text-brand-accent transition-colors hover:bg-brand-primary/10 ${
-              isActivePath(pathname, DEALS_LINK.href) ? "bg-brand-primary/10" : ""
+            className={`whitespace-nowrap rounded-full px-3.5 py-1.5 text-[13px] font-semibold text-brand-accent transition-colors hover:bg-brand-accent/10 ${
+              isActivePath(pathname, DEALS_LINK.href) ? "bg-brand-accent/10" : ""
             }`}
           >
             {DEALS_LINK.label}
@@ -420,7 +420,7 @@ export function Header({ categories = [] }: { categories?: CategoryRef[] }) {
             <Link
               href={DEALS_LINK.href}
               onClick={() => setMenuOpen(false)}
-              className="rounded-xl px-3 py-2 text-sm font-semibold text-brand-accent hover:bg-brand-primary/10"
+              className="rounded-xl px-3 py-2 text-sm font-semibold text-brand-accent hover:bg-brand-accent/10"
             >
               <span
                 className={isActivePath(pathname, DEALS_LINK.href) ? "underline decoration-2 underline-offset-4" : ""}

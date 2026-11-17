@@ -3,6 +3,9 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { LogoMark } from "@/components/Logo";
+
+/** Light tint of the brand primary — reads on the dark store header bar, same as the main footer's logo. */
+const STORE_MARK = "color-mix(in srgb, var(--primary) 45%, #fff)";
 import { CopyIcon, CheckIcon } from "@/components/CouponIcons";
 import { urlTail } from "@/lib/couponInteraction";
 import type { Dictionary } from "@/lib/i18n";
@@ -67,13 +70,14 @@ export function StoreHeader({
       <div className="mx-auto flex h-14 max-w-[1240px] items-center gap-4 px-4 md:h-[62px]">
         <Link href="/" className="flex shrink-0 items-center gap-2.5">
           <span className="md:hidden">
-            <LogoMark size={25} markColor="var(--accent)" glyphColor="var(--page)" />
+            <LogoMark size={28} markColor={STORE_MARK} glyphColor="var(--footer)" accentColor="var(--accent)" />
           </span>
           <span className="hidden md:inline-flex">
-            <LogoMark size={28} markColor="var(--accent)" glyphColor="var(--page)" />
+            <LogoMark size={32} markColor={STORE_MARK} glyphColor="var(--footer)" accentColor="var(--accent)" />
           </span>
-          <span className="font-script text-2xl font-semibold leading-none tracking-tight" style={{ color: "var(--page)" }}>
-            VivaBloom
+          <span className="font-serif text-[22px] font-semibold leading-none tracking-tight">
+            <span style={{ color: "var(--page)" }}>Viva</span>
+            <span style={{ color: STORE_MARK }}>Bloom</span>
           </span>
         </Link>
 

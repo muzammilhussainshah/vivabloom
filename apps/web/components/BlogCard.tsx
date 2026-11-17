@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { RemoteImage } from "./RemoteImage";
-import { tintGradient } from "@/lib/categoryTint";
+import { CoverPlaceholder } from "./CoverPlaceholder";
 import type { BlogPostCard } from "@/lib/data";
 
 function formatDate(dateStr?: string | null) {
@@ -21,7 +21,7 @@ export function BlogCard({ post }: { post: BlogPostCard }) {
   return (
     <Link
       href={`/blog/${post.slug}`}
-      className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-surface-muted transition-colors hover:border-brand-primary/40"
+      className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-surface-muted shadow-[0_1px_2px_rgb(0_0_0/0.04)] transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-primary/30 hover:shadow-[0_10px_28px_-12px_rgb(0_0_0/0.18)]"
     >
       {post.coverImage ? (
         <RemoteImage
@@ -32,19 +32,19 @@ export function BlogCard({ post }: { post: BlogPostCard }) {
           imgClassName="object-cover transition-transform duration-500 group-hover:scale-105"
         />
       ) : (
-        <div
-          className="aspect-[4/3] w-full"
-          style={{ background: tintGradient(post.category?.slug ?? post.slug) }}
-        />
+        <CoverPlaceholder className="aspect-[4/3] w-full" />
       )}
-      <div className="flex flex-col gap-2 p-5">
-        {meta.length > 0 && (
-          <p className="text-xs font-medium text-text-muted">{meta.join(" · ")}</p>
+      <div className="flex flex-1 flex-col gap-2 p-5">
+        {post.category?.name && (
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-brand-primary">{post.category.name}</p>
         )}
-        <p className="line-clamp-2 font-serif text-lg font-semibold text-text group-hover:text-brand-primary">
+        <p className="line-clamp-2 font-serif text-lg font-semibold leading-snug text-text transition-colors group-hover:text-brand-primary">
           {post.title}
         </p>
-        {post.excerpt && <p className="line-clamp-2 text-sm text-text-muted">{post.excerpt}</p>}
+        {post.excerpt && <p className="line-clamp-2 text-sm leading-relaxed text-text-muted">{post.excerpt}</p>}
+        {meta.length > 0 && (
+          <p className="mt-auto pt-2 text-xs font-medium text-text-muted">{meta.join(" · ")}</p>
+        )}
       </div>
     </Link>
   );

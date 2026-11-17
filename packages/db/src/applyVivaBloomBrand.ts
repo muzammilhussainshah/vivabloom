@@ -6,7 +6,7 @@ import { SiteSetting, BlogPost } from "./models/index";
 dotenv.config({ path: path.resolve(import.meta.dirname, "../../../.env") });
 dotenv.config({ path: path.resolve(import.meta.dirname, "../../../.env.local"), override: true });
 
-/** One-off: applies the VivaBloom name + rose/plum theme to the existing SiteSetting and renames the default blog author. */
+/** One-off: applies the VivaBloom name + botanical green/terracotta theme to the existing SiteSetting and renames the default blog author. */
 async function run() {
   await connectToDatabase();
   const s = await SiteSetting.updateMany(
@@ -14,15 +14,15 @@ async function run() {
     {
       $set: {
         siteName: "VivaBloom",
-        "themeTokens.brandPrimary": "#7c6cf0",
-        "themeTokens.brandSecondary": "#5b4bd5",
-        "themeTokens.brandAccent": "#c2379b",
-        "themeTokens.surface": "#f7f8ff",
+        "themeTokens.brandPrimary": "#1f6f5c",
+        "themeTokens.brandSecondary": "#164f42",
+        "themeTokens.brandAccent": "#c8553d",
+        "themeTokens.surface": "#f7f8f5",
         "themeTokens.surfaceMuted": "#ffffff",
-        "themeTokens.text": "#1e2440",
-        "themeTokens.textMuted": "#6b7391",
-        "themeTokens.border": "#e4e8f5",
-        "themeTokens.footerBg": "#1f1b3d",
+        "themeTokens.text": "#17201c",
+        "themeTokens.textMuted": "#5f6b66",
+        "themeTokens.border": "#e3e8e4",
+        "themeTokens.footerBg": "#0f2a24",
       },
     }
   );

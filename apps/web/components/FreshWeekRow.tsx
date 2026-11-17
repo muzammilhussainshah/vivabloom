@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { RemoteImage } from "./RemoteImage";
-import { tintGradient } from "@/lib/categoryTint";
+import { CoverPlaceholder } from "./CoverPlaceholder";
 import type { BlogPostCard } from "@/lib/data";
 
 function formatDate(dateStr?: string | null) {
@@ -32,10 +32,7 @@ export function FreshWeekRow({ post }: { post: BlogPostCard }) {
           imgClassName="object-cover"
         />
       ) : (
-        <div
-          className="aspect-square w-14 shrink-0 rounded-base"
-          style={{ background: tintGradient(post.category?.slug ?? post.slug) }}
-        />
+        <CoverPlaceholder compact className="aspect-square w-14 shrink-0 rounded-base" />
       )}
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <p className="line-clamp-2 font-serif text-base font-semibold text-text group-hover:text-brand-primary">

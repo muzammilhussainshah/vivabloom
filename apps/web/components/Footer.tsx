@@ -169,7 +169,12 @@ export function Footer({
     <footer className="mt-10 bg-footer-bg text-white ">
       <div className="mx-auto grid max-w-6xl grid-cols-1 gap-10 px-5 py-12 sm:grid-cols-2 sm:px-8 lg:grid-cols-4">
         <div className="flex flex-col gap-4 sm:col-span-2 lg:col-span-1">
-          <Logo markColor="var(--brand-primary)" glyphColor="#fff" wordmarkColor="#fff" />
+          <Logo
+            markColor="color-mix(in srgb, var(--brand-primary) 45%, #fff)"
+            glyphColor="var(--footer-bg)"
+            wordmarkColor="#fff"
+            bloomColor="color-mix(in srgb, var(--brand-primary) 45%, #fff)"
+          />
           <p className="text-sm text-white/70">
             VivaBloom is built and run by Faliha Limited, a UK-based software solutions company — a
             blogging site sharing useful, well-researched content.

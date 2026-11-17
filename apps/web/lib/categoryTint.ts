@@ -1,18 +1,18 @@
 export interface CategoryTint {
   from: string;
   to: string;
-  /** Text color to overlay on this specific gradient — the gold tint is too light for white text to read well, unlike the two darker tints. */
+  /** Text color to overlay on this specific gradient. */
   ink: string;
 }
 
-// 3 real hues (not 4) on purpose: this site's brand-secondary and
-// brand-accent are both gold-toned ("Forest & Gold" admin theme), so
-// including both here would make 2 of the 4 tints look near-identical.
-// brand-accent alone (tuned for text/link contrast) already covers gold.
+// 3 real hues (not 4) on purpose: brand-secondary is just a darker shade of
+// brand-primary, so including it would make 2 of the 4 tints look
+// near-identical. Primary (green), accent (terracotta) and a fixed ochre
+// keep every tile clearly distinct.
 const PALETTE: CategoryTint[] = [
   { from: "var(--brand-primary)", to: "var(--brand-primary-hover)", ink: "var(--surface)" },
-  { from: "var(--brand-accent)", to: "var(--brand-accent-hover)", ink: "var(--text)" },
-  { from: "var(--accent-teal)", to: "var(--accent-teal-hover)", ink: "var(--surface)" },
+  { from: "var(--brand-accent)", to: "var(--brand-accent-hover)", ink: "var(--surface)" },
+  { from: "var(--accent-ochre)", to: "var(--accent-ochre-hover)", ink: "var(--surface)" },
 ];
 
 function hashSlug(slug: string): number {
