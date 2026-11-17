@@ -18,9 +18,9 @@ export default function TermsPage() {
       <section className="flex flex-col gap-2">
         <h2 className="text-lg font-semibold">Legal Entity</h2>
         <p className="text-text-muted">
-          VivaBloom is operated by Faliha Limited, a UK-based software solutions company, registered
-          office at Office 1877, 85 Dunstall Hill, Wolverhampton, United Kingdom, WV6 0SR. References to
-          &quot;VivaBloom&quot;, &quot;we&quot;, &quot;us&quot;, or &quot;our&quot; in these Terms mean Faliha Limited.
+          VivaBloom is operated by AppMash Limited, a UK-based software solutions company, registered
+          office at Office 1875, 87 Dunstall Hill, Wolverhampton, United Kingdom, WV6 0SR. References to
+          &quot;VivaBloom&quot;, &quot;we&quot;, &quot;us&quot;, or &quot;our&quot; in these Terms mean AppMash Limited.
         </p>
       </section>
 
@@ -89,12 +89,8 @@ export default function TermsPage() {
         <h2 className="text-lg font-semibold">Contact Us</h2>
         <p className="text-text-muted">
           Questions about these Terms? Email us at{" "}
-          <a href="mailto:hello@monocoupon.com" className="text-brand-primary hover:underline">
-            hello@monocoupon.com
-          </a>{" "}
-          or call{" "}
-          <a href="tel:+447728915929" className="text-brand-primary hover:underline">
-            +44 7728 915929
+          <a href="mailto:vivabloom2@gmail.com" className="text-brand-primary hover:underline">
+            vivabloom2@gmail.com
           </a>
           .
         </p>

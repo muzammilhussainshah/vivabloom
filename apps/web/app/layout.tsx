@@ -61,20 +61,20 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const settings = await getCachedSiteSettings();
-  const contactEmail = settings.contact.email || "hello@monocoupon.com";
+  const contactEmail = settings.contact.email || "vivabloom2@gmail.com";
 
   const organizationJsonLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: settings.siteName || "VivaBloom",
-    legalName: "Faliha Limited",
+    legalName: "AppMash Limited",
     url: SITE_URL,
     description:
       settings.heroDescription ||
       "Verified coupon codes, promo codes, and deals for your favorite online stores.",
     address: {
       "@type": "PostalAddress",
-      streetAddress: "Office 1877, 85 Dunstall Hill",
+      streetAddress: "Office 1875, 87 Dunstall Hill",
       addressLocality: "Wolverhampton",
       postalCode: "WV6 0SR",
       addressCountry: "GB",
@@ -82,7 +82,7 @@ export default async function RootLayout({
     contactPoint: {
       "@type": "ContactPoint",
       email: contactEmail,
-      telephone: settings.contact.phone || "+447728915929",
+      ...(settings.contact.phone ? { telephone: settings.contact.phone } : {}),
       contactType: "customer service",
     },
   };

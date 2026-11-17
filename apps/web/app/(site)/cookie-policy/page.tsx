@@ -11,7 +11,7 @@ export default function CookiePolicyPage() {
       </div>
 
       <p className="text-text-muted">
-        This Cookie Policy explains how VivaBloom, operated by Faliha Limited (Office 1877, 85 Dunstall
+        This Cookie Policy explains how VivaBloom, operated by AppMash Limited (Office 1875, 87 Dunstall
         Hill, Wolverhampton, United Kingdom, WV6 0SR), uses cookies and similar technologies on
         monocoupon.com.
       </p>
@@ -63,8 +63,8 @@ export default function CookiePolicyPage() {
         <h2 className="text-lg font-semibold">Contact Us</h2>
         <p className="text-text-muted">
           Questions about this policy? Email us at{" "}
-          <a href="mailto:hello@monocoupon.com" className="text-brand-primary hover:underline">
-            hello@monocoupon.com
+          <a href="mailto:vivabloom2@gmail.com" className="text-brand-primary hover:underline">
+            vivabloom2@gmail.com
           </a>
           .
         </p>

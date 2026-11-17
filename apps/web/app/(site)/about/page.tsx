@@ -107,19 +107,19 @@ export default function AboutPage() {
       <section className="flex flex-col gap-4">
         <h2 className="text-xl font-semibold">Who Operates VivaBloom</h2>
         <p className="text-text-muted">
-          VivaBloom is built and run by <strong>Faliha Limited</strong>, a UK-based software solutions
-          company. Faliha Limited designs and builds software products for clients as well as its own
+          VivaBloom is built and run by <strong>AppMash Limited</strong>, a UK-based software solutions
+          company. AppMash Limited designs and builds software products for clients as well as its own
           in-house web platforms — VivaBloom is one of those, a blogging site created to share useful,
           well-researched content. That combination of software engineering and content publishing is what
           shapes how the site is built and maintained.
         </p>
         <div className="rounded-base border border-border bg-surface p-4 text-sm text-text-muted">
-          <p className="font-medium text-text">Faliha Limited</p>
-          <p className="mt-1">Office 1877, 85 Dunstall Hill, Wolverhampton, United Kingdom, WV6 0SR</p>
+          <p className="font-medium text-text">AppMash Limited</p>
+          <p className="mt-1">Office 1875, 87 Dunstall Hill, Wolverhampton, United Kingdom, WV6 0SR</p>
           <p className="mt-1">
-            Phone:{" "}
-            <a href="tel:+447728915929" className="text-brand-primary hover:underline">
-              +44 7728 915929
+            Email:{" "}
+            <a href="mailto:vivabloom2@gmail.com" className="text-brand-primary hover:underline">
+              vivabloom2@gmail.com
             </a>
           </p>
         </div>

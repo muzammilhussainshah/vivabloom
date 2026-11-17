@@ -6,7 +6,7 @@ export const metadata: Metadata = { title: "Contact Us", alternates: { canonical
 
 export default async function ContactPage() {
   const settings = await getCachedSiteSettings();
-  const contactEmail = settings.contact.email || "hello@monocoupon.com";
+  const contactEmail = settings.contact.email || "vivabloom2@gmail.com";
   const hasSocial =
     settings.socialLinks.facebook ||
     settings.socialLinks.instagram ||
@@ -25,7 +25,7 @@ export default async function ContactPage() {
       <section className="flex w-full flex-col gap-4 sm:w-64">
         <div>
           <h2 className="text-sm font-semibold">Contact Information</h2>
-          <p className="mt-1 text-sm text-text-muted">Faliha Limited (operating VivaBloom)</p>
+          <p className="mt-1 text-sm text-text-muted">AppMash Limited (operating VivaBloom)</p>
           <a href={`mailto:${contactEmail}`} className="mt-1 block text-sm text-brand-primary hover:underline">
             {contactEmail}
           </a>

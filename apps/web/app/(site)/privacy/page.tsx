@@ -18,8 +18,8 @@ export default function PrivacyPage() {
       <section className="flex flex-col gap-2">
         <h2 className="text-lg font-semibold">Legal Entity</h2>
         <p className="text-text-muted">
-          VivaBloom is operated by Faliha Limited, a UK-based software solutions company, registered
-          office at Office 1877, 85 Dunstall Hill, Wolverhampton, United Kingdom, WV6 0SR. Faliha Limited is
+          VivaBloom is operated by AppMash Limited, a UK-based software solutions company, registered
+          office at Office 1875, 87 Dunstall Hill, Wolverhampton, United Kingdom, WV6 0SR. AppMash Limited is
           the data controller for personal information collected through the Site.
         </p>
       </section>
@@ -100,10 +100,10 @@ export default function PrivacyPage() {
         <h2 className="text-lg font-semibold">Contact Us</h2>
         <p className="text-text-muted">
           Questions about this policy? Email us at{" "}
-          <a href="mailto:hello@monocoupon.com" className="text-brand-primary hover:underline">
-            hello@monocoupon.com
+          <a href="mailto:vivabloom2@gmail.com" className="text-brand-primary hover:underline">
+            vivabloom2@gmail.com
           </a>{" "}
-          or write to us at Faliha Limited, Office 1877, 85 Dunstall Hill, Wolverhampton, United Kingdom,
+          or write to us at AppMash Limited, Office 1875, 87 Dunstall Hill, Wolverhampton, United Kingdom,
           WV6 0SR.
         </p>
       </section>

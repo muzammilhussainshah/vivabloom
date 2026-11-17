@@ -58,7 +58,7 @@ export function ProofStrip({ offer, storeName, dict }: { offer: DerivedOffer; st
       <div className="mt-4 rounded-[13px] p-4" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
         <p className="sv-body" style={{ color: "var(--text-soft)" }}>
           <strong style={{ color: "var(--text)" }}>{dict.didntLandStrong}</strong> {dict.didntLandBeforeLink}{" "}
-          <a href="mailto:support@monocoupon.com" className="font-bold" style={{ color: "var(--accent-ink)" }}>
+          <a href="mailto:vivabloom2@gmail.com" className="font-bold" style={{ color: "var(--accent-ink)" }}>
             {dict.tellUsLink}
           </a>{" "}
           {dict.didntLandAfterLink}

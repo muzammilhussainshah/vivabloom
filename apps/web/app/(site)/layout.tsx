@@ -10,7 +10,7 @@ import { getCachedSiteSettings, getCategoriesForNav } from "@/lib/data";
  */
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
   const [settings, categories] = await Promise.all([getCachedSiteSettings(), getCategoriesForNav()]);
-  const contactEmail = settings.contact.email || "hello@monocoupon.com";
+  const contactEmail = settings.contact.email || "vivabloom2@gmail.com";
 
   return (
     <>

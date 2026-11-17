@@ -145,7 +145,7 @@ function ContactRow({ label, children }: { label: string; children: ReactNode })
 }
 
 export function Footer({
-  contactEmail = "hello@monocoupon.com",
+  contactEmail = "vivabloom2@gmail.com",
   socialLinks,
   contact,
 }: {
@@ -176,7 +176,7 @@ export function Footer({
             bloomColor="color-mix(in srgb, var(--brand-primary) 45%, #fff)"
           />
           <p className="text-sm text-white/70">
-            VivaBloom is built and run by Faliha Limited, a UK-based software solutions company — a
+            VivaBloom is built and run by AppMash Limited, a UK-based software solutions company — a
             blogging site sharing useful, well-researched content.
           </p>
           {socials.length > 0 && (
@@ -239,8 +239,8 @@ export function Footer({
       </div>
 
       <div className="border-t border-white/10 px-5 py-4 text-center text-xs text-white/60 sm:px-8">
-        <p>© {new Date().getFullYear()} VivaBloom, a trading name of Faliha Limited. All rights reserved.</p>
-        <p className="mt-1">Registered office: Office 1877, 85 Dunstall Hill, Wolverhampton, United Kingdom, WV6 0SR.</p>
+        <p>© {new Date().getFullYear()} VivaBloom, a trading name of AppMash Limited. All rights reserved.</p>
+        <p className="mt-1">Registered office: Office 1875, 87 Dunstall Hill, Wolverhampton, United Kingdom, WV6 0SR.</p>
       </div>
     </footer>
   );
