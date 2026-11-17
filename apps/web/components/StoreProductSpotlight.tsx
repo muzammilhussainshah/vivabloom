@@ -3,11 +3,18 @@ import { RemoteImage } from "./RemoteImage";
 import { GiftIcon } from "./CouponIcons";
 import type { CatalogItem, StoreCatalogGroup } from "@/lib/data";
 
-/** Not in CouponIcons.tsx — used only for the "Best Deal in Store" ribbon below. */
 function StarIcon({ className }: { className?: string }) {
   return (
     <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
       <path d="M12 3.5 14.6 9 20.5 9.8 16.2 13.9 17.3 19.8 12 16.9 6.7 19.8 7.8 13.9 3.5 9.8 9.4 9 12 3.5Z" />
+    </svg>
+  );
+}
+
+function ArrowIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true" className="transition-transform duration-200 group-hover:translate-x-1">
+      <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
@@ -22,104 +29,130 @@ function priceInfo(item: CatalogItem) {
   return { hasDiscount, percentOff, savings };
 }
 
+const CARD =
+  "group flex flex-col overflow-hidden rounded-2xl border border-border bg-surface-muted shadow-[0_1px_2px_rgb(0_0_0/0.04)] transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-primary/30 hover:shadow-[0_16px_36px_-18px_rgb(0_0_0/0.3)]";
+
+/** Small pills pinned to the image's top-left: discount first, then "Bundle". Kept compact so they don't cover the product. */
+function ImageBadges({ percentOff, isBundle, size = "md" }: { percentOff: number | null; isBundle: boolean; size?: "sm" | "md" }) {
+  if (percentOff === null && !isBundle) return null;
+  const pill = size === "sm" ? "px-2 py-0.5 text-[11px]" : "px-2.5 py-1 text-xs";
+  return (
+    <div className={`absolute flex flex-wrap gap-1.5 ${size === "sm" ? "left-2 top-2" : "left-3 top-3"}`}>
+      {percentOff !== null && (
+        <span className={`rounded-full bg-brand-secondary font-bold text-white shadow-md ${pill}`}>-{percentOff}%</span>
+      )}
+      {isBundle && (
+        <span className={`inline-flex items-center gap-1 rounded-full bg-brand-accent font-bold uppercase tracking-wide text-white shadow-md ${pill}`}>
+          <GiftIcon />
+          Bundle
+        </span>
+      )}
+    </div>
+  );
+}
+
+function Price({ item, large = false }: { item: CatalogItem; large?: boolean }) {
+  const { data } = item;
+  const { hasDiscount } = priceInfo(item);
+  return (
+    <div className="flex flex-wrap items-baseline gap-2">
+      <span className={`font-bold tracking-tight text-text ${large ? "text-[28px]" : "text-lg"}`}>${data.price.toFixed(2)}</span>
+      {hasDiscount && (
+        <span className={`text-text-muted line-through ${large ? "text-base" : "text-xs"}`}>${data.originalPrice!.toFixed(2)}</span>
+      )}
+    </div>
+  );
+}
+
+function SavePill({ savings, small = false }: { savings: number; small?: boolean }) {
+  return (
+    <span
+      className={`w-fit rounded-full bg-brand-primary/10 font-semibold text-brand-primary ${
+        small ? "px-2 py-0.5 text-[11px]" : "px-3 py-1 text-xs"
+      }`}
+    >
+      You save ${savings.toFixed(2)}
+    </span>
+  );
+}
+
 /**
- * The large tile: full square image, a circular discount badge, an optional
- * "Bundle" tag and "Best Deal in Store" ribbon. Used as the sole card when a
- * store has 1-2 items, and as the featured lead when it has 3+.
+ * The large card: square image with compact badges, then name, price, savings
+ * and a "View deal" cue. "Best deal in store" sits in the body rather than
+ * over the image, where it used to cover the product graphic's own text.
+ * Used as the sole card when a store has 1-2 items, and as the featured lead
+ * when it has 3+.
  */
 function LeadCard({ item, isFeatured, priority }: { item: CatalogItem; isFeatured?: boolean; priority?: boolean }) {
   const { data, kind } = item;
-  const { hasDiscount, percentOff, savings } = priceInfo(item);
+  const { percentOff, savings } = priceInfo(item);
 
   return (
-    <Link
-      href={`/products/${data.slug}`}
-      className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-surface transition-shadow hover:shadow-md"
-    >
-      <div className="relative aspect-square overflow-hidden bg-surface-muted">
+    <Link href={`/products/${data.slug}`} className={`${CARD} h-full`}>
+      <div className="relative">
         <RemoteImage
           src={data.image}
           alt={data.name}
           sizes="(min-width: 768px) 45vw, 100vw"
-          className="h-full w-full"
-          imgClassName="object-cover transition-transform duration-500 group-hover:scale-105"
+          className="aspect-square w-full bg-surface"
+          imgClassName="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
           priority={priority}
         />
-        {percentOff !== null && (
-          <span className="absolute left-4 top-4 flex h-16 w-16 flex-col items-center justify-center rounded-full bg-brand-secondary text-white shadow-lg">
-            <span className="text-xl font-extrabold leading-none">{percentOff}%</span>
-            <span className="text-[9px] font-bold tracking-wide">OFF</span>
-          </span>
-        )}
-        {kind === "bundle" && (
-          <span className="absolute right-4 top-4 inline-flex items-center gap-1.5 rounded-full bg-brand-accent px-3 py-1.5 text-xs font-extrabold uppercase tracking-wide text-text shadow">
-            <GiftIcon />
-            Bundle
-          </span>
-        )}
-        {isFeatured && (
-          <span className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-1.5 bg-text/80 py-2.5 text-[11px] font-bold uppercase tracking-wide text-white">
-            <StarIcon className="text-brand-accent" />
-            Best Deal in Store
-          </span>
-        )}
+        <ImageBadges percentOff={percentOff} isBundle={kind === "bundle"} />
       </div>
-      <div className="flex flex-col gap-2.5 p-5">
-        <p className="text-lg font-semibold text-text group-hover:text-brand-primary">{data.name}</p>
-        <div className="flex flex-wrap items-center gap-3">
-          <span className="text-[26px] font-extrabold text-text">${data.price.toFixed(2)}</span>
-          {hasDiscount && (
-            <span className="text-base text-text-muted line-through">${data.originalPrice!.toFixed(2)}</span>
-          )}
-        </div>
-        {hasDiscount && (
-          <span className="w-fit rounded-full bg-[#eef6f1] px-3 py-1 text-sm font-bold text-[#3f8f66]">
-            Save ${savings!.toFixed(2)}
+      <div className="flex flex-1 flex-col gap-3 p-5 sm:p-6">
+        {isFeatured && (
+          <span className="inline-flex w-fit items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-brand-accent">
+            <StarIcon />
+            Best deal in store
           </span>
         )}
+        <p className="font-serif text-xl font-semibold leading-snug text-text transition-colors group-hover:text-brand-primary sm:text-2xl">
+          {data.name}
+        </p>
+        <div className="mt-auto flex flex-wrap items-end justify-between gap-3 border-t border-border pt-4">
+          <div className="flex flex-col gap-1.5">
+            <Price item={item} large />
+            {savings !== null && <SavePill savings={savings} />}
+          </div>
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-primary px-4 py-2 text-sm font-semibold text-white transition-colors group-hover:bg-brand-primary-hover">
+            View deal
+            <ArrowIcon />
+          </span>
+        </div>
       </div>
     </Link>
   );
 }
 
 /**
- * A smaller full-image card, stacked two-to-a-column beside the lead when a
- * store has exactly 3 items. Deliberately not height-matched to the lead via
- * flex-grow — an aspect-square image can't be compressed without distorting,
- * so the pair just sits at its own natural size (close to, but not forced to
- * exactly equal, the lead's height).
+ * A smaller card stacked two-to-a-column beside the lead when a store has
+ * exactly 3 items. The image area flex-grows so the pair always ends flush
+ * with the lead card's bottom edge (object-cover absorbs the extra height).
  */
 function SecondaryCard({ item }: { item: CatalogItem }) {
-  const { data } = item;
-  const { hasDiscount, percentOff } = priceInfo(item);
+  const { data, kind } = item;
+  const { percentOff, savings } = priceInfo(item);
 
   return (
-    <Link
-      href={`/products/${data.slug}`}
-      className="group flex flex-col overflow-hidden rounded-[18px] border border-border bg-surface transition-shadow hover:shadow-md"
-    >
-      <div className="relative aspect-[1/0.92] overflow-hidden bg-surface-muted">
+    <Link href={`/products/${data.slug}`} className={`${CARD} flex-1`}>
+      <div className="relative flex min-h-[180px] flex-1 flex-col">
         <RemoteImage
           src={data.image}
           alt={data.name}
-          sizes="(min-width: 768px) 20vw, 50vw"
-          className="h-full w-full"
+          sizes="(min-width: 768px) 25vw, 100vw"
+          className="min-h-[180px] w-full flex-1 bg-surface"
           imgClassName="object-cover transition-transform duration-500 group-hover:scale-105"
         />
-        {percentOff !== null && (
-          <span className="absolute left-2.5 top-2.5 flex h-[42px] w-[42px] flex-col items-center justify-center rounded-full bg-brand-secondary text-white shadow">
-            <span className="text-[13px] font-extrabold leading-none">{percentOff}%</span>
-            <span className="text-[6.5px] font-bold">OFF</span>
-          </span>
-        )}
+        <ImageBadges percentOff={percentOff} isBundle={kind === "bundle"} size="sm" />
       </div>
-      <div className="flex flex-col gap-1.5 p-3.5">
-        <p className="text-[13.5px] font-semibold text-text group-hover:text-brand-primary">{data.name}</p>
-        <div className="flex flex-wrap items-baseline gap-2">
-          <span className="text-base font-extrabold text-text">${data.price.toFixed(2)}</span>
-          {hasDiscount && (
-            <span className="text-[11.5px] text-text-muted line-through">${data.originalPrice!.toFixed(2)}</span>
-          )}
+      <div className="flex flex-col gap-2 p-4">
+        <p className="line-clamp-1 font-serif text-base font-semibold text-text transition-colors group-hover:text-brand-primary">
+          {data.name}
+        </p>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <Price item={item} />
+          {savings !== null && <SavePill savings={savings} small />}
         </div>
       </div>
     </Link>
@@ -128,49 +161,32 @@ function SecondaryCard({ item }: { item: CatalogItem }) {
 
 /**
  * A compact thumbnail+text row, used for every item beside the lead once a
- * store has 4+ of them — there isn't enough height left per item (once the
- * lead's height is divided across all of them) for a full image-on-top card.
- * The thumbnail is `h-20` standalone (mobile: the 2-column grid collapses to
- * one column, so there's no lead height to match) and switches to `h-full`
- * at `md`, where it fills whatever height the row's `flex-1` share of the
- * (grid-stretched, lead-height-matching) column works out to.
+ * store has 4+ of them. The thumbnail is `h-20` standalone (mobile) and
+ * switches to `h-full` at `md`, where it fills the row's `flex-1` share of the
+ * lead-height-matching column.
  */
 function CompactRow({ item }: { item: CatalogItem }) {
-  const { data } = item;
-  const { hasDiscount, percentOff, savings } = priceInfo(item);
+  const { data, kind } = item;
+  const { percentOff, savings } = priceInfo(item);
 
   return (
     <Link
       href={`/products/${data.slug}`}
-      className="group flex items-center gap-3.5 overflow-hidden rounded-[18px] border border-border bg-surface p-3 transition-shadow hover:shadow-md md:flex-1 md:min-h-0"
+      className="group flex items-center gap-4 overflow-hidden rounded-2xl border border-border bg-surface-muted p-3 shadow-[0_1px_2px_rgb(0_0_0/0.04)] transition-all hover:border-brand-primary/30 hover:shadow-[0_12px_28px_-16px_rgb(0_0_0/0.3)] md:min-h-0 md:flex-1"
     >
-      <div className="relative aspect-square h-20 shrink-0 overflow-hidden rounded-xl bg-surface-muted md:h-full">
-        <RemoteImage
-          src={data.image}
-          alt={data.name}
-          sizes="90px"
-          className="h-full w-full"
-          imgClassName="object-cover"
-        />
-        {percentOff !== null && (
-          <span className="absolute left-1.5 top-1.5 flex h-9 w-9 items-center justify-center rounded-full bg-brand-secondary text-[11px] font-extrabold text-white shadow">
-            {percentOff}%
-          </span>
-        )}
+      <div className="relative aspect-square h-20 shrink-0 overflow-hidden rounded-xl bg-surface md:h-full">
+        <RemoteImage src={data.image} alt={data.name} sizes="96px" className="h-full w-full" imgClassName="object-cover" />
+        <ImageBadges percentOff={percentOff} isBundle={false} size="sm" />
       </div>
       <div className="flex min-w-0 flex-col gap-1.5">
-        <p className="line-clamp-2 text-sm font-semibold text-text group-hover:text-brand-primary">{data.name}</p>
-        <div className="flex flex-wrap items-baseline gap-2">
-          <span className="text-[17px] font-extrabold text-text">${data.price.toFixed(2)}</span>
-          {hasDiscount && (
-            <span className="text-xs text-text-muted line-through">${data.originalPrice!.toFixed(2)}</span>
-          )}
-        </div>
-        {hasDiscount && (
-          <span className="w-fit rounded-full bg-[#eef6f1] px-2.5 py-0.5 text-[11px] font-bold text-[#3f8f66]">
-            Save ${savings!.toFixed(2)}
-          </span>
+        {kind === "bundle" && (
+          <span className="text-[10.5px] font-bold uppercase tracking-wider text-brand-accent">Bundle</span>
         )}
+        <p className="line-clamp-2 font-serif text-base font-semibold leading-snug text-text transition-colors group-hover:text-brand-primary">
+          {data.name}
+        </p>
+        <Price item={item} />
+        {savings !== null && <SavePill savings={savings} small />}
       </div>
     </Link>
   );
@@ -317,7 +333,7 @@ export function StoreProductSpotlight({
           align={align}
           lead={<LeadCard item={lead} isFeatured priority />}
           secondary={
-            <div className="flex flex-col gap-4">
+            <div className="flex h-full flex-col gap-4">
               {rest.map((item) => (
                 <SecondaryCard key={`${item.kind}-${item.data._id}`} item={item} />
               ))}
@@ -331,7 +347,7 @@ export function StoreProductSpotlight({
           align={align}
           lead={<LeadCard item={lead} isFeatured priority />}
           secondary={
-            <div className="flex flex-col gap-4">
+            <div className="flex h-full flex-col gap-4">
               {rest.map((item) => (
                 <CompactRow key={`${item.kind}-${item.data._id}`} item={item} />
               ))}

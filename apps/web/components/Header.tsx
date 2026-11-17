@@ -8,10 +8,11 @@ import type { CategoryRef } from "@/lib/data";
 
 /** The blog-first homepage — named for what's actually there (Editor's Pick, Most Read, category spotlights), not a generic "Home". */
 const INSIGHTS_LINK = { href: "/", label: "Insights" };
-const DEALS_LINK = { href: "/deals", label: "Deals & Discounts" };
+// Hidden from the header for now — uncomment this and the two DEALS_LINK blocks below to bring it back.
+// const DEALS_LINK = { href: "/deals", label: "Deals & Discounts" };
 
 const REST_LINKS = [
-  { href: "/stores", label: "Stores" },
+  // { href: "/stores", label: "Stores" }, // hidden from the header for now
   { href: "/products", label: "Products" },
 ];
 
@@ -358,14 +359,14 @@ export function Header({ categories = [] }: { categories?: CategoryRef[] }) {
             {INSIGHTS_LINK.label}
           </Link>
           <CategoriesDropdown categories={categories} active={categoriesActive} />
-          <Link
+          {/* <Link
             href={DEALS_LINK.href}
             className={`whitespace-nowrap rounded-full px-3.5 py-1.5 text-[13px] font-semibold text-brand-accent transition-colors hover:bg-brand-accent/10 ${
               isActivePath(pathname, DEALS_LINK.href) ? "bg-brand-accent/10" : ""
             }`}
           >
             {DEALS_LINK.label}
-          </Link>
+          </Link> */}
           {REST_LINKS.map((link) => (
             <Link
               key={link.href}
@@ -417,7 +418,7 @@ export function Header({ categories = [] }: { categories?: CategoryRef[] }) {
               </span>
             </Link>
             <CategoriesAccordion categories={categories} onNavigate={() => setMenuOpen(false)} active={categoriesActive} />
-            <Link
+            {/* <Link
               href={DEALS_LINK.href}
               onClick={() => setMenuOpen(false)}
               className="rounded-xl px-3 py-2 text-sm font-semibold text-brand-accent hover:bg-brand-accent/10"
@@ -427,7 +428,7 @@ export function Header({ categories = [] }: { categories?: CategoryRef[] }) {
               >
                 {DEALS_LINK.label}
               </span>
-            </Link>
+            </Link> */}
             {REST_LINKS.map((link) => (
               <Link
                 key={link.href}
