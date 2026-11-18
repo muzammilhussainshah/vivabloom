@@ -8,6 +8,7 @@ import { CatalogCard } from "@/components/CatalogCard";
 import { ProductDetailActions } from "@/components/ProductDetailActions";
 import { breadcrumbJsonLd, productJsonLd } from "@/lib/seo";
 import { BackLink } from "@/components/BackLink";
+import { ProductImageViewer } from "@/components/ProductImageViewer";
 
 export const revalidate = 1800;
 
@@ -52,13 +53,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
       <BackLink href="/products">All products</BackLink>
 
       <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
-        <RemoteImage
-          src={item.image}
-          alt={item.name}
-          priority
-          sizes="(min-width: 1024px) 50vw, 100vw"
-          className="aspect-square w-full rounded-2xl border border-border bg-surface-muted"
-        />
+        <ProductImageViewer src={item.image} alt={item.name} />
 
         <div className="flex flex-col gap-5">
           <Link
