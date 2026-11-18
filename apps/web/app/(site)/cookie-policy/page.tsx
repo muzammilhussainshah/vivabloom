@@ -9,8 +9,8 @@ export default function CookiePolicyPage() {
       <PageHeader eyebrow="Legal" title="Cookie Policy" meta="Last updated: July 2026" />
 
       <p className="text-text-muted">
-        This Cookie Policy explains how VivaBloom, operated by AppMash Limited (Office 1875, 87 Dunstall
-        Hill, Wolverhampton, United Kingdom, WV6 0SR), uses cookies and similar technologies on
+        This Cookie Policy explains how VivaBloom, operated by AppMash Limited (Office 875, 55 Gracechurch
+        Street, London, United Kingdom, EC3V 0HR), uses cookies and similar technologies on
         monocoupon.com.
       </p>
 

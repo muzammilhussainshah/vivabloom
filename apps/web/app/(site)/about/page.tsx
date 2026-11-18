@@ -119,7 +119,7 @@ export default function AboutPage() {
         </p>
         <div className="rounded-2xl border border-border bg-surface-muted p-5 text-sm text-text-muted shadow-[0_1px_2px_rgb(0_0_0/0.04)]">
           <p className="font-medium text-text">AppMash Limited</p>
-          <p className="mt-1">Office 1875, 87 Dunstall Hill, Wolverhampton, United Kingdom, WV6 0SR</p>
+          <p className="mt-1">Office 875, 55 Gracechurch Street, London, United Kingdom, EC3V 0HR</p>
           <p className="mt-1">
             Email:{" "}
             <a href="mailto:vivabloom2@gmail.com" className="text-brand-primary hover:underline">

@@ -74,9 +74,9 @@ export default async function RootLayout({
       "Verified coupon codes, promo codes, and deals for your favorite online stores.",
     address: {
       "@type": "PostalAddress",
-      streetAddress: "Office 1875, 87 Dunstall Hill",
-      addressLocality: "Wolverhampton",
-      postalCode: "WV6 0SR",
+      streetAddress: "Office 875, 55 Gracechurch Street",
+      addressLocality: "London",
+      postalCode: "EC3V 0HR",
       addressCountry: "GB",
     },
     contactPoint: {

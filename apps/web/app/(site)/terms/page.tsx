@@ -17,7 +17,7 @@ export default function TermsPage() {
         <h2 className="text-lg font-semibold">Legal Entity</h2>
         <p className="text-text-muted">
           VivaBloom is operated by AppMash Limited, a UK-based software solutions company, registered
-          office at Office 1875, 87 Dunstall Hill, Wolverhampton, United Kingdom, WV6 0SR. References to
+          office at Office 875, 55 Gracechurch Street, London, United Kingdom, EC3V 0HR. References to
           &quot;VivaBloom&quot;, &quot;we&quot;, &quot;us&quot;, or &quot;our&quot; in these Terms mean AppMash Limited.
         </p>
       </section>

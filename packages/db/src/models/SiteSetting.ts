@@ -30,7 +30,7 @@ const SiteSettingSchema = new Schema(
     contact: {
       email: { type: String, default: null },
       phone: { type: String, default: "+447728915929" },
-      address: { type: String, default: "Office 1877, 85 Dunstall Hill, Wolverhampton, United Kingdom, WV6 0SR" },
+      address: { type: String, default: "Office 875, 55 Gracechurch Street, London, United Kingdom, EC3V 0HR" },
     },
     socialLinks: {
       facebook: { type: String, default: null },

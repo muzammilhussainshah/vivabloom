@@ -17,7 +17,7 @@ export default function PrivacyPage() {
         <h2 className="text-lg font-semibold">Legal Entity</h2>
         <p className="text-text-muted">
           VivaBloom is operated by AppMash Limited, a UK-based software solutions company, registered
-          office at Office 1875, 87 Dunstall Hill, Wolverhampton, United Kingdom, WV6 0SR. AppMash Limited is
+          office at Office 875, 55 Gracechurch Street, London, United Kingdom, EC3V 0HR. AppMash Limited is
           the data controller for personal information collected through the Site.
         </p>
       </section>
@@ -101,8 +101,8 @@ export default function PrivacyPage() {
           <a href="mailto:vivabloom2@gmail.com" className="text-brand-primary hover:underline">
             vivabloom2@gmail.com
           </a>{" "}
-          or write to us at AppMash Limited, Office 1875, 87 Dunstall Hill, Wolverhampton, United Kingdom,
-          WV6 0SR.
+          or write to us at AppMash Limited, Office 875, 55 Gracechurch Street, London, United Kingdom,
+          EC3V 0HR.
         </p>
       </section>
     </div>

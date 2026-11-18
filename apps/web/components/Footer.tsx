@@ -301,7 +301,7 @@ export function Footer({
         <div className="mx-auto flex max-w-6xl flex-col gap-3 px-5 py-4 text-xs text-white/50 sm:px-8 md:flex-row md:items-center md:justify-between">
           <div className="flex flex-col gap-0.5">
             <p>© {new Date().getFullYear()} VivaBloom, a trading name of AppMash Limited. All rights reserved.</p>
-            <p>Registered office: Office 1875, 87 Dunstall Hill, Wolverhampton, United Kingdom, WV6 0SR.</p>
+            <p>Registered office: Office 875, 55 Gracechurch Street, London, United Kingdom, EC3V 0HR.</p>
           </div>
           <nav aria-label="Legal" className="flex flex-wrap gap-x-5 gap-y-2">
             {LEGAL_LINKS.map((link) => (
