@@ -5,7 +5,7 @@ import { getAllBlogPostSlugs, getBlogPost, type BlogPostCard } from "@/lib/data"
 import { JsonLd } from "@/components/JsonLd";
 import { CoverPlaceholder } from "@/components/CoverPlaceholder";
 import { RemoteImage } from "@/components/RemoteImage";
-import { ProductCard } from "@/components/ProductCard";
+import { CatalogCard } from "@/components/CatalogCard";
 import { BlogViewCounter } from "@/components/BlogViewCounter";
 import { blogPostingJsonLd, breadcrumbJsonLd } from "@/lib/seo";
 import { BackLink } from "@/components/BackLink";
@@ -90,7 +90,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
   const { slug } = await params;
   const data = await getBlogPost(slug);
   if (!data) notFound();
-  const { post, relatedPosts, relatedProducts } = data;
+  const { post, relatedPosts, relatedItems } = data;
   const date = formatDate(post.publishedAt);
 
   return (
@@ -170,7 +170,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
         </article>
 
-        {(relatedPosts.length > 0 || relatedProducts.length > 0) && (
+        {(relatedPosts.length > 0 || relatedItems.length > 0) && (
           <aside className="w-full lg:mt-1 lg:w-80 lg:shrink-0">
             <div className="flex flex-col gap-8 lg:sticky lg:top-24">
               {relatedPosts.length > 0 && (
@@ -184,12 +184,12 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                 </div>
               )}
 
-              {relatedProducts.length > 0 && (
+              {relatedItems.length > 0 && (
                 <div className="flex flex-col gap-4">
                   <h2 className="font-serif text-xl font-semibold tracking-tight">You Might Like</h2>
                   <div className="grid grid-cols-2 gap-3">
-                    {relatedProducts.map((product) => (
-                      <ProductCard key={product._id} product={product} />
+                    {relatedItems.map((item) => (
+                      <CatalogCard key={`${item.kind}-${item.data._id}`} item={item} />
                     ))}
                   </div>
                 </div>

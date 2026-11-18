@@ -452,7 +452,10 @@ export async function getBlogPost(slug: string) {
   if (!post) return null;
 
   const category = post.category as unknown as { _id: unknown } | undefined;
-  const [relatedPosts, relatedProducts] = await Promise.all([
+  const categoryStoreIds = category
+    ? (await Store.find({ categories: category._id, isActive: true }, "_id").lean()).map((s) => s._id)
+    : [];
+  const [relatedPosts, relatedProducts, relatedBundles] = await Promise.all([
     category
       ? BlogPost.find({
           _id: { $ne: post._id },
@@ -469,22 +472,28 @@ export async function getBlogPost(slug: string) {
     // $sample picks a random 6 each time rather than always the newest —
     // once there are hundreds of products, a fixed sort would mean the same
     // handful get all the exposure forever.
-    category
-      ? Store.find({ categories: category._id, isActive: true }, "_id")
-          .lean()
-          .then((stores) =>
-            Product.aggregate([
-              { $match: { store: { $in: stores.map((s) => s._id) }, isActive: true } },
-              { $sample: { size: 6 } },
-            ])
-          )
+    categoryStoreIds.length > 0
+      ? Product.aggregate([
+          { $match: { store: { $in: categoryStoreIds }, isActive: true } },
+          { $sample: { size: 6 } },
+        ])
+      : [],
+    // Bundles from the same stores — the highest-value upsell, so they lead the list.
+    categoryStoreIds.length > 0
+      ? Bundle.find({ store: { $in: categoryStoreIds }, isActive: true }).sort({ createdAt: -1 }).limit(2).lean()
       : [],
   ]);
+
+  // Bundles first, then products, capped at 6 — rendered by CatalogCard, same as /products.
+  const relatedItems: CatalogItem[] = [
+    ...serialize<BundleCard[]>(relatedBundles).map((data) => ({ kind: "bundle" as const, data })),
+    ...serialize<ProductCard[]>(relatedProducts).map((data) => ({ kind: "product" as const, data })),
+  ].slice(0, 6);
 
   return {
     post: serialize<BlogPostDetail>(post),
     relatedPosts: serialize<BlogPostCard[]>(relatedPosts),
-    relatedProducts: serialize<ProductCard[]>(relatedProducts),
+    relatedItems,
   };
 }
 
