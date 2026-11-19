@@ -67,6 +67,7 @@ export const en: Dictionary = {
   storeHeader: {
     testedLiveOffer: (dateShort) => `Tested ${dateShort} · 1 live offer`,
     copied: "Copied!",
+    enjoyOffer: (label, suffix) => (/^Enjoy/i.test(label) ? `${label} ${suffix}` : `Enjoy ${label} ${suffix}`),
     getDiscountCode: "Get Discount Code",
     getDiscountDeal: "Get Discount Deal",
     ctaAriaLabel: (hasCode, storeName) => `${hasCode ? "Get discount code" : "Get discount deal"} for ${storeName}`,
@@ -118,6 +119,7 @@ export const en: Dictionary = {
     getDiscountCode: "Get Discount Code",
     getDiscountDeal: "Get Discount Deal",
     copied: "Copied!",
+    enjoyOffer: (label, suffix) => (/^Enjoy/i.test(label) ? `${label} ${suffix}` : `Enjoy ${label} ${suffix}`),
   },
 
   allDeals: {

@@ -186,7 +186,8 @@ export function StoreHero({
                 </p>
               </div>
 
-              <div className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:mx-0 md:grid md:grid-cols-3 md:gap-4 md:overflow-visible md:px-0 [&::-webkit-scrollbar]:hidden">
+              {/* scroll-px-4 matches the px-4 inset: without it, snap-start aligns the first card to the scrollport's raw edge, gluing it to the screen border. */}
+              <div className="-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:mx-0 md:grid md:scroll-px-0 md:grid-cols-3 md:gap-4 md:overflow-visible md:px-0 [&::-webkit-scrollbar]:hidden">
                 {heroProducts.map((item) => {
                   const hasDiscount = !!(item.originalPrice && item.originalPrice > item.price);
                   const percentOff = hasDiscount ? Math.ceil(((item.originalPrice! - item.price) / item.originalPrice!) * 100) : null;
@@ -197,14 +198,14 @@ export function StoreHero({
                       target="_blank"
                       rel="nofollow sponsored noopener"
                       onClick={() => onProductClick(item.url)}
-                      className="group flex w-[158px] shrink-0 snap-start flex-col overflow-hidden rounded-2xl ring-1 ring-white/10 shadow-[0_16px_32px_-18px_rgba(0,0,0,0.8)] transition-transform duration-200 hover:-translate-y-1 md:w-auto"
+                      className="group flex w-[172px] shrink-0 snap-start flex-col overflow-hidden rounded-2xl ring-1 ring-white/10 shadow-[0_16px_32px_-18px_rgba(0,0,0,0.8)] transition-transform duration-200 hover:-translate-y-1 md:w-auto"
                       style={{ background: "var(--page)" }}
                     >
                       <div className="relative aspect-[4/3] w-full overflow-hidden bg-white">
                         <RemoteImage
                           src={item.image}
                           alt={item.name}
-                          sizes="(min-width: 768px) 200px, 158px"
+                          sizes="(min-width: 768px) 200px, 172px"
                           className="h-full w-full"
                           imgClassName="object-cover transition-transform duration-500 group-hover:scale-105"
                         />

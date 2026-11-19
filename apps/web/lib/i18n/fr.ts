@@ -60,6 +60,7 @@ export const fr: Dictionary = {
   storeHeader: {
     testedLiveOffer: (dateShort) => `Vérifié le ${dateShort} · 1 offre active`,
     copied: "Copié !",
+    enjoyOffer: (label, suffix) => (/^Profitez/i.test(label) ? `${label} ${suffix}` : `Profitez de ${label} ${suffix}`),
     getDiscountCode: "Obtenir le Code Promo",
     getDiscountDeal: "Obtenir l'Offre",
     ctaAriaLabel: (hasCode, storeName) => `${hasCode ? "Obtenir le code promo" : "Obtenir l'offre"} pour ${storeName}`,
@@ -111,6 +112,7 @@ export const fr: Dictionary = {
     getDiscountCode: "Obtenir le Code Promo",
     getDiscountDeal: "Obtenir l'Offre",
     copied: "Copié !",
+    enjoyOffer: (label, suffix) => (/^Profitez/i.test(label) ? `${label} ${suffix}` : `Profitez de ${label} ${suffix}`),
   },
 
   allDeals: {

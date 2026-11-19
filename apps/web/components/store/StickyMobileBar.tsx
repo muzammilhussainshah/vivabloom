@@ -43,11 +43,12 @@ export function StickyMobileBar({ offer, onCtaClick, dict }: { offer: DerivedOff
         paddingBottom: "calc(14px + env(safe-area-inset-bottom, 0px))",
       }}
     >
-      <div className="min-w-0">
-        <p className="truncate text-[15px] font-extrabold" style={{ color: "var(--page)" }}>
-          {offer.discountLabel} {offer.discountSuffix}
+      <div className="flex min-w-0 flex-col gap-1">
+        {/* Wraps to a second line rather than truncating — "Enjoy 10% off {store}" is wider than what the button leaves on a phone, and a cut-off store name reads as broken. */}
+        <p className="line-clamp-2 text-[14.5px] font-extrabold leading-[1.2]" style={{ color: "var(--page)" }}>
+          {dict.enjoyOffer(offer.discountLabel, offer.discountSuffix)}
         </p>
-        <p className="flex items-center gap-1.5 truncate text-xs" style={{ color: "var(--success)" }}>
+        <p className="flex items-center gap-1.5 truncate text-xs leading-tight" style={{ color: "var(--success)" }}>
           <span className="sv-pulse-dot h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: "var(--success)" }} aria-hidden="true" />
           {offer.verifiedDateShort ? dict.testedPrefix(offer.verifiedDateShort) : ""}
           {dict.liveOffer}

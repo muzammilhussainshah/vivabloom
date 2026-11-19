@@ -83,12 +83,12 @@ export function StoreHeader({
 
         {offer && storeName && (
           <div className="ml-auto hidden items-center gap-4 md:flex">
-            <div className="text-right leading-tight">
-              <p className="text-[13.5px] font-bold" style={{ color: "var(--page)" }}>
-                {offer.discountLabel} {offer.discountSuffix}
+            <div className="flex flex-col items-end gap-1 text-right leading-tight">
+              <p className="text-[14px] font-bold" style={{ color: "var(--page)" }}>
+                {dict.enjoyOffer(offer.discountLabel, offer.discountSuffix)}
               </p>
               {offer.verifiedDateShort && (
-                <p className="flex items-center justify-end gap-1.5 text-[11px]" style={{ color: "var(--success)" }}>
+                <p className="flex items-center justify-end gap-1.5 text-[11.5px]" style={{ color: "var(--success)" }}>
                   <span className="sv-pulse-dot h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: "var(--success)" }} aria-hidden="true" />
                   {dict.testedLiveOffer(offer.verifiedDateShort)}
                 </p>

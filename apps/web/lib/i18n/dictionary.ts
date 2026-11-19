@@ -48,6 +48,8 @@ export interface Dictionary {
   storeHeader: {
     testedLiveOffer: (dateShort: string) => string; // "Tested {date} · 1 live offer"
     copied: string;
+    /** The header / sticky-bar offer line, e.g. "Enjoy 10% off IM8 Health". Skips the lead-in when the admin-written label already starts with it. */
+    enjoyOffer: (discountLabel: string, discountSuffix: string) => string;
     getDiscountCode: string;
     getDiscountDeal: string;
     ctaAriaLabel: (hasCode: boolean, storeName: string) => string;
@@ -89,6 +91,8 @@ export interface Dictionary {
     getDiscountCode: string;
     getDiscountDeal: string;
     copied: string; // "Copied!" — flashed on the bar's button after a tap
+    /** The header / sticky-bar offer line, e.g. "Enjoy 10% off IM8 Health". Skips the lead-in when the admin-written label already starts with it. */
+    enjoyOffer: (discountLabel: string, discountSuffix: string) => string;
   };
 
   allDeals: {
