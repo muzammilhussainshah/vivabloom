@@ -110,88 +110,104 @@ export function CategoryIcon({ name, slug, size, strokeWidth }: { name: string; 
 
 function ArrowIcon() {
   return (
-    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true" className="transition-transform duration-200 group-hover:translate-x-1">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
       <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
 
 /**
- * A category tile for the archive grids (homepage "Browse the Archive" and
- * /categories). With an admin-uploaded image it's a photo under a dark scrim;
- * without one it's a light card tinted with the category's colour, a matching
- * line icon and a large faded watermark of it — so a missing image still reads
- * as a designed tile instead of an empty coloured block.
+ * A category card for the /categories page. Top: a banner — the admin image
+ * when there is one, otherwise a soft tint of the category's colour with its
+ * line icon centred in a frosted badge over a fine dot texture (so a missing
+ * image still reads as designed). Body: index number, serif name, a short
+ * description, store/article counts as a stat row, and an "Explore" footer
+ * whose arrow fills in on hover.
  */
 export function CategoryTile({
+  index,
   slug,
   name,
+  description,
   image,
-  countLabel,
+  storeCount = 0,
+  postCount = 0,
   sizes,
 }: {
+  index: number;
   slug: string;
   name: string;
+  description?: string;
   image?: string | null;
-  countLabel: string;
+  storeCount?: number;
+  postCount?: number;
   sizes: string;
 }) {
-  if (image) {
-    return (
-      <Link
-        href={`/category/${slug}`}
-        className="group relative flex aspect-square flex-col justify-end overflow-hidden rounded-2xl p-5"
-      >
-        <Image src={image} alt="" fill sizes={sizes} className="object-cover transition-transform duration-500 group-hover:scale-105" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/25 to-transparent" />
-        <span className="relative font-serif text-lg font-bold text-white">{name}</span>
-        <span className="relative mt-0.5 flex items-center justify-between text-xs text-white/80">
-          {countLabel}
-          <ArrowIcon />
-        </span>
-      </Link>
-    );
-  }
-
   const color = tintForSlug(slug).from;
+  const blurb = description?.trim() || `Guides, verified deals and trusted stores for ${name.toLowerCase()}.`;
+
   return (
     <Link
       href={`/category/${slug}`}
-      className="group relative isolate flex aspect-square flex-col justify-between overflow-hidden rounded-2xl border border-border p-5 shadow-[0_1px_2px_rgb(0_0_0/0.04)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_30px_-14px_rgb(0_0_0/0.25)]"
-      style={{
-        background: `radial-gradient(circle at 100% 0%, color-mix(in srgb, ${color} 38%, transparent), transparent 65%), color-mix(in srgb, ${color} 13%, var(--surface-muted))`,
-        borderColor: `color-mix(in srgb, ${color} 32%, var(--border))`,
-      }}
+      className="group flex h-full flex-col overflow-hidden rounded-3xl border border-border bg-surface-muted shadow-[0_1px_2px_rgb(0_0_0/0.04)] transition-all duration-300 hover:-translate-y-1 hover:border-transparent hover:shadow-[0_24px_48px_-24px_rgb(0_0_0/0.35)]"
     >
-      {/* Large faded watermark of the icon, bleeding off the corner. */}
-      <span
-        className="pointer-events-none absolute -bottom-10 -right-10 -z-10 transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-6"
-        style={{ color, opacity: 0.16 }}
-      >
-        <CategoryIcon name={name} slug={slug} size={140} strokeWidth={1.4} />
-      </span>
-
-      <span
-        className="flex h-12 w-12 items-center justify-center rounded-xl text-white"
+      <div
+        className="relative isolate flex h-44 items-center justify-center overflow-hidden"
         style={{
-          background: color,
-          boxShadow: `0 6px 16px -6px color-mix(in srgb, ${color} 70%, transparent)`,
+          background: `radial-gradient(circle at 85% 10%, color-mix(in srgb, ${color} 34%, transparent), transparent 60%), color-mix(in srgb, ${color} 12%, var(--surface-muted))`,
         }}
       >
-        <CategoryIcon name={name} slug={slug} size={24} strokeWidth={1.8} />
-      </span>
-
-      <span className="flex flex-col gap-1">
-        <span className="font-serif text-xl font-bold leading-tight text-text">{name}</span>
-        <span className="text-xs font-medium text-text-muted">{countLabel}</span>
-        <span
-          className="mt-2 flex items-center gap-1 text-xs font-semibold"
-          style={{ color: `color-mix(in srgb, ${color} 75%, #000)` }}
-        >
-          Explore
-          <ArrowIcon />
+        {image ? (
+          <Image src={image} alt="" fill sizes={sizes} className="object-cover transition-transform duration-500 group-hover:scale-105" />
+        ) : (
+          <>
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 -z-10 opacity-40"
+              style={{
+                backgroundImage: `radial-gradient(color-mix(in srgb, ${color} 45%, transparent) 1px, transparent 1px)`,
+                backgroundSize: "16px 16px",
+                maskImage: "radial-gradient(ellipse at center, black 30%, transparent 75%)",
+              }}
+            />
+            <span
+              className="flex h-20 w-20 items-center justify-center rounded-[22px] bg-white/80 shadow-[0_10px_30px_-12px_rgb(0_0_0/0.3)] ring-1 ring-white backdrop-blur transition-transform duration-500 group-hover:-rotate-6 group-hover:scale-105"
+              style={{ color }}
+            >
+              <CategoryIcon name={name} slug={slug} size={34} strokeWidth={1.6} />
+            </span>
+          </>
+        )}
+        <span className="absolute left-4 top-4 rounded-full bg-white/85 px-2.5 py-1 font-serif text-xs font-semibold tabular-nums text-text shadow-sm backdrop-blur">
+          {String(index + 1).padStart(2, "0")}
         </span>
-      </span>
+      </div>
+
+      <div className="flex flex-1 flex-col gap-3 p-6">
+        <h2 className="font-serif text-2xl font-bold leading-tight text-text transition-colors group-hover:text-brand-primary">
+          {name}
+        </h2>
+        <p className="line-clamp-2 text-sm leading-relaxed text-text-muted">{blurb}</p>
+
+        <p className="mt-1 flex items-center gap-5 text-sm text-text-muted">
+          <span className="flex items-baseline gap-1.5">
+            <span className="font-serif text-lg font-bold text-text">{storeCount}</span>
+            {storeCount === 1 ? "store" : "stores"}
+          </span>
+          <span className="h-4 w-px bg-border" aria-hidden="true" />
+          <span className="flex items-baseline gap-1.5">
+            <span className="font-serif text-lg font-bold text-text">{postCount}</span>
+            {postCount === 1 ? "article" : "articles"}
+          </span>
+        </p>
+
+        <div className="mt-auto flex items-center justify-between border-t border-border pt-4">
+          <span className="text-sm font-semibold text-brand-primary">Explore category</span>
+          <span className="flex h-9 w-9 items-center justify-center rounded-full border border-border text-brand-primary transition-all duration-200 group-hover:border-brand-primary group-hover:bg-brand-primary group-hover:text-white">
+            <ArrowIcon />
+          </span>
+        </div>
+      </div>
     </Link>
   );
 }
