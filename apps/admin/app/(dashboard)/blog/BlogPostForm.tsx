@@ -5,6 +5,7 @@ import { slugify } from "@/lib/slugify";
 import { RichTextEditor, type RichTextEditorHandle } from "@/components/RichTextEditor";
 import { AIGenerateTextButton } from "@/components/AIGenerateTextButton";
 import { AIGenerateImageButton } from "@/components/AIGenerateImageButton";
+import { ImageUploadButton } from "@/components/ImageUploadButton";
 import { GenerateAllButton } from "@/components/GenerateAllButton";
 import { blogCoverImagePrompt, blogTagsPrompt } from "@/lib/ai/prompts";
 import type { ActionState } from "./actions";
@@ -571,6 +572,8 @@ export function BlogPostForm({
           <label htmlFor="coverImage" className="text-sm font-medium">
             Cover image URL <span className="text-text-muted">(optional)</span>
           </label>
+          <div className="flex items-start gap-2">
+          <ImageUploadButton label="Upload image" prefix="blog" onUploaded={setCoverImage} />
           <AIGenerateImageButton
             task="blogCover"
             getPrompt={() =>
@@ -585,7 +588,11 @@ export function BlogPostForm({
             }
             onGenerated={setCoverImage}
           />
+          </div>
         </div>
+        <p className="text-xs text-text-muted">
+          Upload your own image, generate one with AI, or paste a URL. Best size: 16:9 landscape (e.g. 1600×900) — it fills the blog banner exactly.
+        </p>
         <input
           id="coverImage"
           name="coverImage"
