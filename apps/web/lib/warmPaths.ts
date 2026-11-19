@@ -17,6 +17,9 @@ const CONCURRENCY = 8;
  * an already-fresh page warm.
  */
 export async function warmPaths(paths: string[], origin: string) {
+  // `next dev` has no ISR cache to warm, and a burst of concurrent renders
+  // there corrupts .next/dev/prerender-manifest.json on Windows — skip it.
+  if (process.env.NODE_ENV !== "production") return { warmed: 0, failed: 0 };
   let warmed = 0;
   let failed = 0;
   for (let i = 0; i < paths.length; i += CONCURRENCY) {

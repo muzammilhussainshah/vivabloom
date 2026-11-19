@@ -78,7 +78,7 @@ function SavePill({ savings, small = false }: { savings: number; small?: boolean
 
 /**
  * The large card: square image with compact badges, then name, price, savings
- * and a "View deal" cue. "Best deal in store" sits in the body rather than
+ * and (bundles only) a "View deal" cue. "Best deal in store" sits in the body rather than
  * over the image, where it used to cover the product graphic's own text.
  * Used as the sole card when a store has 1-2 items, and as the featured lead
  * when it has 3+.
@@ -115,10 +115,13 @@ function LeadCard({ item, isFeatured, priority }: { item: CatalogItem; isFeature
             <Price item={item} large />
             {savings !== null && <SavePill savings={savings} />}
           </div>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-primary px-4 py-2 text-sm font-semibold text-white transition-colors group-hover:bg-brand-primary-hover">
-            View deal
-            <ArrowIcon />
-          </span>
+          {/* "View deal" is a bundle cue only — plain products get no button. */}
+          {kind === "bundle" && (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-primary px-4 py-2 text-sm font-semibold text-white transition-colors group-hover:bg-brand-primary-hover">
+              View deal
+              <ArrowIcon />
+            </span>
+          )}
         </div>
       </div>
     </Link>

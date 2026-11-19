@@ -55,12 +55,19 @@ export async function POST(request: NextRequest) {
   // is cold). Re-warm each busted path ourselves, after the response is sent,
   // so the single iad1 origin's ISR cache is repopulated before any real (paid)
   // visitor arrives. Fire-and-forget: warming failures never fail the request.
+  //
+  // Production only: `next dev` has no ISR cache to warm, and firing every
+  // busted path at it at once (a store edit fans out to ~20 locale/variant
+  // URLs) races its non-atomic writes to .next/dev/prerender-manifest.json on
+  // Windows — corrupting it so every page then 500s with a JSON parse error.
   const origin = request.nextUrl.origin;
-  after(async () => {
-    await Promise.allSettled(
-      allPaths.map((path) => fetch(`${origin}${path}`, { headers: { "x-cache-warm": "1" } }))
-    );
-  });
+  if (process.env.NODE_ENV === "production") {
+    after(async () => {
+      await Promise.allSettled(
+        allPaths.map((path) => fetch(`${origin}${path}`, { headers: { "x-cache-warm": "1" } }))
+      );
+    });
+  }
 
   return NextResponse.json({ revalidated: true, paths: allPaths, revalidateLayout: !!revalidateLayout });
 }
