@@ -9,31 +9,48 @@ export function ImageUploadButton({
   label = "Upload image",
   prefix,
   onUploaded,
+  onUploadedBatch,
+  multiple = false,
 }: {
   label?: string;
   /** Blob storage folder for this form, e.g. "stores" — keeps uploads from different forms browsable/separate. */
   prefix: string;
-  onUploaded: (url: string) => void;
+  /** Called once per successfully uploaded file (several times when `multiple`). */
+  onUploaded?: (url: string) => void;
+  /** Called once after a pick/drop finishes, with every URL that uploaded successfully, in order. */
+  onUploadedBatch?: (urls: string[]) => void;
+  /** Allow picking / dropping several files at once; they upload one after another. */
+  multiple?: boolean;
 }) {
   const inputId = useId();
   const [isPending, setIsPending] = useState(false);
   const [isDragActive, setIsDragActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function uploadFile(file: File) {
-    // The file picker's `accept` attribute only filters the browse dialog —
-    // a drag-and-drop can carry any file type, so this check covers both paths.
-    if (!ALLOWED_TYPES.has(file.type)) {
-      setError("Unsupported file type. Use PNG, JPEG, WebP, or GIF.");
-      return;
-    }
-    if (file.size > MAX_BYTES) {
-      setError("File is too large (max 5MB).");
-      return;
-    }
-
+  async function uploadFiles(files: File[]) {
     setIsPending(true);
     setError(null);
+    const urls: string[] = [];
+    for (const file of files) {
+      const result = await uploadFile(file);
+      if (!result.ok) {
+        setError(files.length > 1 ? `${file.name}: ${result.error}` : result.error);
+        break;
+      }
+      urls.push(result.url);
+      onUploaded?.(result.url);
+    }
+    if (urls.length) onUploadedBatch?.(urls);
+    setIsPending(false);
+  }
+
+  /** Uploads one file; returns its URL, or an error message. */
+  async function uploadFile(file: File): Promise<{ ok: true; url: string } | { ok: false; error: string }> {
+    // The file picker's `accept` attribute only filters the browse dialog —
+    // a drag-and-drop can carry any file type, so this check covers both paths.
+    if (!ALLOWED_TYPES.has(file.type)) return { ok: false, error: "Unsupported file type. Use PNG, JPEG, WebP, or GIF." };
+    if (file.size > MAX_BYTES) return { ok: false, error: "File is too large (max 5MB)." };
+
     try {
       const formData = new FormData();
       formData.set("file", file);
@@ -43,19 +60,17 @@ export function ImageUploadButton({
       if (!res.ok) {
         throw new Error(data.error || `Upload failed (${res.status})`);
       }
-      onUploaded(data.url);
+      return { ok: true, url: data.url as string };
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Upload failed.");
-    } finally {
-      setIsPending(false);
+      return { ok: false, error: err instanceof Error ? err.message : "Upload failed." };
     }
   }
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
+    const files = Array.from(e.target.files ?? []);
     // Let the same file be re-selected later (e.g. after fixing an error).
     e.target.value = "";
-    if (file) void uploadFile(file);
+    if (files.length) void uploadFiles(multiple ? files : files.slice(0, 1));
   }
 
   function handleDragOver(e: React.DragEvent<HTMLLabelElement>) {
@@ -72,8 +87,8 @@ export function ImageUploadButton({
     e.preventDefault();
     setIsDragActive(false);
     if (isPending) return;
-    const file = e.dataTransfer.files?.[0];
-    if (file) void uploadFile(file);
+    const files = Array.from(e.dataTransfer.files ?? []);
+    if (files.length) void uploadFiles(multiple ? files : files.slice(0, 1));
   }
 
   return (
@@ -82,6 +97,7 @@ export function ImageUploadButton({
         id={inputId}
         type="file"
         accept="image/png,image/jpeg,image/webp,image/gif"
+        multiple={multiple}
         onChange={handleChange}
         disabled={isPending}
         className="hidden"

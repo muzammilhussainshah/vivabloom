@@ -219,6 +219,8 @@ export interface CatalogDetail {
   slug: string;
   description?: string;
   image: string;
+  /** Every image for the detail-page gallery, main `image` first (a bundle has just its one image). */
+  images: string[];
   price: number;
   originalPrice?: number | null;
   /** Bundle-only marketing badge ("extra 7% off") — undefined for a product. */
@@ -756,6 +758,7 @@ export async function getProductBySlug(slug: string): Promise<{
         slug: productDoc.slug,
         description: productDoc.description,
         image: productDoc.image,
+        images: [productDoc.image, ...(productDoc.gallery ?? []).filter((u) => u && u !== productDoc.image)],
         price: productDoc.price,
         originalPrice: productDoc.originalPrice,
         url: productDoc.productUrl,
@@ -769,6 +772,7 @@ export async function getProductBySlug(slug: string): Promise<{
         slug: bundleDoc!.slug,
         description: bundleDoc!.description,
         image: bundleDoc!.image,
+        images: [bundleDoc!.image],
         price: bundleDoc!.price,
         originalPrice: bundleDoc!.originalPrice,
         extraDiscountPercent: bundleDoc!.extraDiscountPercent,

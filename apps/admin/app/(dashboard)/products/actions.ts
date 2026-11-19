@@ -37,6 +37,7 @@ function parseForm(formData: FormData) {
     slug: formData.get("slug"),
     description: formData.get("description") || "",
     image: formData.get("image"),
+    gallery: formData.getAll("gallery").filter((v): v is string => typeof v === "string" && v.trim() !== ""),
     price: formData.get("price"),
     originalPrice: formData.get("originalPrice") || null,
     productUrl: formData.get("productUrl"),

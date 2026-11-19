@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { ImageUploadButton } from "@/components/ImageUploadButton";
+import { GalleryEditor } from "@/components/GalleryEditor";
 import { slugify } from "@/lib/slugify";
 import type { ActionState } from "./actions";
 
@@ -16,6 +17,7 @@ export interface ProductFormInitialData {
   slug: string;
   description?: string;
   image: string;
+  gallery?: string[];
   price: number;
   originalPrice?: number | null;
   productUrl: string;
@@ -35,6 +37,25 @@ export function ProductForm({
 }) {
   const [state, formAction, isPending] = useActionState(action, undefined);
   const [image, setImage] = useState(initialData?.image ?? "");
+  const [gallery, setGallery] = useState<string[]>(initialData?.gallery ?? []);
+
+  // Picking several files in the main uploader: the first becomes the main
+  // image, the rest go to "More images" — so it works whichever button is used.
+  // ★ Cover on a gallery image: it becomes the main image and the old main
+  // image takes its place in the gallery, so nothing is lost.
+  function makeCover(url: string) {
+    const oldCover = image.trim();
+    setGallery((prev) =>
+      oldCover && oldCover !== url ? prev.map((u) => (u === url ? oldCover : u)) : prev.filter((u) => u !== url)
+    );
+    setImage(url);
+  }
+
+  function handleMainUpload(urls: string[]) {
+    const [first, ...rest] = urls;
+    setImage(first);
+    if (rest.length) setGallery((prev) => [...prev, ...rest.filter((u) => !prev.includes(u))].slice(0, 12));
+  }
   const [name, setName] = useState(initialData?.name ?? "");
   const [slug, setSlug] = useState(initialData?.slug ?? "");
   const [slugTouched, setSlugTouched] = useState(false);
@@ -116,9 +137,9 @@ export function ProductForm({
       <div className="flex flex-col gap-1">
         <div className="flex items-center justify-between">
           <label htmlFor="image" className="text-sm font-medium">
-            Image URL
+            Cover image URL
           </label>
-          <ImageUploadButton prefix="products" onUploaded={setImage} />
+          <ImageUploadButton label="Upload main image" prefix="products" onUploadedBatch={handleMainUpload} multiple />
         </div>
         <input
           id="image"
@@ -131,9 +152,23 @@ export function ProductForm({
           className="rounded-base border border-border bg-surface px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
         />
         {image && (
-          // eslint-disable-next-line @next/next/no-img-element -- preview of arbitrary/uploaded URL
-          <img src={image} alt="Product image preview" className="mt-1 h-14 w-auto max-w-48 rounded-base border border-border object-contain" />
+          <span className="relative mt-1 inline-block self-start">
+            {/* eslint-disable-next-line @next/next/no-img-element -- preview of arbitrary/uploaded URL */}
+            <img src={image} alt="Cover image preview" className="h-24 w-24 rounded-base border-2 border-brand-primary bg-surface object-contain" />
+            <span className="absolute left-1 top-1 rounded bg-brand-primary px-1.5 text-[10px] font-semibold text-white">★ Cover</span>
+          </span>
         )}
+      </div>
+
+      <div className="flex flex-col gap-1">
+        <span className="text-sm font-medium">
+          More images <span className="text-text-muted">(optional)</span>
+        </span>
+        <GalleryEditor name="gallery" prefix="products" images={gallery} onChange={setGallery} onMakeCover={makeCover} />
+        <p className="text-xs text-text-muted">
+          Tip: you can select several images at once in either uploader. In the main uploader the first one becomes the
+          cover image and the rest are added here.
+        </p>
       </div>
 
       <div className="grid grid-cols-2 gap-4">

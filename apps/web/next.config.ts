@@ -77,6 +77,13 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  experimental: {
+    // Turbopack's on-disk dev cache (.next/dev/cache) kept getting corrupted on
+    // Windows, making every page 500 with "Unexpected non-whitespace character
+    // after JSON" until .next was deleted. Dev-only — production builds are
+    // unaffected. Cold starts are a little slower without it.
+    turbopackFileSystemCacheForDev: false,
+  },
   transpilePackages: ["@monocoupon/db", "@monocoupon/validation"],
   serverExternalPackages: ["mongoose"],
   images: {

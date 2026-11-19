@@ -32,6 +32,12 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  experimental: {
+    // Turbopack's on-disk dev cache kept getting corrupted on Windows (every
+    // page 500s with a JSON parse error until .next is deleted). Dev-only —
+    // production builds are unaffected. Cold starts are a little slower.
+    turbopackFileSystemCacheForDev: false,
+  },
   transpilePackages: ["@monocoupon/db", "@monocoupon/keywords", "@monocoupon/validation"],
   serverExternalPackages: ["mongoose"],
   // Lets the dev HMR socket work when the site is opened via the LAN address

@@ -20,6 +20,8 @@ const ProductSchema = new Schema(
     /** Admin-authored copy for the product detail page — optional, falls back to a generic blurb on the web app when empty. */
     description: { type: String, default: "" },
     image: { type: String, required: true },
+    /** Extra product photos shown after `image` in the detail-page gallery. `image` stays the main/card image. */
+    gallery: { type: [String], default: [] },
     price: { type: Number, required: true },
     originalPrice: { type: Number, default: null },
     productUrl: { type: String, required: true },

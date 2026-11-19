@@ -22,6 +22,8 @@ export const productSchema = z.object({
     .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, "Slug must be lowercase letters, numbers, and hyphens only"),
   description: z.string().max(5000).optional().default(""),
   image: z.string().url("Must be a valid URL"),
+  /** Extra gallery images (the main `image` is always shown first). */
+  gallery: z.array(z.string().url("Each gallery image must be a valid URL")).max(12, "Up to 12 extra images").default([]),
   price: z.coerce.number().min(0),
   originalPrice: z.coerce.number().min(0).optional().nullable(),
   productUrl: z.string().url("Must be a valid URL").max(1000),

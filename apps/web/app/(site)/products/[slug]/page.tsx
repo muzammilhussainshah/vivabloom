@@ -53,7 +53,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
       <BackLink href="/products">All products</BackLink>
 
       <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
-        <ProductImageViewer src={item.image} alt={item.name} />
+        <ProductImageViewer images={item.images} alt={item.name} />
 
         <div className="flex flex-col gap-5">
           <Link
