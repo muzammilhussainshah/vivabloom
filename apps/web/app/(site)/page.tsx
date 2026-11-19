@@ -2,7 +2,7 @@ import { getBlogHomeData, getCachedSiteSettings } from "@/lib/data";
 import { FeaturedHero, withLineBreaks } from "@/components/FeaturedHero";
 import { MostReadBand } from "@/components/MostReadBand";
 import { CategorySpotlight } from "@/components/CategorySpotlight";
-import { CategoryMosaic } from "@/components/CategoryMosaic";
+import { ArchiveIndex } from "@/components/ArchiveIndex";
 import { LoadMoreArticles } from "@/components/LoadMoreArticles";
 
 export const revalidate = 300;
@@ -76,12 +76,7 @@ export default async function Home() {
         )}
 
         {/* Archive mosaic */}
-        {browseCategories.length > 0 && (
-          <section className="flex flex-col gap-6">
-            <Kicker label="Explore" title="Browse the Archive" subtitle="Every topic we cover, all in one place." />
-            <CategoryMosaic categories={browseCategories} />
-          </section>
-        )}
+        <ArchiveIndex categories={browseCategories} totalArticles={totalPosts} />
 
         {/* Fresh This Week — dense list with Load More */}
         <section className="flex flex-col gap-6">

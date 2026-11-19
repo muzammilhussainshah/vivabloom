@@ -90,7 +90,7 @@ function iconFor(name: string, slug: string): ReactNode {
   return ICONS.find((i) => i.match.test(key))?.icon ?? FALLBACK_ICON;
 }
 
-function CategoryIcon({ name, slug, size, strokeWidth }: { name: string; slug: string; size: number; strokeWidth: number }) {
+export function CategoryIcon({ name, slug, size, strokeWidth }: { name: string; slug: string; size: number; strokeWidth: number }) {
   return (
     <svg
       width={size}
