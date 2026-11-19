@@ -12,7 +12,7 @@ export function MostReadBand({ posts }: { posts: BlogPostCard[] }) {
   if (posts.length === 0) return null;
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-5 sm:px-8">
+    <div className="mx-auto w-full max-w-6xl px-5 pt-12 sm:px-8 sm:pt-16">
       <div className="rounded-2xl border border-border bg-surface-muted px-6 py-10 text-text sm:px-10 sm:py-12">
         <div className="mb-8 flex flex-wrap items-end justify-between gap-2">
           <div className="flex flex-col gap-1">
