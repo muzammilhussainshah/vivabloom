@@ -66,7 +66,7 @@ export function StoreHeader({
   }
 
   return (
-    <header className="sticky top-0 z-40" style={{ background: "var(--footer)" }}>
+    <header className="sticky top-0 z-40" style={{ background: "var(--footer)", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
       <div className="mx-auto flex h-14 max-w-[1240px] items-center gap-4 px-4 md:h-[62px]">
         <Link prefetch={false} href="/" className="flex shrink-0 items-center gap-2.5">
           <span className="md:hidden">

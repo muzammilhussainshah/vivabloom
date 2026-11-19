@@ -218,7 +218,43 @@
   animation-fill-mode: forwards;
 }
 
+/* Voucher perforation notches (OfferVoucher.tsx): two 13px-radius holes
+ * punched out of the strip's left and right edges with a mask, so the page
+ * behind the card shows through them whatever its color. */
+.sv-voucher-perforation {
+  --sv-notch: radial-gradient(circle 13px at 0 50%, transparent 12.5px, #000 13px),
+    radial-gradient(circle 13px at 100% 50%, transparent 12.5px, #000 13px);
+  -webkit-mask-image: var(--sv-notch);
+  -webkit-mask-composite: source-in;
+  mask-image: var(--sv-notch);
+  mask-composite: intersect;
+}
+
+/* Voucher CTA shine (OfferVoucher.tsx) — a soft highlight sweeps across the
+ * button every few seconds to draw the eye to the one action that matters.
+ * Pure compositor work (transform only), so it costs nothing on the main
+ * thread. */
+.sv-cta-shine::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, 0.28) 50%, transparent 65%);
+  transform: translateX(-120%);
+  animation: sv-shine 3.6s ease-in-out 1.2s infinite;
+  pointer-events: none;
+}
+@keyframes sv-shine {
+  0% {
+    transform: translateX(-120%);
+  }
+  35%,
+  100% {
+    transform: translateX(120%);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .sv-cta-shine::after,
   .sv-pulse-dot,
   .sv-pulse-dot-fast,
   .sv-spinner,

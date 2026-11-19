@@ -35,19 +35,21 @@ function formatPrice(amount: number, country?: string | null): string {
 }
 
 /**
- * Hero band of the paid-campaign landing page. One grid, two layouts:
+ * Hero band of the paid-campaign landing page. A deep, near-black brand
+ * backdrop lit by two soft color glows (accent top-right behind the voucher,
+ * primary bottom-left) so the coral voucher is the brightest thing on screen,
+ * with a big headline on the left stating the offer in one line.
  *
- *  - Mobile (single column, plain source order): store identity -> the
- *    voucher (so its Get Code button sits above the fold on a ~390x844
- *    phone) -> the products strip -> the 3-step "how to save" -> trust row.
- *  - Desktop (`md`, 1fr | 448px): everything but the voucher stacks in the
- *    left column; the voucher is pinned into the right column spanning all
- *    rows, so it stays beside the content instead of below it.
+ * One grid, two layouts:
+ *  - Mobile (single column, source order): identity -> headline -> the
+ *    voucher (its Get Code button lands above the fold on a ~390x844 phone)
+ *    -> products -> 3 steps -> trust row.
+ *  - Desktop (`md`, 1fr | 448px): everything but the voucher stacks on the
+ *    left; the voucher is pinned into the right column across all rows.
  *
- * The products strip doubles as click-confirmation ("you're on the right
- * page" — proof the visitor landed where the ad promised): real product
- * cards with name, price and the store's own markdown, each a tracked
- * affiliate link.
+ * Everything decorative here is static CSS (gradients, one pre-blurred
+ * glow) — nothing animates, so it costs a single paint and no main-thread
+ * time.
  */
 export function StoreHero({
   storeName,
@@ -82,25 +84,21 @@ export function StoreHero({
   const trustChecks = offer.trustChecks.slice(0, 4);
 
   return (
-    <section className="relative isolate overflow-hidden" style={{ background: "var(--primary)" }}>
-      {/* Depth: a soft light bloom top-left, the accent disc top-right, and a fine dot grain — so the band reads as crafted, not as a flat fill. */}
+    <section
+      className="relative isolate overflow-hidden"
+      style={{
+        background:
+          "radial-gradient(900px 560px at 88% -8%, color-mix(in srgb, var(--accent) 30%, transparent), transparent 62%), radial-gradient(1000px 640px at -12% 112%, color-mix(in srgb, var(--primary) 75%, transparent), transparent 62%), var(--footer)",
+      }}
+    >
+      {/* Fine dot grain — gives the dark field texture instead of a flat fill. */}
       <div
-        className="pointer-events-none absolute -left-40 -top-48 -z-10 h-[460px] w-[460px] rounded-full opacity-50 blur-3xl"
-        style={{ background: "radial-gradient(circle, rgba(255,255,255,0.22), transparent 65%)" }}
-        aria-hidden="true"
-      />
-      <div
-        className="pointer-events-none absolute -right-24 -top-24 -z-10 h-[300px] w-[300px] rounded-full md:h-[520px] md:w-[520px]"
-        style={{ background: "var(--accent-stripe)" }}
-        aria-hidden="true"
-      />
-      <div
-        className="pointer-events-none absolute inset-0 -z-10 opacity-[0.06]"
-        style={{ backgroundImage: "radial-gradient(#fff 1px, transparent 1px)", backgroundSize: "20px 20px" }}
+        className="pointer-events-none absolute inset-0 -z-10 opacity-[0.05]"
+        style={{ backgroundImage: "radial-gradient(#fff 1px, transparent 1px)", backgroundSize: "22px 22px" }}
         aria-hidden="true"
       />
 
-      <div className="mx-auto max-w-[1240px] px-4 pb-8 pt-4 md:pb-14 md:pt-8">
+      <div className="mx-auto max-w-[1240px] px-4 pb-9 pt-4 md:pb-16 md:pt-8">
         <p className="font-store-mono text-[10px] tracking-wide" style={{ color: "var(--on-primary-faint)" }}>
           <a href="/" style={{ color: "var(--on-primary-faint)" }}>
             {dict.home}
@@ -111,52 +109,68 @@ export function StoreHero({
         {tagline && (
           <p
             className="mt-2 inline-block w-fit rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide"
-            style={{ background: "var(--accent-stripe)", color: "var(--page)" }}
+            style={{ background: "var(--accent)", color: "var(--on-accent)" }}
           >
             {tagline}
           </p>
         )}
 
-        <div className="mt-4 grid grid-cols-1 gap-5 md:mt-6 md:grid-cols-[minmax(0,1fr)_448px] md:grid-rows-[auto_auto_auto_1fr] md:gap-x-14 md:gap-y-7">
-          {/* 1. Identity */}
-          <div className="flex flex-col gap-3.5 md:col-start-1 md:row-start-1 md:gap-4">
+        <div className="mt-4 grid grid-cols-1 gap-6 md:mt-7 md:grid-cols-[minmax(0,1fr)_448px] md:grid-rows-[auto_auto_auto_1fr] md:gap-x-16 md:gap-y-9">
+          {/* 1. Identity + headline */}
+          <div className="flex flex-col gap-4 md:col-start-1 md:row-start-1 md:gap-5">
             <div className="flex items-center gap-3">
               <StoreMark
                 logo={storeLogo}
                 letter={monogramLetter}
                 name={storeName}
-                className="h-12 w-12 rounded-[14px] text-xl shadow-[0_6px_18px_-8px_rgba(0,0,0,0.5)] ring-2 ring-white/15 md:h-14 md:w-14 md:rounded-2xl md:text-2xl"
+                className="h-11 w-11 rounded-[13px] text-lg shadow-[0_8px_20px_-8px_rgba(0,0,0,0.6)] ring-2 ring-white/15 md:h-12 md:w-12 md:rounded-[14px] md:text-xl"
                 style={{ background: "var(--page)", color: "var(--primary)" }}
               />
               <div className="min-w-0">
-                <p className="truncate text-[19px] font-extrabold leading-tight tracking-tight md:text-[26px]" style={{ color: "var(--page)" }}>
+                <p className="truncate text-[16px] font-extrabold leading-tight md:text-[18px]" style={{ color: "var(--page)" }}>
                   {storeName}
+                  {categoryName && (
+                    <span className="font-medium" style={{ color: "var(--on-primary-faint)" }}>
+                      {" "}
+                      · {categoryName}
+                    </span>
+                  )}
                 </p>
-                {categoryName && (
-                  <p className="text-[13px] md:text-sm" style={{ color: "var(--on-primary-dim)" }}>
-                    {categoryName}
-                  </p>
-                )}
+                <p className="mt-0.5 flex items-center gap-1.5 text-[12.5px] font-semibold" style={{ color: "var(--success)" }}>
+                  <span className="sv-pulse-dot h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: "var(--success)" }} aria-hidden="true" />
+                  {dict.liveOffer(offer.verifiedDateLong)}
+                </p>
               </div>
             </div>
 
-            <div
-              className="inline-flex w-fit items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold"
-              style={{ background: "var(--sec-bg)", border: "1px solid var(--sec-br)", color: "var(--success)" }}
+            {/* The offer in one line. Not an <h1> — that lives in the voucher (store name + discount), per the store-page SEO spec. */}
+            <p
+              className="font-store-serif text-balance text-[36px] font-bold leading-[1.02] tracking-[-0.03em] md:text-[64px]"
+              style={{ color: "var(--page)" }}
             >
-              <span className="sv-pulse-dot h-1.5 w-1.5 rounded-full" style={{ background: "var(--success)" }} aria-hidden="true" />
-              {dict.liveOffer(offer.verifiedDateLong)}
-            </div>
+              <span
+                className="bg-clip-text text-transparent"
+                style={{ backgroundImage: "linear-gradient(100deg, var(--accent) 10%, color-mix(in srgb, var(--accent) 45%, #ffd8b0) 90%)" }}
+              >
+                {offer.discountLabel}
+              </span>{" "}
+              {offer.discountSuffix}
+            </p>
 
             {offer.lede && (
-              <p className="sv-hero-lede hidden max-w-[560px] md:block" style={{ color: "var(--on-primary-soft)" }}>
+              <p className="sv-hero-lede hidden max-w-[540px] md:block" style={{ color: "var(--on-primary-soft)" }}>
                 {offer.lede}
               </p>
             )}
           </div>
 
-          {/* 2. Voucher — second on mobile (above the fold), pinned right on desktop */}
-          <div id="sv-voucher" className="md:col-start-2 md:row-span-4 md:row-start-1 md:self-start">
+          {/* 2. Voucher — right after the headline on mobile, pinned right on desktop, sitting in a soft accent glow. */}
+          <div id="sv-voucher" className="relative md:col-start-2 md:row-span-4 md:row-start-1 md:self-start">
+            <div
+              className="pointer-events-none absolute -inset-x-8 -inset-y-10 -z-10 opacity-50 md:-inset-20"
+              style={{ background: "radial-gradient(closest-side, var(--accent), transparent)" }}
+              aria-hidden="true"
+            />
             {voucher}
           </div>
 
@@ -164,15 +178,15 @@ export function StoreHero({
           {heroProducts.length > 0 && (
             <div className="flex min-w-0 flex-col gap-3 md:col-start-1 md:row-start-2">
               <div className="flex items-baseline justify-between gap-3">
-                <p className="text-[13.5px] font-bold md:text-[15px]" style={{ color: "var(--page)" }}>
+                <p className="font-store-mono text-[11px] font-semibold uppercase tracking-[0.16em]" style={{ color: "var(--on-primary-dim)" }}>
                   {dict.onTheRightPage}
                 </p>
-                <p className="hidden text-right text-[13px] md:block" style={{ color: "var(--on-primary-dim)" }}>
+                <p className="hidden text-right text-[12.5px] md:block" style={{ color: "var(--on-primary-faint)" }}>
                   {dict.ownCutsLine(storeName, offer.discountLabel)}
                 </p>
               </div>
 
-              <div className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:mx-0 md:grid md:grid-cols-3 md:overflow-visible md:px-0 [&::-webkit-scrollbar]:hidden">
+              <div className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:mx-0 md:grid md:grid-cols-3 md:gap-4 md:overflow-visible md:px-0 [&::-webkit-scrollbar]:hidden">
                 {heroProducts.map((item) => {
                   const hasDiscount = !!(item.originalPrice && item.originalPrice > item.price);
                   const percentOff = hasDiscount ? Math.ceil(((item.originalPrice! - item.price) / item.originalPrice!) * 100) : null;
@@ -183,7 +197,7 @@ export function StoreHero({
                       target="_blank"
                       rel="nofollow sponsored noopener"
                       onClick={() => onProductClick(item.url)}
-                      className="group flex w-[158px] shrink-0 snap-start flex-col overflow-hidden rounded-2xl shadow-[0_10px_24px_-14px_rgba(0,0,0,0.55)] transition-transform duration-200 hover:-translate-y-1 md:w-auto"
+                      className="group flex w-[158px] shrink-0 snap-start flex-col overflow-hidden rounded-2xl ring-1 ring-white/10 shadow-[0_16px_32px_-18px_rgba(0,0,0,0.8)] transition-transform duration-200 hover:-translate-y-1 md:w-auto"
                       style={{ background: "var(--page)" }}
                     >
                       <div className="relative aspect-[4/3] w-full overflow-hidden bg-white">
@@ -196,7 +210,7 @@ export function StoreHero({
                         />
                         {percentOff !== null && (
                           <span
-                            className="absolute left-2 top-2 rounded-md px-1.5 py-0.5 text-[11px] font-extrabold"
+                            className="absolute left-2 top-2 rounded-md px-1.5 py-0.5 text-[11px] font-extrabold shadow-sm"
                             style={{ background: "var(--accent)", color: "var(--on-accent)" }}
                           >
                             -{percentOff}%
@@ -212,7 +226,7 @@ export function StoreHero({
                           </span>
                         )}
                       </div>
-                      <div className="flex flex-1 flex-col gap-1 border-t px-3 pb-3 pt-2.5" style={{ borderColor: "var(--border)" }}>
+                      <div className="flex flex-1 flex-col gap-1 px-3 pb-3 pt-2.5">
                         <p className="line-clamp-1 text-[13px] font-bold leading-snug" style={{ color: "var(--text)" }}>
                           {item.name}
                         </p>
@@ -240,29 +254,32 @@ export function StoreHero({
             </div>
           )}
 
-          {/* 4. How to save, in 3 steps */}
+          {/* 4. How to save — a connected 3-step track, not three more boxes */}
           <div className="md:col-start-1 md:row-start-3">
-            <p className="mb-3 text-[13.5px] font-bold md:text-[15px]" style={{ color: "var(--page)" }}>
+            <p className="font-store-mono mb-4 text-[11px] font-semibold uppercase tracking-[0.16em]" style={{ color: "var(--on-primary-dim)" }}>
               {dict.howToSaveHeading}
             </p>
-            <ol className="grid grid-cols-1 gap-2 sm:grid-cols-3 sm:gap-3">
+            <ol className="flex flex-col gap-4 sm:flex-row sm:gap-0">
               {steps.map((step, i) => (
-                <li
-                  key={step.title}
-                  className="flex items-start gap-3 rounded-2xl px-3.5 py-3 sm:flex-col sm:gap-2.5 sm:px-4 sm:py-4"
-                  style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.13)" }}
-                >
+                <li key={step.title} className="relative flex items-start gap-3 sm:flex-1 sm:flex-col sm:gap-3 sm:pr-5">
+                  {i < steps.length - 1 && (
+                    <>
+                      {/* connector: vertical on mobile, horizontal from sm up */}
+                      <span className="absolute left-[15px] top-9 h-[calc(100%-20px)] w-px sm:hidden" style={{ background: "rgba(255,255,255,0.16)" }} aria-hidden="true" />
+                      <span className="absolute left-11 right-3 top-4 hidden h-px sm:block" style={{ background: "linear-gradient(90deg, rgba(255,255,255,0.28), rgba(255,255,255,0.06))" }} aria-hidden="true" />
+                    </>
+                  )}
                   <span
-                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[13px] font-extrabold"
+                    className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[14px] font-extrabold shadow-[0_6px_16px_-6px_var(--accent)]"
                     style={{ background: "var(--accent)", color: "var(--on-accent)" }}
                   >
                     {i + 1}
                   </span>
-                  <span className="flex min-w-0 flex-col gap-0.5">
-                    <span className="text-[14px] font-bold leading-snug" style={{ color: "var(--page)" }}>
+                  <span className="flex min-w-0 flex-col gap-0.5 pt-1 sm:pt-0">
+                    <span className="text-[15px] font-bold leading-snug" style={{ color: "var(--page)" }}>
                       {step.title}
                     </span>
-                    <span className="text-[12.5px] leading-snug" style={{ color: "var(--on-primary-dim)" }}>
+                    <span className="text-[13px] leading-snug" style={{ color: "var(--on-primary-dim)" }}>
                       {step.body}
                     </span>
                   </span>
@@ -275,7 +292,7 @@ export function StoreHero({
           {trustChecks.length > 0 && (
             <ul
               className="grid grid-cols-2 gap-x-3 gap-y-2.5 border-t pt-5 md:col-start-1 md:row-start-4 md:flex md:flex-wrap md:gap-x-6 md:self-end"
-              style={{ borderColor: "rgba(255,255,255,0.14)" }}
+              style={{ borderColor: "rgba(255,255,255,0.1)" }}
             >
               {trustChecks.map((check) => (
                 <li key={check} className="flex items-center gap-1.5 text-[13px] font-medium" style={{ color: "var(--on-primary-soft)" }}>
