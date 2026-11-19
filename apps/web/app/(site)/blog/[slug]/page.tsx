@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getAllBlogPostSlugs, getBlogPost, type BlogPostCard } from "@/lib/data";
@@ -153,13 +154,28 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           </header>
 
           {post.coverImage && (
-            <RemoteImage
-              src={post.coverImage}
-              alt={post.title}
-              priority
-              sizes="(min-width: 1024px) 720px, 100vw"
-              className="aspect-video w-full overflow-hidden rounded-2xl"
-            />
+            // Fixed 16:9 banner (compact, like a magazine lead image). The whole
+            // cover is shown uncropped (object-contain) and any leftover space
+            // is filled with a blurred, zoomed copy of the same image — so no
+            // cropping and no blank bars, whatever shape the cover is.
+            <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl bg-surface-muted">
+              <Image
+                src={post.coverImage}
+                alt=""
+                aria-hidden="true"
+                fill
+                sizes="(min-width: 1024px) 720px, 100vw"
+                className="scale-110 object-cover opacity-70 blur-2xl"
+              />
+              <Image
+                src={post.coverImage}
+                alt={post.title}
+                fill
+                priority
+                sizes="(min-width: 1024px) 720px, 100vw"
+                className="object-contain"
+              />
+            </div>
           )}
 
           {/* content is HTML from the admin's Tiptap editor — trusted (admin-only authored), not user input */}

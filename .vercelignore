@@ -1,0 +1,12 @@
+# Never upload local secrets — env vars live in the Vercel project settings.
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+
+# Build output and dependencies are recreated on Vercel.
+**/node_modules
+**/.next
+**/.turbo
