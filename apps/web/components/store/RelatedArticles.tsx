@@ -13,14 +13,14 @@ export function RelatedArticles({ posts, dict }: { posts: BlogPostCard[]; dict: 
         <h2 className="sv-subsection-heading font-store-serif" style={{ color: "var(--text)" }}>
           {dict.heading}
         </h2>
-        <Link href="/blog" className="text-sm font-bold" style={{ color: "var(--secondary)" }}>
+        <Link prefetch={false} href="/blog" className="text-sm font-bold" style={{ color: "var(--secondary)" }}>
           {dict.allArticles} →
         </Link>
       </div>
 
       <div className="-mx-4 mt-5 flex gap-4 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:mx-0 md:grid md:grid-cols-3 md:overflow-visible md:px-0 [&::-webkit-scrollbar]:hidden">
         {posts.slice(0, 3).map((post) => (
-          <Link
+          <Link prefetch={false}
             key={post._id}
             href={`/blog/${post.slug}`}
             className="w-[220px] shrink-0 overflow-hidden rounded-[16px] md:w-auto"

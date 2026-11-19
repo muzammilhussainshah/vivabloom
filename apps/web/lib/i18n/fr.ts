@@ -72,6 +72,20 @@ export const fr: Dictionary = {
     onTheRightPage: "Vous êtes au bon endroit",
     ownCutsLine: (storeName, discountLabel) => `Les réductions propres à ${storeName} — le ${discountLabel} s'ajoute en plus`,
     bundleAriaLabel: "Lot",
+    shop: "Voir",
+    howToSaveHeading: "Économisez en 3 étapes",
+    steps: (hasCode, storeName, discountLabel) =>
+      hasCode
+        ? [
+            { title: "Copiez le code", body: "Touchez Obtenir le Code — il est copié pour vous" },
+            { title: `Achetez sur ${storeName}`, body: "Ajoutez vos articles au panier" },
+            { title: "Collez-le au paiement", body: `${discountLabel} de moins sur votre total` },
+          ]
+        : [
+            { title: "Touchez Obtenir l'Offre", body: `Nous ouvrons ${storeName} avec l'offre active` },
+            { title: "Achetez normalement", body: "Ajoutez vos articles au panier" },
+            { title: "Économisez au paiement", body: `${discountLabel} de moins sur votre total` },
+          ],
   },
 
   offerVoucher: {
@@ -96,6 +110,7 @@ export const fr: Dictionary = {
     testedPrefix: (dateShort) => `Vérifié le ${dateShort} · `,
     getDiscountCode: "Obtenir le Code Promo",
     getDiscountDeal: "Obtenir l'Offre",
+    copied: "Copié !",
   },
 
   allDeals: {

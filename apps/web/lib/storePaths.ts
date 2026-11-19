@@ -1,5 +1,5 @@
 import { STORE_VARIANTS } from "@/lib/storeVariants";
-import { SUPPORTED_COUNTRY_CODES } from "@monocoupon/validation";
+import { SUPPORTED_COUNTRY_CODES } from "@monocoupon/validation/countries";
 
 // The canonical /stores/[slug] page and its PPC sitelink variants
 // (/never-pay-full/[slug], …) render identical store data, so cache

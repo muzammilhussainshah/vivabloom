@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Suspense } from "react";
-import { Geist, Geist_Mono, Fraunces, Fredoka } from "next/font/google";
+import { Geist, Fraunces } from "next/font/google";
 import { Analytics as VercelAnalytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
@@ -11,29 +11,27 @@ import { SITE_URL } from "@/lib/seo";
 import { getCachedSiteSettings } from "@/lib/data";
 import { darkenHex } from "@/lib/color";
 
+// Body face for the (site) pages. preload: false because the store pages —
+// the paid-campaign landing pages, where every KB on the critical path costs
+// conversions — never render text in Geist (app/(store)/layout.tsx sets its
+// own Figtree), yet a preload here would still download it there. On (site)
+// pages it costs at most a brief fallback->Geist swap; next/font's
+// metric-matched fallback keeps that from shifting layout.
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  preload: false,
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-// Serif display face for the hero headline ("Read. Learn. Grow."), script
-// face for the logo wordmark — both exposed as CSS vars for Tailwind's
-// font-serif / font-script utilities (see globals.css @theme).
+// Serif display face for headings and the logo wordmark (exposed for
+// Tailwind's font-serif via globals.css @theme). Same variable font file as
+// the store pages' serif (lib/storeFonts.ts), so it's only downloaded once.
+// (Geist Mono and Fredoka used to be loaded here too but nothing rendered in
+// either — they were dropped because every page was preloading them.)
 const playfair = Fraunces({
   variable: "--font-playfair",
   subsets: ["latin"],
   weight: ["600", "700", "800"],
-});
-
-const pacifico = Fredoka({
-  variable: "--font-pacifico",
-  subsets: ["latin"],
-  weight: ["500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -118,7 +116,7 @@ export default async function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} ${pacifico.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${playfair.variable} h-full antialiased`}
       style={themeStyle}
     >
       <body className="min-h-full flex flex-col font-sans">

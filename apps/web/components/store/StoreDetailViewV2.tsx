@@ -13,13 +13,21 @@ import { HonestyPanel } from "./HonestyPanel";
 import { HowWeCheckFaq } from "./HowWeCheckFaq";
 import { RelatedArticles } from "./RelatedArticles";
 import { EmptyOfferState } from "./EmptyOfferState";
-import { HandoffModal, type HandoffData } from "./HandoffModal";
+import type { HandoffData } from "./HandoffModal";
 import { StoreFooter } from "./StoreFooter";
+import dynamic from "next/dynamic";
+
+// The "welcome back" modal only ever appears after a visitor has clicked a
+// deal and come back to this tab — never on first paint — so its code is
+// split out of the landing page's initial bundle and only fetched once the
+// first CTA arms it (see `handoffArmed` below), while the visitor is busy on
+// the merchant's tab.
+const HandoffModal = dynamic(() => import("./HandoffModal").then((m) => m.HandoffModal), { ssr: false });
 import { copyCouponCode, trackCouponClick } from "@/lib/couponInteraction";
 import { deriveOffer } from "@/lib/offerContent";
 import { getDictionary } from "@/lib/i18n";
 import { breadcrumbJsonLd, faqPageJsonLd, storeOffersJsonLd } from "@/lib/seo";
-import { getSupportedCountry } from "@monocoupon/validation";
+import { getSupportedCountry } from "@monocoupon/validation/countries";
 import type { StoreCard, CouponCard, ProductCard as ProductCardData, BundleCard as BundleCardData, BlogPostCard } from "@/lib/data";
 
 /**
@@ -91,6 +99,7 @@ export function StoreDetailViewV2({
   // once per session, so a visitor who checks several coupons/products (each
   // in its own new tab) sees the handoff after each one, not just the first.
   const [handoffData, setHandoffData] = useState<HandoffData | null>(null);
+  const [handoffArmed, setHandoffArmed] = useState(false);
   const pendingHandoffRef = useRef<HandoffData | null>(null);
   const wasHiddenRef = useRef(false);
 
@@ -113,6 +122,7 @@ export function StoreDetailViewV2({
 
   function armHandoff(data: HandoffData) {
     pendingHandoffRef.current = data;
+    setHandoffArmed(true);
   }
 
   function handleCtaClick() {
@@ -233,8 +243,6 @@ export function StoreDetailViewV2({
       <AllDealsSection
         coupons={coupons}
         storeName={store.name}
-        storeLogo={store.logo}
-        monogramLetter={offer.monogramLetter}
         storeSlug={store.slug}
         onActivate={handleDealCtaClick}
         dict={dict.allDeals}
@@ -250,19 +258,21 @@ export function StoreDetailViewV2({
 
       <StickyMobileBar offer={offer} onCtaClick={handleCtaClick} dict={dict.stickyMobileBar} />
 
-      <HandoffModal
-        data={handoffData}
-        onClose={() => setHandoffData(null)}
-        onReopen={armHandoff}
-        storeName={store.name}
-        storeLogo={store.logo}
-        monogramLetter={offer.monogramLetter}
-        storeSlug={store.slug}
-        bundles={bundles}
-        products={products}
-        dict={dict.handoff}
-        country={country}
-      />
+      {handoffArmed && (
+        <HandoffModal
+          data={handoffData}
+          onClose={() => setHandoffData(null)}
+          onReopen={armHandoff}
+          storeName={store.name}
+          storeLogo={store.logo}
+          monogramLetter={offer.monogramLetter}
+          storeSlug={store.slug}
+          bundles={bundles}
+          products={products}
+          dict={dict.handoff}
+          country={country}
+        />
+      )}
 
       <StoreFooter dict={dict.footer} />
     </div>

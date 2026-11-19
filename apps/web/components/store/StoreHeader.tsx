@@ -68,7 +68,7 @@ export function StoreHeader({
   return (
     <header className="sticky top-0 z-40" style={{ background: "var(--footer)" }}>
       <div className="mx-auto flex h-14 max-w-[1240px] items-center gap-4 px-4 md:h-[62px]">
-        <Link href="/" className="flex shrink-0 items-center gap-2.5">
+        <Link prefetch={false} href="/" className="flex shrink-0 items-center gap-2.5">
           <span className="md:hidden">
             <LogoMark size={28} markColor={STORE_MARK} glyphColor="var(--footer)" accentColor="var(--accent)" />
           </span>
@@ -125,7 +125,7 @@ export function StoreHeader({
         )}
 
         <div className="ml-auto flex items-center gap-2 md:hidden">
-          <Link
+          <Link prefetch={false}
             href="/blog"
             aria-label={dict.searchAriaLabel}
             className="flex h-[31px] w-[31px] items-center justify-center rounded-[10px]"

@@ -1,6 +1,6 @@
 import type { StoreCard, CouponCard, StoreOfferRaw, StoreLocaleOfferRaw } from "@/lib/data";
 import { getDictionary, type Dictionary } from "@/lib/i18n";
-import { formatFixedAmount } from "@monocoupon/validation";
+import { formatFixedAmount } from "@monocoupon/validation/countries";
 
 export type Mechanic = "link" | "code" | "popup";
 

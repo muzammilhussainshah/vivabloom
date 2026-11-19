@@ -60,6 +60,10 @@ export interface Dictionary {
     onTheRightPage: string;
     ownCutsLine: (storeName: string, discountLabel: string) => string;
     bundleAriaLabel: string;
+    shop: string; // "Shop" — the small cue on each hero product card
+    howToSaveHeading: string; // "Save in 3 steps"
+    /** The hero's 3-step "how to use it" strip. `hasCode` picks the copy-and-paste wording vs the link-only (auto-applied) wording. */
+    steps: (hasCode: boolean, storeName: string, discountLabel: string) => { title: string; body: string }[];
   };
 
   offerVoucher: {
@@ -84,6 +88,7 @@ export interface Dictionary {
     testedPrefix: (dateShort: string) => string; // "Tested {date} · "
     getDiscountCode: string;
     getDiscountDeal: string;
+    copied: string; // "Copied!" — flashed on the bar's button after a tap
   };
 
   allDeals: {

@@ -79,6 +79,20 @@ export const en: Dictionary = {
     onTheRightPage: "You’re on the right page",
     ownCutsLine: (storeName, discountLabel) => `${storeName}’s own cuts — the ${discountLabel} comes off on top`,
     bundleAriaLabel: "Bundle",
+    shop: "Shop",
+    howToSaveHeading: "Save in 3 steps",
+    steps: (hasCode, storeName, discountLabel) =>
+      hasCode
+        ? [
+            { title: "Copy the code", body: "Tap Get Code — it’s copied for you" },
+            { title: `Shop at ${storeName}`, body: "Add what you want to your cart" },
+            { title: "Paste at checkout", body: `${discountLabel} comes off your total` },
+          ]
+        : [
+            { title: "Tap Get Deal", body: `We open ${storeName} with the offer loaded` },
+            { title: "Shop as usual", body: "Add what you want to your cart" },
+            { title: "Save at checkout", body: `${discountLabel} comes off your total` },
+          ],
   },
 
   offerVoucher: {
@@ -103,6 +117,7 @@ export const en: Dictionary = {
     testedPrefix: (dateShort) => `Tested ${dateShort} · `,
     getDiscountCode: "Get Discount Code",
     getDiscountDeal: "Get Discount Deal",
+    copied: "Copied!",
   },
 
   allDeals: {

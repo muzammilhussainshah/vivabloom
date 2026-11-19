@@ -22,8 +22,11 @@ export const storeFigtree = Figtree({
   weight: ["400", "500", "600", "700", "800"],
 });
 
+// 400 + 600 only: those are the only weights the mono labels use (the two
+// font-bold spots render with the 600 face). 500 was a third preloaded file
+// nothing needed.
 export const storePlexMono = IBM_Plex_Mono({
   variable: "--font-plex-mono",
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  weight: ["400", "600"],
 });

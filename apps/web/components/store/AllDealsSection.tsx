@@ -5,10 +5,9 @@ import { flushSync } from "react-dom";
 import { CopyIcon, CheckIcon } from "@/components/CouponIcons";
 import { copyCouponCode, maskCode, maskUrlTail } from "@/lib/couponInteraction";
 import { useCenterFocus } from "@/lib/useCenterFocus";
-import { StoreMark } from "./StoreMark";
 import type { CouponCard } from "@/lib/data";
 import type { Dictionary } from "@/lib/i18n";
-import { formatFixedAmount } from "@monocoupon/validation";
+import { formatFixedAmount } from "@monocoupon/validation/countries";
 
 const CTA_COUNTDOWN_SECONDS = 3; // displayed ticks: 3, 2, 1
 const CTA_COUNTDOWN_TOTAL_SECONDS = 0.5; // real elapsed time before opening — the 3 ticks are compressed to fit inside this
@@ -207,8 +206,6 @@ function DealCard({
   coupon,
   featured,
   storeName,
-  storeLogo,
-  monogramLetter,
   storeSlug,
   onActivate,
   dict,
@@ -217,8 +214,6 @@ function DealCard({
   coupon: CouponCard;
   featured: boolean;
   storeName: string;
-  storeLogo?: string | null;
-  monogramLetter: string;
   storeSlug: string;
   onActivate: (meta: { couponId: string; couponCode: string | null; destinationUrl: string }) => void;
   dict: Dictionary["allDeals"];
@@ -227,57 +222,55 @@ function DealCard({
   const { value, unit } = cardValueParts(coupon, country, dict);
   const tag = cardTag(coupon, featured, dict);
   const { title, description } = localizedCoupon(coupon, country);
+  // A "Deal" fallback (no real % / amount) is a word, not a number — render it smaller so it doesn't shout louder than an actual discount.
+  const isWordValue = !unit;
 
   return (
-    <div
-      className="overflow-hidden rounded-[18px]"
+    <article
+      className={`group relative flex overflow-hidden rounded-[20px] transition-shadow duration-200 hover:shadow-[0_18px_40px_-22px_rgba(0,0,0,0.35)] ${
+        featured ? "shadow-[0_14px_36px_-20px_rgba(0,0,0,0.4)]" : ""
+      }`}
       style={{ background: "var(--card)", border: featured ? "2px solid var(--accent)" : "1px solid var(--border)" }}
+      aria-label={storeName ? `${title} — ${storeName}` : title}
     >
-      {featured && (
-        <div
-          className="flex items-center gap-1.5 px-4 py-1.5 text-[10.5px] font-bold uppercase tracking-wide"
-          style={{ background: "var(--accent)", color: "var(--on-accent)" }}
-        >
-          <span aria-hidden="true">★</span>
-          {dict.bestOffer}
-        </div>
-      )}
+      {/* Ticket stub: the discount itself, separated from the details by a
+          perforation with two punched notches — reads as a coupon at a
+          glance. Replaces the store logo that used to repeat on every row
+          (the page is already all about this one store). */}
+      <div
+        className="relative flex w-[92px] shrink-0 flex-col items-center justify-center px-2 py-5 text-center md:w-[148px]"
+        style={
+          featured
+            ? { background: "var(--accent)", color: "var(--on-accent)" }
+            : { background: "color-mix(in srgb, var(--accent) 7%, var(--card))", color: "var(--accent-ink)" }
+        }
+      >
+        <p className={`font-store-serif font-bold leading-none tracking-tight ${isWordValue ? "text-[22px] md:text-[28px]" : "text-[28px] md:text-[42px]"}`}>{value}</p>
+        {unit && (
+          <p
+            className="font-store-mono mt-1.5 text-[10px] font-semibold uppercase tracking-[0.2em]"
+            style={{ color: featured ? "var(--on-accent-dim)" : "var(--muted-text)" }}
+          >
+            {unit}
+          </p>
+        )}
+        <span className="absolute inset-y-3 right-0 border-r-2 border-dashed" style={{ borderColor: featured ? "rgba(255,255,255,0.45)" : "var(--border-strong)" }} aria-hidden="true" />
+        <span className="absolute -right-[9px] -top-[9px] h-[18px] w-[18px] rounded-full" style={{ background: "var(--page)" }} aria-hidden="true" />
+        <span className="absolute -bottom-[9px] -right-[9px] h-[18px] w-[18px] rounded-full" style={{ background: "var(--page)" }} aria-hidden="true" />
+      </div>
 
-      <div className="flex flex-col gap-4 p-4 md:flex-row md:items-start md:gap-5 md:p-5">
-        <div className="flex items-start gap-4 md:contents">
-          <div className="flex w-[68px] shrink-0 flex-col items-center gap-2 text-center md:w-[76px]">
-            {/* `aspect-square w-full` — a true square, exactly as wide as the
-                column (matching the value text below it), not stretched to
-                that text's own shorter height. The border keeps a
-                white-background logo from disappearing into this card's own
-                near-white background — without it, that combination reads as
-                no logo at all rather than a framed image. Not `priority`
-                (StoreMark's default) — this is the same logo repeated once
-                per row, and every card in this section sits below the fold,
-                so eager-loading each instance would just compete for
-                bandwidth against the actually-critical hero/voucher logo
-                above. */}
-            <StoreMark
-              logo={storeLogo}
-              letter={monogramLetter}
-              name={storeName}
-              priority={false}
-              className="aspect-square w-full rounded-[14px] text-[26px]"
-              style={{ background: "var(--muted)", color: "var(--text)", border: "1.5px solid var(--border)" }}
-            />
-            <div className="w-full">
-              <p className="font-store-serif text-[30px] font-bold leading-none" style={{ color: "var(--accent-ink)" }}>
-                {value}
-              </p>
-              {unit && (
-                <p className="font-store-mono mt-1 text-[9.5px] font-semibold uppercase tracking-wide" style={{ color: "var(--muted-text)" }}>
-                  {unit}
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div className="min-w-0 flex-1">
+      <div className="flex min-w-0 flex-1 flex-col gap-3.5 p-4 md:flex-row md:items-center md:gap-6 md:px-6 md:py-5">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-1.5">
+            {featured && (
+              <span
+                className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10.5px] font-extrabold uppercase tracking-wide"
+                style={{ background: "var(--accent)", color: "var(--on-accent)" }}
+              >
+                <span aria-hidden="true">★</span>
+                {dict.bestOffer}
+              </span>
+            )}
             <span
               className="inline-flex items-center rounded-full px-2.5 py-1 text-[10.5px] font-bold uppercase tracking-wide"
               style={
@@ -288,20 +281,20 @@ function DealCard({
             >
               {tag}
             </span>
-            <h3 className="mt-1.5 text-[15.5px] font-bold" style={{ color: "var(--text)" }}>
-              {title}
-            </h3>
-            {description && (
-              <p className="mt-1 text-[13px] leading-snug" style={{ color: "var(--text-soft)" }}>
-                {description}
-              </p>
-            )}
           </div>
+          <h3 className="mt-2 text-[15.5px] font-bold leading-snug md:text-[17px]" style={{ color: "var(--text)" }}>
+            {title}
+          </h3>
+          {description && (
+            <p className="mt-1 line-clamp-2 text-[13px] leading-snug md:line-clamp-none md:text-[13.5px]" style={{ color: "var(--text-soft)" }}>
+              {description}
+            </p>
+          )}
         </div>
 
         <DealCtaButton coupon={coupon} featured={featured} storeSlug={storeSlug} onActivate={onActivate} dict={dict} country={country} />
       </div>
-    </div>
+    </article>
   );
 }
 
@@ -318,8 +311,6 @@ function DealCard({
 export function AllDealsSection({
   coupons,
   storeName,
-  storeLogo,
-  monogramLetter,
   storeSlug,
   onActivate,
   dict,
@@ -327,8 +318,6 @@ export function AllDealsSection({
 }: {
   coupons: CouponCard[];
   storeName: string;
-  storeLogo?: string | null;
-  monogramLetter: string;
   storeSlug: string;
   onActivate: (meta: { couponId: string; couponCode: string | null; destinationUrl: string }) => void;
   dict: Dictionary["allDeals"];
@@ -348,15 +337,13 @@ export function AllDealsSection({
         {dict.heading(coupons.length, storeName)}
       </h2>
 
-      <div className="mt-6 flex flex-col gap-2">
+      <div className="mt-6 flex flex-col gap-3 md:gap-4">
         {coupons.map((coupon) => (
           <DealCard
             key={coupon._id}
             coupon={coupon}
             featured={coupon._id === featuredId}
             storeName={storeName}
-            storeLogo={storeLogo}
-            monogramLetter={monogramLetter}
             storeSlug={storeSlug}
             onActivate={onActivate}
             dict={dict}

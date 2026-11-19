@@ -1,4 +1,4 @@
-import { SUPPORTED_COUNTRIES } from "@monocoupon/validation";
+import { SUPPORTED_COUNTRIES } from "@monocoupon/validation/countries";
 
 /**
  * hreflang alternates for a store's canonical page — every country's own
