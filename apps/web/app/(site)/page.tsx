@@ -4,6 +4,7 @@ import { MostReadBand } from "@/components/MostReadBand";
 import { CategorySpotlight } from "@/components/CategorySpotlight";
 import { ArchiveIndex } from "@/components/ArchiveIndex";
 import { LoadMoreArticles } from "@/components/LoadMoreArticles";
+import { displayAuthor, resolveSiteName } from "@/lib/brand";
 
 export const revalidate = 300;
 
@@ -27,8 +28,10 @@ function Kicker({ label, title, subtitle }: { label: string; title: string; subt
 
 export default async function Home() {
   const [home, settings] = await Promise.all([getBlogHomeData(), getCachedSiteSettings()]);
-  const { featuredPost, latestPosts, mostReadPosts, categorySections, browseCategories, initialPosts, totalPosts } =
+  const { featuredPost: featuredRaw, latestPosts, mostReadPosts, categorySections, browseCategories, initialPosts, totalPosts } =
     home;
+
+  const featuredPost = featuredRaw ? { ...featuredRaw, author: displayAuthor(featuredRaw.author, resolveSiteName(settings.siteName)) } : null;
 
   const heroOverline = settings.heroOverline?.trim() || HERO_DEFAULTS.overline;
   const heroHeading = settings.tagline?.trim() || HERO_DEFAULTS.heading;

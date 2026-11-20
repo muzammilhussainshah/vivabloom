@@ -17,3 +17,14 @@ export function splitWordmark(name: string): [string, string] {
   if (camel >= 0) return [name.slice(0, camel + 1), name.slice(camel + 1)];
   return [name, ""];
 }
+
+/**
+ * Blog posts store an `author` string, and every post created before the
+ * rename was saved with the old default "VivaBloom". Treat that legacy
+ * default (or a blank author) as "the site itself" so it always shows the
+ * current admin-configured site name; a real person's name passes through.
+ */
+export function displayAuthor(author: string | null | undefined, siteName: string): string {
+  const a = author?.trim();
+  return !a || a.toLowerCase() === DEFAULT_SITE_NAME.toLowerCase() ? siteName : a;
+}

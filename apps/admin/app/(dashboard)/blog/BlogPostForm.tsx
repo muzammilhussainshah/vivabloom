@@ -561,7 +561,11 @@ export function BlogPostForm({
           <input
             id="author"
             name="author"
-            defaultValue={initialData?.author ?? "VivaBloom"}
+            // Blank (or the legacy "VivaBloom" default) = "the site itself": the
+            // web app then shows the current site name from Settings, so a
+            // rename there updates every such post's byline automatically.
+            defaultValue={initialData?.author && initialData.author !== "VivaBloom" ? initialData.author : ""}
+            placeholder="Leave blank to use the site name"
             className="rounded-base border border-border bg-surface px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
           />
         </div>

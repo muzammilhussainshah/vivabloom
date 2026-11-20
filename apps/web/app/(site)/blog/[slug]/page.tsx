@@ -3,7 +3,7 @@ import Image from "next/image";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getAllBlogPostSlugs, getBlogPost, getCachedSiteSettings, type BlogPostCard } from "@/lib/data";
-import { resolveSiteName } from "@/lib/brand";
+import { displayAuthor, resolveSiteName } from "@/lib/brand";
 import { JsonLd } from "@/components/JsonLd";
 import { CoverPlaceholder } from "@/components/CoverPlaceholder";
 import { RemoteImage } from "@/components/RemoteImage";
@@ -130,12 +130,10 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                   {date}
                 </span>
               )}
-              {post.author && (
-                <span className="inline-flex items-center gap-1.5">
-                  <PersonIcon />
-                  {post.author}
-                </span>
-              )}
+              <span className="inline-flex items-center gap-1.5">
+                <PersonIcon />
+                {displayAuthor(post.author, siteName)}
+              </span>
               {typeof post.views === "number" && (
                 <BlogViewCounter slug={post.slug} initialViews={post.views} />
               )}
