@@ -25,6 +25,7 @@ import dynamic from "next/dynamic";
 const HandoffModal = dynamic(() => import("./HandoffModal").then((m) => m.HandoffModal), { ssr: false });
 import { copyCouponCode, trackCouponClick } from "@/lib/couponInteraction";
 import { deriveOffer } from "@/lib/offerContent";
+import { useSiteName } from "@/components/SiteNameProvider";
 import { getDictionary } from "@/lib/i18n";
 import { breadcrumbJsonLd, faqPageJsonLd, storeOffersJsonLd } from "@/lib/seo";
 import { getSupportedCountry } from "@monocoupon/validation/countries";
@@ -65,7 +66,8 @@ export function StoreDetailViewV2({
   googleAdsConversionLabel?: string | null;
 }) {
   const dict = getDictionary(country);
-  const offer = deriveOffer(store, store.offer, coupons[0] ?? null, store.websiteUrl ?? "", country);
+  const siteName = useSiteName();
+  const offer = deriveOffer(store, store.offer, coupons[0] ?? null, store.websiteUrl ?? "", country, siteName);
   const storePath = country ? `/${country}/stores/${store.slug}` : `/stores/${store.slug}`;
 
   // Root layout's <html lang> is a static "en" — it can't read the current

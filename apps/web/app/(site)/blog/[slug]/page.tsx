@@ -2,7 +2,8 @@ import Link from "next/link";
 import Image from "next/image";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getAllBlogPostSlugs, getBlogPost, type BlogPostCard } from "@/lib/data";
+import { getAllBlogPostSlugs, getBlogPost, getCachedSiteSettings, type BlogPostCard } from "@/lib/data";
+import { resolveSiteName } from "@/lib/brand";
 import { JsonLd } from "@/components/JsonLd";
 import { CoverPlaceholder } from "@/components/CoverPlaceholder";
 import { RemoteImage } from "@/components/RemoteImage";
@@ -92,11 +93,12 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
   const data = await getBlogPost(slug);
   if (!data) notFound();
   const { post, relatedPosts, relatedItems } = data;
+  const siteName = resolveSiteName((await getCachedSiteSettings()).siteName);
   const date = formatDate(post.publishedAt);
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-6 px-5 py-10 sm:px-8">
-      <JsonLd data={blogPostingJsonLd(post)} />
+      <JsonLd data={blogPostingJsonLd(post, siteName)} />
       <JsonLd
         data={breadcrumbJsonLd([
           { name: "Home", path: "/" },

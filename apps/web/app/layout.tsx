@@ -10,6 +10,8 @@ import { PageviewTracker } from "@/components/PageviewTracker";
 import { SITE_URL } from "@/lib/seo";
 import { getCachedSiteSettings } from "@/lib/data";
 import { darkenHex } from "@/lib/color";
+import { resolveSiteName } from "@/lib/brand";
+import { SiteNameProvider } from "@/components/SiteNameProvider";
 
 // Body face for the (site) pages. preload: false because the store pages —
 // the paid-campaign landing pages, where every KB on the critical path costs
@@ -34,12 +36,17 @@ const playfair = Fraunces({
   weight: ["600", "700", "800"],
 });
 
-export const metadata: Metadata = {
-  metadataBase: new URL(SITE_URL),
-  title: { default: "VivaBloom — Verified Coupon Codes & Deals", template: "%s | VivaBloom" },
-  description: "Verified coupon codes, promo codes, and deals for your favorite online stores.",
-  alternates: { canonical: "/" },
-};
+// Title brand comes from the admin's Site Settings (siteName), so renaming
+// the site there updates every page's <title> without a code change.
+export async function generateMetadata(): Promise<Metadata> {
+  const siteName = resolveSiteName((await getCachedSiteSettings()).siteName);
+  return {
+    metadataBase: new URL(SITE_URL),
+    title: { default: `${siteName} — Verified Coupon Codes & Deals`, template: `%s | ${siteName}` },
+    description: "Verified coupon codes, promo codes, and deals for your favorite online stores.",
+    alternates: { canonical: "/" },
+  };
+}
 
 // viewportFit: "cover" lets the page draw into the safe-area insets on
 // notched/gesture-bar phones (iPhones) instead of the browser leaving that
@@ -60,11 +67,12 @@ export default async function RootLayout({
 }>) {
   const settings = await getCachedSiteSettings();
   const contactEmail = settings.contact.email || "vivabloom2@gmail.com";
+  const siteName = resolveSiteName(settings.siteName);
 
   const organizationJsonLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
-    name: settings.siteName || "VivaBloom",
+    name: siteName,
     legalName: "AppMash Limited",
     url: SITE_URL,
     description:
@@ -128,7 +136,7 @@ export default async function RootLayout({
         />
         <GtmNoScript gtmId={settings.integrations.gtmId} />
         <JsonLd data={organizationJsonLd} />
-        {children}
+        <SiteNameProvider name={siteName}>{children}</SiteNameProvider>
         <Suspense fallback={null}>
           <PageviewTracker />
         </Suspense>

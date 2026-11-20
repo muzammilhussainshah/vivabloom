@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/PageHeader";
+import { getCachedSiteSettings } from "@/lib/data";
+import { resolveSiteName } from "@/lib/brand";
 
 export const metadata: Metadata = { title: "Terms of Service", alternates: { canonical: "/terms" } };
 
-export default function TermsPage() {
+export default async function TermsPage() {
+  const siteName = resolveSiteName((await getCachedSiteSettings()).siteName);
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6 px-5 py-10 sm:px-8 sm:py-14">
       <PageHeader eyebrow="Legal" title="Terms of Service" meta="Last updated: July 2026" />
@@ -16,16 +19,16 @@ export default function TermsPage() {
       <section className="flex flex-col gap-2">
         <h2 className="text-lg font-semibold">Legal Entity</h2>
         <p className="text-text-muted">
-          VivaBloom is operated by AppMash Limited, a UK-based software solutions company, registered
+          {siteName} is operated by AppMash Limited, a UK-based software solutions company, registered
           office at Office 875, 55 Gracechurch Street, London, United Kingdom, EC3V 0HR. References to
-          &quot;VivaBloom&quot;, &quot;we&quot;, &quot;us&quot;, or &quot;our&quot; in these Terms mean AppMash Limited.
+          &quot;{siteName}&quot;, &quot;we&quot;, &quot;us&quot;, or &quot;our&quot; in these Terms mean AppMash Limited.
         </p>
       </section>
 
       <section className="flex flex-col gap-2">
         <h2 className="text-lg font-semibold">Use of the Site</h2>
         <p className="text-text-muted">
-          VivaBloom provides a free directory of coupon codes, deals, and related shopping content. You may
+          {siteName} provides a free directory of coupon codes, deals, and related shopping content. You may
           browse and use the Site for personal, non-commercial purposes. You agree not to misuse the Site,
           including attempting to scrape, disrupt, or gain unauthorized access to it.
         </p>
@@ -44,7 +47,7 @@ export default function TermsPage() {
       <section className="flex flex-col gap-2">
         <h2 className="text-lg font-semibold">Affiliate Relationships</h2>
         <p className="text-text-muted">
-          VivaBloom may participate in affiliate programs and earn a commission when you make a purchase
+          {siteName} may participate in affiliate programs and earn a commission when you make a purchase
           through links on the Site, at no extra cost to you. See our Privacy Policy for more detail.
         </p>
       </section>
@@ -52,7 +55,7 @@ export default function TermsPage() {
       <section className="flex flex-col gap-2">
         <h2 className="text-lg font-semibold">Intellectual Property</h2>
         <p className="text-text-muted">
-          The Site&apos;s design, layout, and original written content are owned by VivaBloom. Store names,
+          The Site&apos;s design, layout, and original written content are owned by {siteName}. Store names,
           logos, and trademarks referenced on the Site belong to their respective owners and are used for
           identification purposes only.
         </p>
@@ -70,7 +73,7 @@ export default function TermsPage() {
         <h2 className="text-lg font-semibold">Limitation of Liability</h2>
         <p className="text-text-muted">
           The Site is provided &quot;as is&quot; without warranties of any kind. To the fullest extent permitted
-          by law, VivaBloom is not liable for any indirect, incidental, or consequential damages arising from
+          by law, {siteName} is not liable for any indirect, incidental, or consequential damages arising from
           your use of the Site or reliance on any coupon or deal listed on it.
         </p>
       </section>

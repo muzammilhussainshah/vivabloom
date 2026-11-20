@@ -1,15 +1,18 @@
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/PageHeader";
+import { getCachedSiteSettings } from "@/lib/data";
+import { resolveSiteName } from "@/lib/brand";
 
 export const metadata: Metadata = { title: "Cookie Policy", alternates: { canonical: "/cookie-policy" } };
 
-export default function CookiePolicyPage() {
+export default async function CookiePolicyPage() {
+  const siteName = resolveSiteName((await getCachedSiteSettings()).siteName);
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6 px-5 py-10 sm:px-8 sm:py-14">
       <PageHeader eyebrow="Legal" title="Cookie Policy" meta="Last updated: July 2026" />
 
       <p className="text-text-muted">
-        This Cookie Policy explains how VivaBloom, operated by AppMash Limited (Office 875, 55 Gracechurch
+        This Cookie Policy explains how {siteName}, operated by AppMash Limited (Office 875, 55 Gracechurch
         Street, London, United Kingdom, EC3V 0HR), uses cookies and similar technologies on
         monocoupon.com.
       </p>

@@ -1,3 +1,8 @@
+"use client";
+
+import { useSiteName } from "./SiteNameProvider";
+import { splitWordmark } from "@/lib/brand";
+
 /**
  * The VivaBloom brand mark: a layered five-petal bloom (lotus) rising from a
  * small terracotta "ground" arc — wellness + growth, matching the name.
@@ -81,12 +86,13 @@ export function Logo({
   wordmarkColor?: string;
   bloomColor?: string;
 }) {
+  const [first, second] = splitWordmark(useSiteName());
   return (
     <span className={`inline-flex items-center gap-2 ${className ?? ""}`}>
       <LogoMark size={34} markColor={markColor} glyphColor={glyphColor} accentColor={accentColor} />
       <span className="font-serif text-[22px] font-semibold leading-none tracking-tight">
-        <span style={{ color: wordmarkColor }}>Viva</span>
-        <span style={{ color: bloomColor }}>Bloom</span>
+        <span style={{ color: wordmarkColor }}>{first}</span>
+        {second && <span style={{ color: bloomColor }}>{second}</span>}
       </span>
     </span>
   );

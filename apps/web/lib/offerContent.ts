@@ -1,6 +1,7 @@
 import type { StoreCard, CouponCard, StoreOfferRaw, StoreLocaleOfferRaw } from "@/lib/data";
 import { getDictionary, type Dictionary } from "@/lib/i18n";
 import { formatFixedAmount } from "@monocoupon/validation/countries";
+import { DEFAULT_SITE_NAME } from "./brand";
 
 export type Mechanic = "link" | "code" | "popup";
 
@@ -97,7 +98,9 @@ export function deriveOffer(
   offer: StoreOfferRaw | null | undefined,
   topCoupon: CouponCard | null,
   websiteUrl: string,
-  country?: string | null
+  country?: string | null,
+  /** Admin-configured site name (Site Settings) — fills the default "{site} Team" verifier credit. */
+  siteName: string = DEFAULT_SITE_NAME
 ): DerivedOffer {
   const dict = getDictionary(country);
   const localeOffer: StoreLocaleOfferRaw | null = country ? (store.i18n?.find((entry) => entry.country === country) ?? null) : null;
@@ -145,7 +148,7 @@ export function deriveOffer(
     verifiedDateShort: verifiedDate ? formatDateShort(verifiedDate) : null,
     verifiedDateLong: verifiedDate ? formatDateLong(verifiedDate) : null,
     nextCheckDateShort: nextCheckDate ? formatDateShort(nextCheckDate) : null,
-    verifierName: localeOffer?.verifierName || offer?.verifierName || dict.offerFallbacks.defaultVerifierName,
+    verifierName: localeOffer?.verifierName || offer?.verifierName || dict.offerFallbacks.defaultVerifierName(siteName),
     usageCount: localeOffer?.usageCount || offer?.usageCount || null,
     trustChecks,
     notOffered,

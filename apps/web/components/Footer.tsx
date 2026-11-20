@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, type FormEvent, type ReactNode } from "react";
 import { Logo } from "./Logo";
+import { useSiteName } from "./SiteNameProvider";
 
 const EXPLORE_LINKS = [
   { href: "/blog", label: "Blog" },
@@ -226,6 +227,7 @@ export function Footer({
   ].filter((s): s is { label: string; href: string; Icon: typeof FacebookIcon } => Boolean(s.href));
 
   const email = contact?.email || contactEmail;
+  const siteName = useSiteName();
 
   return (
     <footer className="mt-12 bg-footer-bg text-white">
@@ -248,7 +250,7 @@ export function Footer({
             <Logo markColor={MINT} glyphColor="var(--footer-bg)" wordmarkColor="#fff" bloomColor={MINT} />
           </Link>
           <p className="max-w-sm text-sm leading-relaxed text-white/65">
-            VivaBloom is built and run by AppMash Limited, a UK-based software solutions company — a
+            {siteName} is built and run by AppMash Limited, a UK-based software solutions company — a
             blogging site sharing useful, well-researched content.
           </p>
           {socials.length > 0 && (
@@ -300,7 +302,7 @@ export function Footer({
       <div className="border-t border-white/10">
         <div className="mx-auto flex max-w-6xl flex-col gap-3 px-5 py-4 text-xs text-white/50 sm:px-8 md:flex-row md:items-center md:justify-between">
           <div className="flex flex-col gap-0.5">
-            <p>© {new Date().getFullYear()} VivaBloom, a trading name of AppMash Limited. All rights reserved.</p>
+            <p>© {new Date().getFullYear()} {siteName}, a trading name of AppMash Limited. All rights reserved.</p>
             <p>Registered office: Office 875, 55 Gracechurch Street, London, United Kingdom, EC3V 0HR.</p>
           </div>
           <nav aria-label="Legal" className="flex flex-wrap gap-x-5 gap-y-2">

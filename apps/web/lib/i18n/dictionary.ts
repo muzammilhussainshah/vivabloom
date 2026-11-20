@@ -168,7 +168,7 @@ export interface Dictionary {
   footer: {
     blurb: string;
     columns: { label: string; links: { href: string; label: string }[] }[];
-    copyright: (year: number) => string;
+    copyright: (year: number, siteName: string) => string;
   };
 
   emptyOffer: {
@@ -195,7 +195,7 @@ export interface Dictionary {
     trustChecks: string[];
     notOffered: string[];
     lede: (storeName: string, verifiedDateLong: string | null) => string;
-    defaultVerifierName: string;
+    defaultVerifierName: (siteName: string) => string;
     discountSuffixOff: (storeName: string) => string; // "off {name}" — used whenever a real percentage/fixed value was found
     discountSuffixAt: (storeName: string) => string; // "at {name}" — used only with the dealFallbackLabel below
     dealFallbackLabel: string; // "Deal" — no percentage/fixed value on the top coupon at all

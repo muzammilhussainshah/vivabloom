@@ -5,6 +5,7 @@ import { GiftIcon } from "@/components/CouponIcons";
 import { OfferVoucher } from "@/components/store/OfferVoucher";
 import { copyCouponCode, trackCouponClick } from "@/lib/couponInteraction";
 import { deriveOffer } from "@/lib/offerContent";
+import { useSiteName } from "@/components/SiteNameProvider";
 import { getDictionary } from "@/lib/i18n";
 import { buildCatalogTiles } from "@/lib/catalogItems";
 import type { StoreCard, CouponCard, ProductCard as ProductCardData, BundleCard as BundleCardData } from "@/lib/data";
@@ -52,7 +53,8 @@ export function DealVoucherCard({
   // Same reason StoreDetailViewV2 calls getDictionary itself instead of
   // receiving dict from its (server) page.
   const dict = getDictionary(country);
-  const offer = deriveOffer(store, store.offer, coupon, store.websiteUrl ?? "", country);
+  const siteName = useSiteName();
+  const offer = deriveOffer(store, store.offer, coupon, store.websiteUrl ?? "", country, siteName);
   if (!offer.hasOffer) return null;
 
   const tiles = buildCatalogTiles(products, bundles);

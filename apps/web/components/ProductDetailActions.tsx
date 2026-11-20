@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type MouseEvent } from "react";
+import { useSiteName } from "@/components/SiteNameProvider";
 import { flushSync } from "react-dom";
 import { CheckIcon, CopyIcon, ExternalLinkIcon, GiftIcon } from "./CouponIcons";
 import { copyCouponCode, trackCouponClick, trackBundleClick } from "@/lib/couponInteraction";
@@ -36,6 +37,7 @@ export function ProductDetailActions({
   const coupon = item.storeCoupon ?? null;
   const hasCode = !!coupon?.code;
 
+  const siteName = useSiteName();
   const [copied, setCopied] = useState(false);
   const [countdown, setCountdown] = useState<number | null>(null);
   const copiedTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -170,7 +172,7 @@ export function ProductDetailActions({
       )}
 
       <p className="text-xs text-text-muted">
-        You&apos;ll complete your order on {item.store.name}&apos;s own site — VivaBloom doesn&apos;t process payments.
+        You&apos;ll complete your order on {item.store.name}&apos;s own site — {siteName} doesn&apos;t process payments.
       </p>
     </div>
   );

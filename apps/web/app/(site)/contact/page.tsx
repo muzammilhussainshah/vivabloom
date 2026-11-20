@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { ContactForm } from "./ContactForm";
 import { getCachedSiteSettings } from "@/lib/data";
 import { PageHeader } from "@/components/PageHeader";
+import { resolveSiteName } from "@/lib/brand";
 
 export const metadata: Metadata = { title: "Contact Us", alternates: { canonical: "/contact" } };
 
@@ -60,7 +61,7 @@ export default async function ContactPage() {
         <aside className="flex flex-col gap-6 rounded-2xl border border-border bg-surface-muted p-6 shadow-[0_1px_2px_rgb(0_0_0/0.04)] sm:p-8">
           <div className="flex flex-col gap-1">
             <h2 className="font-serif text-xl font-semibold tracking-tight">Contact information</h2>
-            <p className="text-sm text-text-muted">AppMash Limited (operating VivaBloom)</p>
+            <p className="text-sm text-text-muted">AppMash Limited (operating {resolveSiteName(settings.siteName)})</p>
           </div>
           <ul className="flex flex-col gap-4">
             <InfoRow

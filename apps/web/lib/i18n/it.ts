@@ -209,7 +209,7 @@ export const it: Dictionary = {
         ],
       },
     ],
-    copyright: (year) => `© ${year} VivaBloom`,
+    copyright: (year, siteName) => `© ${year} ${siteName}`,
   },
 
   emptyOffer: {
@@ -235,7 +235,7 @@ export const it: Dictionary = {
       const dateClause = verifiedDateLong ? `il ${verifiedDateLong}` : "noi stessi";
       return `Questa è la migliore offerta verificata di ${storeName}. L'abbiamo testata ${dateClause} per confermare che funziona, e lo diremo il giorno in cui smetterà di farlo.`;
     },
-    defaultVerifierName: "Team VivaBloom",
+    defaultVerifierName: (siteName) => `Team ${siteName}`,
     discountSuffixOff: (storeName) => `su ${storeName}`,
     discountSuffixAt: (storeName) => `da ${storeName}`,
     dealFallbackLabel: "Offerta",

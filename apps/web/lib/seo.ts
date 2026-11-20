@@ -97,7 +97,7 @@ export function blogPostingJsonLd(post: {
   publishedAt?: string | null;
   coverImage?: string | null;
   tags?: string[];
-}) {
+}, siteName: string = "VivaBloom") {
   return {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
@@ -107,7 +107,7 @@ export function blogPostingJsonLd(post: {
     datePublished: post.publishedAt || undefined,
     image: post.coverImage || undefined,
     keywords: post.tags && post.tags.length > 0 ? post.tags.join(", ") : undefined,
-    author: { "@type": "Organization", name: "VivaBloom" },
-    publisher: { "@type": "Organization", name: "VivaBloom" },
+    author: { "@type": "Organization", name: siteName },
+    publisher: { "@type": "Organization", name: siteName },
   };
 }

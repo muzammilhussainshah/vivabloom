@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/PageHeader";
+import { getCachedSiteSettings } from "@/lib/data";
+import { resolveSiteName } from "@/lib/brand";
 
 export const metadata: Metadata = { title: "About Us", alternates: { canonical: "/about" } };
 
@@ -47,15 +49,16 @@ const WHY_CHOOSE_US = [
   "Completely free to use — no account or subscription required.",
 ];
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const siteName = resolveSiteName((await getCachedSiteSettings()).siteName);
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-12 px-5 py-10 sm:px-8 sm:py-14">
       <PageHeader
         eyebrow="About us"
-        title="About VivaBloom"
+        title={`About ${siteName}`}
         description={
           <>
-            VivaBloom helps online shoppers find verified coupon codes and deals without digging through
+            {siteName} helps online shoppers find verified coupon codes and deals without digging through
             outdated forum posts or dodgy browser extensions. We built this site because finding a working
             discount code shouldn&apos;t be harder than the checkout itself.
           </>
@@ -109,11 +112,11 @@ export default function AboutPage() {
       </section>
 
       <section className="flex flex-col gap-4">
-        <h2 className="font-serif text-2xl font-bold tracking-tight">Who Operates VivaBloom</h2>
+        <h2 className="font-serif text-2xl font-bold tracking-tight">Who Operates {siteName}</h2>
         <p className="text-text-muted">
-          VivaBloom is built and run by <strong>AppMash Limited</strong>, a UK-based software solutions
+          {siteName} is built and run by <strong>AppMash Limited</strong>, a UK-based software solutions
           company. AppMash Limited designs and builds software products for clients as well as its own
-          in-house web platforms — VivaBloom is one of those, a blogging site created to share useful,
+          in-house web platforms — {siteName} is one of those, a blogging site created to share useful,
           well-researched content. That combination of software engineering and content publishing is what
           shapes how the site is built and maintained.
         </p>

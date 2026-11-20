@@ -1,22 +1,25 @@
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/PageHeader";
+import { getCachedSiteSettings } from "@/lib/data";
+import { resolveSiteName } from "@/lib/brand";
 
 export const metadata: Metadata = { title: "Privacy Policy", alternates: { canonical: "/privacy" } };
 
-export default function PrivacyPage() {
+export default async function PrivacyPage() {
+  const siteName = resolveSiteName((await getCachedSiteSettings()).siteName);
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6 px-5 py-10 sm:px-8 sm:py-14">
       <PageHeader eyebrow="Legal" title="Privacy Policy" meta="Last updated: July 2026" />
 
       <p className="text-text-muted">
-        This Privacy Policy explains how VivaBloom (&quot;we&quot;, &quot;us&quot;) collects, uses, and protects
+        This Privacy Policy explains how {siteName} (&quot;we&quot;, &quot;us&quot;) collects, uses, and protects
         information when you use monocoupon.com (the &quot;Site&quot;).
       </p>
 
       <section className="flex flex-col gap-2">
         <h2 className="text-lg font-semibold">Legal Entity</h2>
         <p className="text-text-muted">
-          VivaBloom is operated by AppMash Limited, a UK-based software solutions company, registered
+          {siteName} is operated by AppMash Limited, a UK-based software solutions company, registered
           office at Office 875, 55 Gracechurch Street, London, United Kingdom, EC3V 0HR. AppMash Limited is
           the data controller for personal information collected through the Site.
         </p>
@@ -46,7 +49,7 @@ export default function PrivacyPage() {
       <section className="flex flex-col gap-2">
         <h2 className="text-lg font-semibold">Affiliate Links &amp; Advertising Disclosure</h2>
         <p className="text-text-muted">
-          Some links on VivaBloom are affiliate links. If you click through and make a purchase, we may earn a
+          Some links on {siteName} are affiliate links. If you click through and make a purchase, we may earn a
           commission from the retailer at no additional cost to you. This does not influence which coupons we
           list or how we describe them.
         </p>

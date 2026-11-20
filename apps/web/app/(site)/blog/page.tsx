@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { getPublishedBlogPosts, getBlogPostsPage } from "@/lib/data";
+import { getPublishedBlogPosts, getBlogPostsPage, getCachedSiteSettings } from "@/lib/data";
+import { resolveSiteName } from "@/lib/brand";
 import { JsonLd } from "@/components/JsonLd";
 import { BlogCard } from "@/components/BlogCard";
 import { breadcrumbJsonLd, itemListJsonLd } from "@/lib/seo";
@@ -27,7 +28,7 @@ export default async function BlogIndexPage({
       <JsonLd data={breadcrumbJsonLd([{ name: "Home", path: "/" }, { name: "Blog", path: "/blog" }])} />
       {!query && <JsonLd data={itemListJsonLd(posts.map((p) => ({ name: p.title, path: `/blog/${p.slug}` })))} />}
       <PageHeader
-        eyebrow={query ? "Search" : "VivaBloom Insights"}
+        eyebrow={query ? "Search" : `${resolveSiteName((await getCachedSiteSettings()).siteName)} Insights`}
         title={query ? `Results for “${query}”` : "The Blog"}
         description={
           query

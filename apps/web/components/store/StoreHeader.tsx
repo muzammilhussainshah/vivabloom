@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { LogoMark } from "@/components/Logo";
+import { useSiteName } from "@/components/SiteNameProvider";
+import { splitWordmark } from "@/lib/brand";
 
 /** Light tint of the brand primary — reads on the dark store header bar, same as the main footer's logo. */
 const STORE_MARK = "color-mix(in srgb, var(--primary) 45%, #fff)";
@@ -41,6 +43,7 @@ export function StoreHeader({
   /** Copies the code, fires tracking, and arms the shared "welcome back" handoff modal — StoreDetailViewV2's handleCtaClick owns all of that; this header has none of its own to avoid double-firing it. */
   onCtaClick?: () => void;
 }) {
+  const [brandFirst, brandSecond] = splitWordmark(useSiteName());
   const [copied, setCopied] = useState(false);
   const copiedTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -76,8 +79,8 @@ export function StoreHeader({
             <LogoMark size={32} markColor={STORE_MARK} glyphColor="var(--footer)" accentColor="var(--accent)" />
           </span>
           <span className="font-serif text-[22px] font-semibold leading-none tracking-tight">
-            <span style={{ color: "var(--page)" }}>Viva</span>
-            <span style={{ color: STORE_MARK }}>Bloom</span>
+            <span style={{ color: "var(--page)" }}>{brandFirst}</span>
+            {brandSecond && <span style={{ color: STORE_MARK }}>{brandSecond}</span>}
           </span>
         </Link>
 
