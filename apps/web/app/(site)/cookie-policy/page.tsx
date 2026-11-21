@@ -1,3 +1,4 @@
+import { SITE_DOMAIN } from "@/lib/seo";
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/PageHeader";
 import { getCachedSiteSettings } from "@/lib/data";
@@ -14,7 +15,7 @@ export default async function CookiePolicyPage() {
       <p className="text-text-muted">
         This Cookie Policy explains how {siteName}, operated by AppMash Limited (Office 875, 55 Gracechurch
         Street, London, United Kingdom, EC3V 0HR), uses cookies and similar technologies on
-        monocoupon.com.
+        {SITE_DOMAIN}.
       </p>
 
       <section className="flex flex-col gap-2">

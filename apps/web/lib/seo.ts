@@ -1,4 +1,5 @@
-export const SITE_URL = "https://monocoupon.com";
+export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://monocoupon.com").replace(/\/+$/, "");
+export const SITE_DOMAIN = new URL(SITE_URL).hostname.replace(/^www\./, "");
 
 interface CrumbInput {
   name: string;

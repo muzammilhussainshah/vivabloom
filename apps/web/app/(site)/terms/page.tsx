@@ -1,3 +1,4 @@
+import { SITE_DOMAIN } from "@/lib/seo";
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/PageHeader";
 import { getCachedSiteSettings } from "@/lib/data";
@@ -12,7 +13,7 @@ export default async function TermsPage() {
       <PageHeader eyebrow="Legal" title="Terms of Service" meta="Last updated: July 2026" />
 
       <p className="text-text-muted">
-        By accessing or using monocoupon.com (the &quot;Site&quot;), you agree to these Terms of Service. If you
+        By accessing or using {SITE_DOMAIN} (the &quot;Site&quot;), you agree to these Terms of Service. If you
         do not agree, please do not use the Site.
       </p>
 

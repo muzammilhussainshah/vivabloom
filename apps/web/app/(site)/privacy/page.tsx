@@ -1,3 +1,4 @@
+import { SITE_DOMAIN } from "@/lib/seo";
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/PageHeader";
 import { getCachedSiteSettings } from "@/lib/data";
@@ -13,7 +14,7 @@ export default async function PrivacyPage() {
 
       <p className="text-text-muted">
         This Privacy Policy explains how {siteName} (&quot;we&quot;, &quot;us&quot;) collects, uses, and protects
-        information when you use monocoupon.com (the &quot;Site&quot;).
+        information when you use {SITE_DOMAIN} (the &quot;Site&quot;).
       </p>
 
       <section className="flex flex-col gap-2">
