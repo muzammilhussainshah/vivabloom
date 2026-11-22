@@ -276,7 +276,7 @@ export function StoreDetailViewV2({
         />
       )}
 
-      <StoreFooter dict={dict.footer} />
+      <StoreFooter dict={dict.footer} clearStickyBar />
     </div>
   );
 }

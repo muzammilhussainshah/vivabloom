@@ -99,7 +99,7 @@ export function StoreHero({
       />
 
       <div className="mx-auto max-w-[1240px] px-4 pb-9 pt-4 md:pb-16 md:pt-8">
-        <p className="font-store-mono text-[10px] tracking-wide" style={{ color: "var(--on-primary-faint)" }}>
+        <p className="font-store-mono text-[10px] tracking-wide md:text-center lg:text-left" style={{ color: "var(--on-primary-faint)" }}>
           <a href="/" style={{ color: "var(--on-primary-faint)" }}>
             {dict.home}
           </a>{" "}
@@ -115,10 +115,10 @@ export function StoreHero({
           </p>
         )}
 
-        <div className="mt-4 grid grid-cols-1 gap-6 md:mt-7 md:grid-cols-[minmax(0,1fr)_448px] md:grid-rows-[auto_auto_auto_1fr] md:gap-x-16 md:gap-y-9">
+        <div className="mt-4 grid grid-cols-1 gap-6 md:mt-7 md:gap-y-9 lg:grid-cols-[minmax(0,1fr)_448px] lg:grid-rows-[auto_auto_auto_1fr] lg:gap-x-16">
           {/* 1. Identity + headline */}
-          <div className="flex flex-col gap-4 md:col-start-1 md:row-start-1 md:gap-5">
-            <div className="flex items-center gap-3">
+          <div className="flex flex-col gap-4 md:items-center md:gap-5 md:text-center lg:col-start-1 lg:row-start-1 lg:items-start lg:text-left">
+            <div className="flex items-center gap-3 md:text-left">
               <StoreMark
                 logo={storeLogo}
                 letter={monogramLetter}
@@ -165,7 +165,7 @@ export function StoreHero({
           </div>
 
           {/* 2. Voucher — right after the headline on mobile, pinned right on desktop, sitting in a soft accent glow. */}
-          <div id="sv-voucher" className="relative md:col-start-2 md:row-span-4 md:row-start-1 md:self-start">
+          <div id="sv-voucher" className="relative md:mx-auto md:w-full md:max-w-[480px] lg:col-start-2 lg:row-span-4 lg:row-start-1 lg:mx-0 lg:max-w-none lg:self-start">
             <div
               className="pointer-events-none absolute -inset-x-8 -inset-y-10 -z-10 opacity-50 md:-inset-20"
               style={{ background: "radial-gradient(closest-side, var(--accent), transparent)" }}
@@ -176,7 +176,7 @@ export function StoreHero({
 
           {/* 3. Products */}
           {heroProducts.length > 0 && (
-            <div className="flex min-w-0 flex-col gap-3 md:col-start-1 md:row-start-2">
+            <div className="flex min-w-0 flex-col gap-3 lg:col-start-1 lg:row-start-2">
               <div className="flex items-baseline justify-between gap-3">
                 <p className="font-store-mono text-[11px] font-semibold uppercase tracking-[0.16em]" style={{ color: "var(--on-primary-dim)" }}>
                   {dict.onTheRightPage}
@@ -256,7 +256,7 @@ export function StoreHero({
           )}
 
           {/* 4. How to save — a connected 3-step track, not three more boxes */}
-          <div className="md:col-start-1 md:row-start-3">
+          <div className="lg:col-start-1 lg:row-start-3">
             <p className="font-store-mono mb-4 text-[11px] font-semibold uppercase tracking-[0.16em]" style={{ color: "var(--on-primary-dim)" }}>
               {dict.howToSaveHeading}
             </p>
@@ -292,7 +292,7 @@ export function StoreHero({
           {/* 5. Trust row */}
           {trustChecks.length > 0 && (
             <ul
-              className="grid grid-cols-2 gap-x-3 gap-y-2.5 border-t pt-5 md:col-start-1 md:row-start-4 md:flex md:flex-wrap md:gap-x-6 md:self-end"
+              className="grid grid-cols-2 gap-x-3 gap-y-2.5 border-t pt-5 md:flex md:flex-wrap md:gap-x-6 lg:col-start-1 lg:row-start-4 lg:self-end"
               style={{ borderColor: "rgba(255,255,255,0.1)" }}
             >
               {trustChecks.map((check) => (

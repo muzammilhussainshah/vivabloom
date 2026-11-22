@@ -10,10 +10,17 @@ import { useSiteName } from "@/components/SiteNameProvider";
  * <Footer> (no newsletter form, no social icons): the design's spec for this
  * section is brand blurb + Browse/Trust/Legal columns only.
  */
-export function StoreFooter({ dict }: { dict: Dictionary["footer"] }) {
+export function StoreFooter({
+  dict,
+  clearStickyBar = false,
+}: {
+  dict: Dictionary["footer"];
+  /** Pad the bottom so the fixed StickyMobileBar doesn't cover the footer (mobile only). */
+  clearStickyBar?: boolean;
+}) {
   const siteName = useSiteName();
   return (
-    <footer style={{ background: "var(--footer)", color: "var(--on-primary-dim)" }}>
+    <footer className={clearStickyBar ? "sv-footer--bar" : undefined} style={{ background: "var(--footer)", color: "var(--on-primary-dim)" }}>
       <div className="mx-auto grid max-w-[1240px] grid-cols-2 gap-8 px-4 py-10 md:grid-cols-4 md:py-12">
         <div className="col-span-2 flex flex-col gap-3 md:col-span-1">
           <span className="font-store-serif text-lg font-semibold" style={{ color: "var(--page)" }}>

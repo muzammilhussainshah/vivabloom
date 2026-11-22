@@ -267,12 +267,15 @@
  * Matches StickyMobileBar.tsx's own height: ~16px top padding + content +
  * 16px base bottom padding, plus whatever the device's home-indicator safe
  * area adds on top (the bar's background extends into that area; page
- * content needs to clear the same total height or the bar covers it). */
-.store-scope {
+ * content needs to clear the same total height or the bar covers it).
+ * Applied to the footer (not the page wrapper) so the clearance is painted in
+ * the footer's color instead of a strip of page background under it, and
+ * switched off at 768px — the bar's own `md:hidden` breakpoint. */
+.sv-footer--bar {
   padding-bottom: calc(104px + env(safe-area-inset-bottom, 0px));
 }
-@media (min-width: 900px) {
-  .store-scope {
+@media (min-width: 768px) {
+  .sv-footer--bar {
     padding-bottom: 0;
   }
 }
