@@ -299,7 +299,7 @@ export function OfferVoucher({
             </span>
             {rest && <span className="sv-voucher-suffix mt-1.5 block uppercase">{rest}</span>}
             {offer.offerSubline && (
-              <span className="mt-2 block font-[family-name:var(--font-figtree)] text-[14.5px] font-semibold" style={{ color: "var(--on-accent-soft)" }}>
+              <span className="mt-3 block font-store-serif text-[20px] font-bold leading-tight md:text-[26px]" style={{ color: "var(--on-accent)" }}>
                 {offer.offerSubline}
               </span>
             )}

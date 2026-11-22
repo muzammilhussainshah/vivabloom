@@ -25,6 +25,12 @@ function buildCouponDoc(storeId: string, storeSlug: string, data: CouponInput) {
   };
 }
 
+/** Next free position at the bottom of a store's drag-ordered coupon list. */
+async function nextSortOrder(storeId: string): Promise<number> {
+  const last = await Coupon.findOne({ store: storeId }).sort({ sortOrder: -1 }).select("sortOrder").lean();
+  return (last?.sortOrder ?? -1) + 1;
+}
+
 async function syncStoreStats(storeId: string) {
   const [totalCoupons, activeDeals] = await Promise.all([
     Coupon.countDocuments({ store: storeId }),
@@ -70,7 +76,8 @@ export async function createCoupon(_prevState: ActionState, formData: FormData):
   }
 
   const storeId = parsed.data.store;
-  const coupon = await Coupon.create(buildCouponDoc(storeId, store.slug, parsed.data));
+  // New coupons join the bottom of the store's list; drag them up on the Coupons page.
+  const coupon = await Coupon.create({ ...buildCouponDoc(storeId, store.slug, parsed.data), sortOrder: await nextSortOrder(storeId) });
   await logAudit("coupon.create", { entityType: "Coupon", entityId: String(coupon._id) });
 
   await syncStoreStats(storeId);
@@ -136,7 +143,8 @@ export async function createBulkCoupons(_prevState: ActionState, formData: FormD
     return { error: "Select at least one coupon to create." };
   }
 
-  const created = await Coupon.insertMany(rows.map((row) => buildCouponDoc(storeId, store.slug, row)));
+  const start = await nextSortOrder(storeId);
+  const created = await Coupon.insertMany(rows.map((row, i) => ({ ...buildCouponDoc(storeId, store.slug, row), sortOrder: start + i })));
   for (const coupon of created) {
     await logAudit("coupon.create", { entityType: "Coupon", entityId: String(coupon._id) });
   }
@@ -166,6 +174,8 @@ export async function updateCoupon(id: string, _prevState: ActionState, formData
   }
   const oldStoreId = String(coupon.store);
   const oldStoreSlug = coupon.storeSlug;
+  // The edit form has no position field — keep the drag order instead of resetting it to 0.
+  const keepSortOrder = formData.has("sortOrder") ? undefined : coupon.sortOrder;
 
   const { store: storeId, code, affiliateUrl, startDate, expiryDate, ...rest } = parsed.data;
   Object.assign(coupon, rest, {
@@ -176,6 +186,8 @@ export async function updateCoupon(id: string, _prevState: ActionState, formData
     startDate: startDate ? new Date(startDate) : null,
     expiryDate: expiryDate ? new Date(expiryDate) : null,
   });
+  if (oldStoreId !== storeId) coupon.sortOrder = await nextSortOrder(storeId);
+  else if (keepSortOrder !== undefined) coupon.sortOrder = keepSortOrder;
   await coupon.save();
   await logAudit("coupon.update", { entityType: "Coupon", entityId: id });
 
@@ -216,4 +228,27 @@ export async function markVerified(id: string) {
     await revalidateWebPaths([`/stores/${coupon.storeSlug}`]);
   }
   redirect("/coupons");
+}
+
+/**
+ * Saves a store's drag-and-drop order from the Coupons page: position i gets
+ * sortOrder i. The public store page lists coupons by sortOrder, so the top
+ * one here is the top one there (and becomes the store's headline offer).
+ */
+export async function reorderCoupons(storeId: string, orderedIds: string[]): Promise<{ error?: string }> {
+  await connectToDatabase();
+  const store = await Store.findById(storeId).select("slug").lean();
+  if (!store) return { error: "Store not found." };
+
+  const owned = await Coupon.find({ store: storeId, _id: { $in: orderedIds } }).select("_id").lean();
+  if (owned.length !== orderedIds.length) return { error: "Coupon list is out of date — refresh and try again." };
+
+  await Coupon.bulkWrite(
+    orderedIds.map((id, index) => ({ updateOne: { filter: { _id: id, store: storeId }, update: { $set: { sortOrder: index } } } }))
+  );
+  await logAudit("coupon.reorder", { entityType: "Store", entityId: storeId });
+
+  revalidatePath("/coupons");
+  await revalidateWebPaths(["/stores", `/stores/${store.slug}`, "/", "/deals"]);
+  return {};
 }

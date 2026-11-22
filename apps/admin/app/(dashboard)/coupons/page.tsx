@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { connectToDatabase, Coupon, Store } from "@monocoupon/db";
-import { deleteCoupon, markVerified } from "./actions";
+import { CouponBoard, type CouponRow, type StoreGroup } from "./CouponBoard";
 
 export const metadata: Metadata = { title: "Coupons" };
 export const dynamic = "force-dynamic";
@@ -16,14 +16,62 @@ export default async function CouponsListPage({
 
   const filter = storeFilter ? { store: storeFilter } : {};
   const [coupons, stores] = await Promise.all([
-    Coupon.find(filter).populate("store", "name slug").sort({ createdAt: -1 }).lean(),
-    Store.find({}).sort({ name: 1 }).lean(),
+    // Same order as the public store page (apps/web/lib/data.ts COUPON_ORDER),
+    // so what you see here is exactly what visitors see.
+    Coupon.find(filter).sort({ sortOrder: 1, isFeatured: -1, createdAt: -1 }).lean(),
+    Store.find({}).sort({ name: 1 }).select("name slug logo").lean(),
   ]);
 
+  const storeById = new Map(stores.map((s) => [String(s._id), s]));
+  const groups = new Map<string, StoreGroup>();
+  for (const c of coupons) {
+    const storeId = String(c.store);
+    const store = storeById.get(storeId);
+    if (!groups.has(storeId)) {
+      groups.set(storeId, {
+        storeId,
+        storeName: store?.name ?? "Unknown store",
+        storeSlug: store?.slug ?? c.storeSlug,
+        storeLogo: store?.logo ?? null,
+        coupons: [],
+      });
+    }
+    const row: CouponRow = {
+      id: String(c._id),
+      title: c.title,
+      description: c.description ?? "",
+      type: c.type as "code" | "deal",
+      code: c.code ?? null,
+      discountType: (c.discountType ?? "other") as CouponRow["discountType"],
+      discountValue: c.discountValue ?? null,
+      expiryDate: c.expiryDate ? new Date(c.expiryDate).toISOString() : null,
+      isActive: Boolean(c.isActive),
+      isVerified: Boolean(c.isVerified),
+      isFeatured: Boolean(c.isFeatured),
+      isExclusive: Boolean(c.isExclusive),
+      lastCheckedAt: c.lastCheckedAt ? new Date(c.lastCheckedAt).toISOString() : null,
+      clicks: c.clicks ?? 0,
+      views: c.views ?? 0,
+      countries: (c.i18n ?? []).map((e) => e.country.toUpperCase()),
+      hasAffiliateUrl: Boolean(c.affiliateUrl),
+    };
+    groups.get(storeId)!.coupons.push(row);
+  }
+  const storeGroups = [...groups.values()].sort((a, b) => a.storeName.localeCompare(b.storeName));
+
+  const total = coupons.length;
+  const active = coupons.filter((c) => c.isActive).length;
+  const unverified = coupons.filter((c) => !c.isVerified).length;
+
   return (
-    <div className="mx-auto flex max-w-5xl flex-col gap-6 px-4 py-10">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Coupons</h1>
+    <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-10">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold">Coupons</h1>
+          <p className="mt-1 text-sm text-text-muted">
+            {total} total · {active} active · {unverified} not verified
+          </p>
+        </div>
         <div className="flex gap-2">
           <Link
             href="/coupons/bulk-new"
@@ -58,71 +106,13 @@ export default async function CouponsListPage({
         </button>
       </form>
 
-      <div className="overflow-x-auto rounded-base border border-border bg-surface">
-        <table className="w-full text-sm">
-          <thead className="border-b border-border bg-surface-muted text-left">
-            <tr>
-              <th className="p-3">Store</th>
-              <th className="p-3">Title</th>
-              <th className="p-3">Type</th>
-              <th className="p-3">Status</th>
-              <th className="p-3"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {coupons.map((c) => {
-              const store = c.store as unknown as { name: string; slug: string } | null;
-              return (
-                <tr key={String(c._id)} className="border-b border-border last:border-0">
-                  <td className="p-3">{store?.name ?? "—"}</td>
-                  <td className="p-3 font-medium">{c.title}</td>
-                  <td className="p-3 text-text-muted">{c.type === "code" ? c.code || "code" : "deal"}</td>
-                  <td className="p-3">
-                    <div className="flex flex-col gap-0.5">
-                      <span className={c.isActive ? "text-brand-accent" : "text-text-muted"}>
-                        {c.isActive ? "Active" : "Inactive"}
-                      </span>
-                      {c.isVerified ? (
-                        <span className="text-xs text-text-muted">
-                          Verified {c.lastCheckedAt ? new Date(c.lastCheckedAt).toLocaleDateString() : ""}
-                        </span>
-                      ) : (
-                        <span className="text-xs text-text-muted">Not verified</span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="p-3 text-right">
-                    <div className="flex justify-end gap-3">
-                      {!c.isVerified && (
-                        <form action={markVerified.bind(null, String(c._id))}>
-                          <button type="submit" className="text-brand-accent hover:underline">
-                            Mark verified
-                          </button>
-                        </form>
-                      )}
-                      <Link href={`/coupons/${c._id}/edit`} className="text-brand-primary hover:underline">
-                        Edit
-                      </Link>
-                      <form action={deleteCoupon.bind(null, String(c._id))}>
-                        <button type="submit" className="text-brand-secondary hover:underline">
-                          Delete
-                        </button>
-                      </form>
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
-            {coupons.length === 0 && (
-              <tr>
-                <td colSpan={5} className="p-6 text-center text-text-muted">
-                  No coupons found.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      {storeGroups.length === 0 ? (
+        <div className="rounded-base border border-border bg-surface p-10 text-center text-sm text-text-muted">
+          No coupons found.
+        </div>
+      ) : (
+        <CouponBoard groups={storeGroups} webUrl={process.env.WEB_APP_URL?.split(",").map((u) => u.trim()).filter(Boolean).at(-1) ?? null} />
+      )}
     </div>
   );
 }

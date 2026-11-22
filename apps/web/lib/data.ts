@@ -11,6 +11,13 @@ function escapeRegex(input: string): string {
   return input.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+/**
+ * Coupon order everywhere on the public site: the admin's drag-and-drop
+ * position first (Coupons page -> sortOrder), then featured, then newest
+ * as tie-breakers for coupons that were never reordered.
+ */
+const COUPON_ORDER = { sortOrder: 1, isFeatured: -1, createdAt: -1 } as const;
+
 export interface SiteSettingsData {
   siteName: string;
   tagline: string;
@@ -352,7 +359,7 @@ export async function getDealsIndex(): Promise<{ entries: DealsIndexEntry[]; cat
   const [topCoupons, topProducts, topBundles] = await Promise.all([
     Coupon.aggregate([
       { $match: { store: { $in: storeIds }, isActive: true } },
-      { $sort: { isFeatured: -1, sortOrder: 1 } },
+      { $sort: COUPON_ORDER },
       { $group: { _id: "$store", top: { $first: "$$ROOT" } } },
     ]),
     Product.aggregate([
@@ -411,7 +418,7 @@ export const getStoreDetail = cache(async (slug: string) => {
   if (!store) return null;
 
   const [coupons, products, bundles, relatedPosts] = await Promise.all([
-    Coupon.find({ store: store._id, isActive: true }).sort({ isFeatured: -1, sortOrder: 1 }).lean(),
+    Coupon.find({ store: store._id, isActive: true }).sort(COUPON_ORDER).lean(),
     Product.find({ store: store._id, isActive: true }).sort({ createdAt: -1 }).lean(),
     Bundle.find({ store: store._id, isActive: true }).sort({ createdAt: -1 }).lean(),
     BlogPost.find({ relatedStores: store._id, status: "published" })
@@ -715,7 +722,7 @@ export async function getProductBySlug(slug: string): Promise<{
   const store = doc.store as unknown as StorePopulated;
 
   const [coupons, sameStoreProducts, sameStoreBundles] = await Promise.all([
-    Coupon.find({ store: store._id, isActive: true }).sort({ isFeatured: -1, sortOrder: 1 }).limit(1).lean(),
+    Coupon.find({ store: store._id, isActive: true }).sort(COUPON_ORDER).limit(1).lean(),
     Product.find({ store: store._id, isActive: true, _id: { $ne: doc._id } })
       .sort({ createdAt: -1 })
       .limit(8)
