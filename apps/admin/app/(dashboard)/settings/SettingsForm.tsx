@@ -6,6 +6,8 @@ import { updateSiteSettings } from "./actions";
 import { AIGenerateImageButton } from "@/components/AIGenerateImageButton";
 import { heroImagePrompt } from "@/lib/ai/prompts";
 
+type ThemePreset = { id: string; label: string; values: Record<keyof typeof DEFAULT_THEME, string> };
+
 // The 8 named palettes from the store-page redesign handoff — one-click
 // presets for the Theme Colors section below. This single theme now drives
 // both the main site AND the /stores/[slug] redesign (which derives its 2
@@ -230,10 +232,47 @@ export function SettingsForm({ initialData }: { initialData: SettingsFormInitial
 
   const [activePreset, setActivePreset] = useState<string | null>(null);
 
-  function applyThemePreset(preset: (typeof THEME_PRESETS)[number]) {
+  // Palettes the admin generated with AI this session; they sit above the built-ins.
+  const [generatedThemes, setGeneratedThemes] = useState<ThemePreset[]>([]);
+  const [presetQuery, setPresetQuery] = useState("");
+  const [showAllPresets, setShowAllPresets] = useState(false);
+  const [aiBrief, setAiBrief] = useState("");
+  const [aiPending, setAiPending] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+
+  function applyThemePreset(preset: ThemePreset) {
     setColorValues(preset.values);
     setActivePreset(preset.id);
   }
+
+  async function generateTheme() {
+    setAiPending(true);
+    setAiError(null);
+    try {
+      const res = await fetch("/api/ai/generate-theme", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ brief: aiBrief }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
+      const preset: ThemePreset = { id: `ai-${Date.now()}`, label: data.name, values: data.values };
+      setGeneratedThemes((prev) => [preset, ...prev].slice(0, 6));
+      applyThemePreset(preset);
+    } catch (err) {
+      setAiError(err instanceof Error ? err.message : "Theme generation failed.");
+    } finally {
+      setAiPending(false);
+    }
+  }
+
+  // The list grows (built-ins + AI), so it's searchable and collapses to a
+  // short preview until the admin asks for all of them.
+  const allPresets: ThemePreset[] = [...generatedThemes, ...THEME_PRESETS];
+  const query = presetQuery.trim().toLowerCase();
+  const matchingPresets = query ? allPresets.filter((p) => p.label.toLowerCase().includes(query)) : allPresets;
+  const PRESET_PREVIEW_COUNT = 8;
+  const visiblePresets = query || showAllPresets ? matchingPresets : matchingPresets.slice(0, PRESET_PREVIEW_COUNT);
 
   function updateColor(key: keyof typeof colorValues, value: string) {
     setColorValues((prev) => ({ ...prev, [key]: value }));
@@ -375,12 +414,75 @@ export function SettingsForm({ initialData }: { initialData: SettingsFormInitial
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
           <div className="flex min-w-0 flex-col gap-6">
             <div className="flex flex-col gap-3">
-              <div className="flex items-baseline justify-between">
-                <p className="text-sm font-medium text-text">Presets</p>
-                <p className="text-xs text-text-muted">{THEME_PRESETS.length} palettes</p>
+              <div className="flex flex-col gap-2.5 rounded-xl border border-dashed border-brand-primary/40 bg-brand-primary/[0.04] p-3.5">
+                <div className="flex items-center gap-2">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-brand-primary text-white" aria-hidden="true">
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+                      <path d="M10 3v2.5M10 14.5V17M3 10h2.5M14.5 10H17M5 5l1.8 1.8M13.2 13.2 15 15M15 5l-1.8 1.8M6.8 13.2 5 15" />
+                    </svg>
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-text">Generate a palette with AI</p>
+                    <p className="text-xs text-text-muted">Describe the mood. Every colour is checked for readability before it appears.</p>
+                  </div>
+                </div>
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <input
+                    value={aiBrief}
+                    onChange={(e) => setAiBrief(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !aiPending) {
+                        e.preventDefault();
+                        generateTheme();
+                      }
+                    }}
+                    maxLength={300}
+                    placeholder="e.g. warm autumn coffee shop, cosy and editorial"
+                    aria-label="Describe the theme mood"
+                    className="h-10 min-w-0 flex-1 rounded-[10px] border border-border bg-white px-3 text-sm text-text shadow-[0_1px_1px_rgba(16,24,20,0.03)] transition-colors hover:border-text-muted/40 focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/15"
+                  />
+                  <button
+                    type="button"
+                    onClick={generateTheme}
+                    disabled={aiPending}
+                    aria-busy={aiPending}
+                    className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-[10px] bg-brand-primary px-4 text-sm font-semibold text-white shadow-sm shadow-brand-primary/25 transition-colors hover:bg-brand-primary-hover disabled:opacity-70"
+                  >
+                    {aiPending ? (
+                      <>
+                        <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4 animate-spin" aria-hidden="true">
+                          <circle cx="12" cy="12" r="9" stroke="currentColor" strokeOpacity="0.25" strokeWidth="3" />
+                          <path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                        </svg>
+                        Designing…
+                      </>
+                    ) : (
+                      "Generate"
+                    )}
+                  </button>
+                </div>
+                {aiError && (
+                  <p role="alert" className="rounded-[10px] border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-700">
+                    {aiError}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-sm font-medium text-text">
+                  Presets <span className="font-normal text-text-muted">· {allPresets.length} palettes</span>
+                </p>
+                <input
+                  type="search"
+                  value={presetQuery}
+                  onChange={(e) => setPresetQuery(e.target.value)}
+                  placeholder="Search palettes"
+                  aria-label="Search palettes"
+                  className="h-9 w-44 rounded-[10px] border border-border bg-white px-3 text-xs text-text shadow-[0_1px_1px_rgba(16,24,20,0.03)] transition-colors hover:border-text-muted/40 focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/15"
+                />
               </div>
               <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-4">
-                {THEME_PRESETS.map((preset) => {
+                {visiblePresets.map((preset) => {
                   const active = activePreset === preset.id;
                   return (
                     <button
@@ -414,6 +516,18 @@ export function SettingsForm({ initialData }: { initialData: SettingsFormInitial
                   );
                 })}
               </div>
+              {visiblePresets.length === 0 && (
+                <p className="text-center text-xs text-text-muted">No palette matches “{presetQuery}”.</p>
+              )}
+              {!query && allPresets.length > PRESET_PREVIEW_COUNT && (
+                <button
+                  type="button"
+                  onClick={() => setShowAllPresets((v) => !v)}
+                  className="self-center rounded-[10px] border border-border bg-white px-3.5 py-1.5 text-xs font-semibold text-text-muted transition-colors hover:border-text-muted/40 hover:text-text"
+                >
+                  {showAllPresets ? "Show fewer" : `Show all ${allPresets.length} palettes`}
+                </button>
+              )}
               <p className="text-xs text-text-muted">Picking a preset only fills the fields below. Click Save changes to publish it.</p>
             </div>
 

@@ -54,6 +54,8 @@ export const AI_MODELS = {
     categoryContent: "groq/openai/gpt-oss-120b",
     /** Step 1 of blog cover images: writes the photo scene the image model renders. */
     blogCoverScene: "groq/openai/gpt-oss-120b",
+    /** Colour theme generator for the admin Settings page. */
+    themeGenerate: "groq/openai/gpt-oss-120b",
   },
   /** Models used for image generation (Cloudflare FLUX by default; Gemini ids also work). */
   image: {
@@ -80,6 +82,7 @@ export const AI_TASKS = [
   { key: "adCopy", label: "Google Ads copy (headlines & descriptions)", kind: "text" },
   { key: "siteLinkCopy", label: "Google Ads sitelink copy (text & descriptions)", kind: "text" },
   { key: "blogCoverScene", label: "Blog cover image — scene description (step 1)", kind: "text" },
+  { key: "themeGenerate", label: "Colour theme generator (Settings)", kind: "text" },
   { key: "blogCover", label: "Blog cover image", kind: "image" },
   { key: "heroBackground", label: "Homepage hero image", kind: "image" },
   { key: "categorySuggest", label: "Category suggestions (from store URL)", kind: "text" },
@@ -123,6 +126,20 @@ export function resolveModel(task?: string | null, overrides?: Record<string, un
 // ===========================================================================
 // SYSTEM PROMPTS — the model's standing instructions.
 // ===========================================================================
+
+/** Builds the request for the AI theme generator. The reply is parsed as JSON by lib/ai/themeGuard.ts. */
+export function themeGeneratePrompt(brief: string): string {
+  const style = brief.trim() ? brief.trim().slice(0, 300) : "a modern, trustworthy coupon and deals website";
+  return [
+    "Design a website colour theme for: " + style + ".",
+    'Return ONLY a JSON object, no prose, with these keys, each a 6-digit hex colour like #1a2b3c, plus a short "name" string:',
+    "name, brandPrimary, brandSecondary, brandAccent, surface, surfaceMuted, text, textMuted, border, footerBg.",
+    "Rules: surface is a light page background; surfaceMuted is a slightly darker light card background; text is near-black;",
+    "textMuted is a grey-tinted text colour; border is a soft light line; brandPrimary is a deep colour that holds white text;",
+    "brandSecondary is a second deep colour for buttons; brandAccent is a vivid colour that also reads as text on the light surface;",
+    "footerBg is a dark colour for the footer. Keep the palette harmonious and distinctive, not generic.",
+  ].join(" ");
+}
 
 export const TEXT_SYSTEM_PROMPT =
   "You write concise, factual marketing and editorial copy for a coupon/deals website called VivaBloom. No markdown formatting unless explicitly asked for HTML.";
