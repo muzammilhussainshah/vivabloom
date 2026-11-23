@@ -21,12 +21,11 @@ export default async function DealsPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const { category: categorySlug } = await searchParams;
+  const { category } = await searchParams;
+  const categorySlug = typeof category === "string" && category ? category : undefined;
   const [{ entries, categories }, settings] = await Promise.all([getDealsIndex(), getCachedSiteSettings()]);
 
   const themeVars = buildStoreThemeVars(settings.themeTokens);
-
-  const filtered = categorySlug ? entries.filter((entry) => entry.store.categories?.some((c) => c.slug === categorySlug)) : entries;
 
   // deriveOffer is cheap (no I/O) but is the only source of truth for
   // "does this store actually have a verified offer to show" — a store with
@@ -37,11 +36,26 @@ export default async function DealsPage({
   // (DealVoucherCard), so a store with no catalog yet would render a voucher
   // with nothing under it — skip it here rather than show an incomplete
   // card; it still appears normally on its own /stores/[slug] page.
-  const visible = filtered.filter(
-    (entry) =>
-      (entry.products.length > 0 || entry.bundles.length > 0) &&
-      deriveOffer(entry.store, entry.store.offer, entry.coupon, entry.store.websiteUrl ?? "", null).hasOffer
-  );
+  // Computed across ALL categories first, so the filter tabs can show counts.
+  const eligible = entries
+    .filter((entry) => entry.products.length > 0 || entry.bundles.length > 0)
+    .map((entry) => ({ entry, offer: deriveOffer(entry.store, entry.store.offer, entry.coupon, entry.store.websiteUrl ?? "", null) }))
+    .filter(({ offer }) => offer.hasOffer);
+
+  const inCategory = (entry: (typeof entries)[number], slug: string) => entry.store.categories?.some((c) => c.slug === slug) ?? false;
+  const visible = (categorySlug ? eligible.filter(({ entry }) => inCategory(entry, categorySlug)) : eligible).map(({ entry }) => entry);
+  const countFor = (slug: string) => eligible.filter(({ entry }) => inCategory(entry, slug)).length;
+  const activeCategory = categories.find((c) => c.slug === categorySlug);
+
+  // Hero stats.
+  const bestDiscount = Math.max(0, ...eligible.map(({ offer }) => Number.parseInt(offer.discountLabel, 10)).filter((n) => Number.isFinite(n)));
+  const lastChecked = eligible
+    .map(({ offer }) => offer.verifiedDate?.getTime() ?? 0)
+    .reduce((a, b) => Math.max(a, b), 0);
+  const lastCheckedLabel = lastChecked
+    ? new Date(lastChecked).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" })
+    : null;
+  const categoriesWithOffers = categories.filter((c) => countFor(c.slug) > 0).length;
 
   return (
     <div
@@ -69,25 +83,75 @@ export default async function DealsPage({
         aria-hidden="true"
       />
 
-      <div className="relative mx-auto max-w-[1240px] px-4 pb-20 pt-14 sm:px-8 md:pb-24 md:pt-16">
-        <div className="mx-auto max-w-xl text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em]" style={{ color: "var(--success)" }}>
-            {visible.length > 0 ? `${visible.length} verified ${visible.length === 1 ? "offer" : "offers"}` : "Verified offers"}
-          </p>
-          <h1 className="font-store-serif mt-4 text-4xl font-bold sm:text-5xl" style={{ color: "var(--page)" }}>
-            Deals &amp; Discounts
-          </h1>
-          <p className="mt-3 text-base" style={{ color: "var(--on-primary-soft)" }}>
-            One hand-checked coupon per store, paired with the products it actually applies to — not a pile of stale codes.
-          </p>
-        </div>
+      <div className="relative mx-auto max-w-[1240px] px-4 pb-20 pt-12 sm:px-8 md:pb-24 md:pt-16">
+        {/* Hero: the pitch on the left, three proof points on the right. */}
+        <header className="grid grid-cols-1 items-end gap-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:gap-12">
+          <div className="max-w-2xl">
+            <p
+              className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold"
+              style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "var(--on-primary-soft)" }}
+            >
+              <span className="sv-pulse-dot h-1.5 w-1.5 rounded-full" style={{ background: "var(--success)" }} aria-hidden="true" />
+              {lastCheckedLabel ? `Every offer hand-checked · last check ${lastCheckedLabel}` : "Every offer hand-checked"}
+            </p>
+            <h1 className="font-store-serif mt-5 text-[40px] font-bold leading-[1.02] tracking-[-0.02em] sm:text-[56px]" style={{ color: "var(--page)" }}>
+              Deals &amp; Discounts
+            </h1>
+            <p className="mt-4 max-w-xl text-base leading-relaxed md:text-[17px]" style={{ color: "var(--on-primary-soft)" }}>
+              One verified coupon per store, paired with the products it actually applies to. No padded lists, no expired codes.
+            </p>
+          </div>
 
-        <div className="mt-9 flex flex-wrap justify-center gap-2 border-b pb-7" style={{ borderColor: "rgba(246,243,236,0.14)" }}>
-          <CategoryChip href="/deals" active={!categorySlug} label="All Stores" />
-          {categories.map((category) => (
-            <CategoryChip key={category._id} href={`/deals?category=${category.slug}`} active={categorySlug === category.slug} label={category.name} />
-          ))}
-        </div>
+          <dl className="grid grid-cols-3 gap-2.5 sm:gap-3">
+            {[
+              { label: eligible.length === 1 ? "Verified offer" : "Verified offers", value: String(eligible.length) },
+              { label: categoriesWithOffers === 1 ? "Category" : "Categories", value: String(categoriesWithOffers) },
+              { label: "Best discount", value: bestDiscount > 0 ? `${bestDiscount}%` : "—" },
+            ].map((stat) => (
+              <div
+                key={stat.label}
+                className="flex min-w-[96px] flex-col gap-1 rounded-2xl px-4 py-3.5 sm:min-w-[120px]"
+                style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}
+              >
+                <dt className="order-2 text-[11px] font-medium uppercase tracking-[0.08em]" style={{ color: "var(--on-primary-faint)" }}>
+                  {stat.label}
+                </dt>
+                <dd className="font-store-serif order-1 text-[26px] font-bold leading-none sm:text-[30px]" style={{ color: "var(--page)" }}>
+                  {stat.value}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </header>
+
+        {/* Filter: a segmented control with per-category counts. */}
+        <nav aria-label="Filter deals by category" className="mt-10 flex flex-col gap-3 md:mt-12 md:flex-row md:items-center md:justify-between">
+          <div
+            className="-mx-4 overflow-x-auto px-4 [scrollbar-width:none] md:mx-0 md:px-0 [&::-webkit-scrollbar]:hidden"
+          >
+            <div
+              className="inline-flex min-w-max items-center gap-1 rounded-2xl p-1.5 backdrop-blur"
+              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}
+            >
+              <FilterTab href="/deals" active={!categorySlug} label="All" count={eligible.length} />
+              {categories.map((category) => (
+                <FilterTab
+                  key={category._id}
+                  href={`/deals?category=${category.slug}`}
+                  active={categorySlug === category.slug}
+                  label={category.name}
+                  count={countFor(category.slug)}
+                />
+              ))}
+            </div>
+          </div>
+          <p className="text-sm" style={{ color: "var(--on-primary-faint)" }}>
+            Showing <span className="font-semibold" style={{ color: "var(--page)" }}>{visible.length}</span>{" "}
+            {visible.length === 1 ? "offer" : "offers"}
+            {activeCategory ? ` in ${activeCategory.name}` : ""}
+          </p>
+        </nav>
+        <div className="mt-6 h-px w-full" style={{ background: "linear-gradient(90deg, rgba(255,255,255,0.14), rgba(255,255,255,0.02))" }} aria-hidden="true" />
 
         {visible.length === 0 ? (
           <div
@@ -117,7 +181,7 @@ export default async function DealsPage({
         ) : (
           // One full-width section per store, laid out like the store page
           // hero (see DealVoucherCard), stacked with a hairline between them.
-          <div className="mt-12 flex flex-col gap-14 md:mt-14 [&>*+*]:border-t [&>*+*]:border-white/10 [&>*+*]:pt-14">
+          <div className="mt-10 flex flex-col gap-14 md:mt-12 [&>*+*]:border-t [&>*+*]:border-white/10 [&>*+*]:pt-14">
             {visible.map((entry) => (
               // No googleAdsConversionId/Label here, deliberately: the "Coupon
               // Outbound Click" Ads conversion is scoped to /stores/[slug] and
@@ -129,22 +193,69 @@ export default async function DealsPage({
           </div>
         )}
       </div>
+
+      {/* Light closing band: ends the dark deals area before the (also dark)
+          site footer, so the two don't run together into one block. */}
+      <section className="relative" style={{ background: "var(--page)", color: "var(--text)" }}>
+        <div className="mx-auto max-w-[1240px] px-4 py-14 sm:px-8 md:py-16">
+          <div
+            className="flex flex-col gap-6 rounded-3xl p-6 md:flex-row md:items-center md:justify-between md:p-10"
+            style={{ background: "var(--card)", border: "1px solid var(--border)" }}
+          >
+            <div className="max-w-xl">
+              <p className="font-store-mono text-[11px] font-semibold uppercase tracking-[0.16em]" style={{ color: "var(--accent-ink)" }}>
+                More ways to save
+              </p>
+              <h2 className="font-store-serif mt-2 text-[26px] font-bold leading-tight md:text-[32px]" style={{ color: "var(--text)" }}>
+                Looking for another store?
+              </h2>
+              <p className="mt-2 text-[15px] leading-relaxed" style={{ color: "var(--text-soft)" }}>
+                We only list a deal once we&apos;ve checked it. Browse every store we track, or read our buying guides before you shop.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <Link
+                href="/stores"
+                className="inline-flex h-11 items-center rounded-xl px-5 text-sm font-semibold transition-opacity hover:opacity-90"
+                style={{ background: "var(--primary)", color: "var(--page)" }}
+              >
+                Browse all stores
+              </Link>
+              <Link
+                href="/blog"
+                className="inline-flex h-11 items-center rounded-xl px-5 text-sm font-semibold transition-colors hover:opacity-80"
+                style={{ border: "1px solid var(--border)", color: "var(--text)", background: "var(--page)" }}
+              >
+                Read buying guides
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
 
-function CategoryChip({ href, active, label }: { href: string; active: boolean; label: string }) {
+/** One segment of the category filter: label + offer count; the active one is a raised light pill. Empty categories stay reachable but dimmed. */
+function FilterTab({ href, active, label, count }: { href: string; active: boolean; label: string; count: number }) {
+  const empty = count === 0 && !active;
   return (
     <Link
       href={href}
-      className="rounded-full px-4 py-2 text-sm font-semibold transition-colors"
-      style={
-        active
-          ? { background: "var(--accent)", color: "var(--on-accent)" }
-          : { background: "var(--card)", color: "var(--text)", border: "1px solid var(--border)" }
-      }
+      scroll={false}
+      aria-current={active ? "page" : undefined}
+      className={`flex h-10 items-center gap-2 whitespace-nowrap rounded-xl px-4 text-sm font-semibold transition-colors ${
+        active ? "shadow-[0_6px_18px_-8px_rgba(0,0,0,0.6)]" : "hover:bg-white/[0.07]"
+      } ${empty ? "opacity-45" : ""}`}
+      style={active ? { background: "var(--page)", color: "var(--text)" } : { color: "var(--on-primary-soft)" }}
     >
       {label}
+      <span
+        className="min-w-[22px] rounded-full px-1.5 py-0.5 text-center text-[11px] font-bold tabular-nums leading-none"
+        style={active ? { background: "var(--accent)", color: "var(--on-accent)" } : { background: "rgba(255,255,255,0.1)", color: "var(--on-primary-soft)" }}
+      >
+        {count}
+      </span>
     </Link>
   );
 }

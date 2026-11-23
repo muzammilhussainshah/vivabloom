@@ -216,6 +216,10 @@ export const it: Dictionary = {
     heading: (storeName) => `Nessuna offerta verificata da ${storeName} al momento`,
     body: (storeName) => `Pubblichiamo solo offerte che abbiamo testato noi stessi. ${storeName} non ne ha una attiva al momento — torna a controllare più tardi, oppure esplora altri negozi qui sotto.`,
     browseAllStores: "Esplora tutti i negozi",
+    statusPill: "Nessuna offerta attiva al momento",
+    seeVerifiedDeals: "Vedi le offerte verificate",
+    otherDealsHeading: "Offerte verificate in altri negozi",
+    otherDealsSubheading: "Offerte controllate a mano, da usare oggi.",
   },
 
   relatedArticles: {

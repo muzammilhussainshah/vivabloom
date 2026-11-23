@@ -216,6 +216,10 @@ export const fr: Dictionary = {
     heading: (storeName) => `Aucune offre vérifiée chez ${storeName} pour le moment`,
     body: (storeName) => `Nous ne publions que des offres que nous avons testées nous-mêmes. ${storeName} n'en a pas en ce moment — revenez bientôt, ou parcourez d'autres boutiques ci-dessous.`,
     browseAllStores: "Parcourir toutes les boutiques",
+    statusPill: "Aucune offre active pour le moment",
+    seeVerifiedDeals: "Voir les offres vérifiées",
+    otherDealsHeading: "Offres vérifiées dans d'autres boutiques",
+    otherDealsSubheading: "Des offres vérifiées à la main, utilisables dès aujourd'hui.",
   },
 
   relatedArticles: {

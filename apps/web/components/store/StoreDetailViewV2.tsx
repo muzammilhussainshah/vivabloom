@@ -9,14 +9,14 @@ import { ProofStrip } from "./ProofStrip";
 import { HonestyPanel } from "./HonestyPanel";
 import { HowWeCheckFaq } from "./HowWeCheckFaq";
 import { RelatedArticles } from "./RelatedArticles";
-import { EmptyOfferState } from "./EmptyOfferState";
+import { EmptyOfferState, type AlternativeDeal } from "./EmptyOfferState";
 import { StoreFooter } from "./StoreFooter";
 import { StoreActionsProvider } from "./StoreActions";
 import { resolveEmptyHeaderText, resolveStoreText } from "./storeText";
 import { deriveOffer } from "@/lib/offerContent";
 import { getDictionary } from "@/lib/i18n";
 import { breadcrumbJsonLd, faqPageJsonLd, storeOffersJsonLd } from "@/lib/seo";
-import { getCachedSiteSettings } from "@/lib/data";
+import { getCachedSiteSettings, getDealsIndex } from "@/lib/data";
 import { resolveSiteName } from "@/lib/brand";
 import { getSupportedCountry } from "@monocoupon/validation/countries";
 import type { StoreCard, CouponCard, ProductCard as ProductCardData, BundleCard as BundleCardData, BlogPostCard } from "@/lib/data";
@@ -68,10 +68,34 @@ export async function StoreDetailViewV2({
   const storePath = country ? `/${country}/stores/${store.slug}` : `/stores/${store.slug}`;
 
   if (!offer.hasOffer) {
+    // Up to 3 other stores with a verified offer, same eligibility rules as /deals.
+    const { entries } = await getDealsIndex();
+    const alternatives: AlternativeDeal[] = entries
+      .filter((e) => e.store.slug !== store.slug)
+      .map((e) => ({ e, o: deriveOffer(e.store, e.store.offer, e.coupon, e.store.websiteUrl ?? "", country, siteName) }))
+      .filter(({ o }) => o.hasOffer)
+      .slice(0, 3)
+      .map(({ e, o }) => ({
+        href: country ? `/${country}/stores/${e.store.slug}` : `/stores/${e.store.slug}`,
+        name: e.store.name,
+        logo: e.store.logo,
+        monogramLetter: o.monogramLetter,
+        category: e.store.categories?.[0]?.name ?? null,
+        discountLabel: o.discountLabel,
+        discountSuffix: o.discountSuffix,
+      }));
+
     return (
-      <div>
+      // min-h-dvh: a short page still fills the screen, so the footer sits at the bottom instead of leaving blank space under it.
+      <div className="flex min-h-dvh flex-col">
         <StoreHeader storeName={store.name} offer={null} dict={resolveEmptyHeaderText(dict.storeHeader)} />
-        <EmptyOfferState storeName={store.name} storeLogo={store.logo} monogramLetter={offer.monogramLetter} dict={dict.emptyOffer} />
+        <EmptyOfferState
+          storeName={store.name}
+          storeLogo={store.logo}
+          monogramLetter={offer.monogramLetter}
+          alternatives={alternatives}
+          dict={dict.emptyOffer}
+        />
         <StoreFooter dict={dict.footer} siteName={siteName} />
       </div>
     );

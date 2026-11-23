@@ -223,6 +223,10 @@ export const en: Dictionary = {
     heading: (storeName) => `No verified offer at ${storeName} right now`,
     body: (storeName) => `We only publish offers we’ve tested ourselves. ${storeName} doesn’t have one live at the moment — check back soon, or browse other stores below.`,
     browseAllStores: "Browse all stores",
+    statusPill: "No live offer right now",
+    seeVerifiedDeals: "See verified deals",
+    otherDealsHeading: "Verified deals at other stores",
+    otherDealsSubheading: "Hand-checked offers you can use today.",
   },
 
   relatedArticles: {

@@ -175,6 +175,10 @@ export interface Dictionary {
     heading: (storeName: string) => string;
     body: (storeName: string) => string;
     browseAllStores: string;
+    statusPill: string;
+    seeVerifiedDeals: string;
+    otherDealsHeading: string;
+    otherDealsSubheading: string;
   };
 
   relatedArticles: {
