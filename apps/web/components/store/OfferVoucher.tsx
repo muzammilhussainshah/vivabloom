@@ -260,27 +260,30 @@ export function OfferVoucher({
             className="pointer-events-none absolute inset-0 -z-10"
             style={{
               background:
-                "radial-gradient(120% 90% at 50% 0%, rgba(255,255,255,0.28), transparent 60%), radial-gradient(80% 60% at 50% 120%, rgba(0,0,0,0.18), transparent 70%)",
+                "radial-gradient(120% 90% at 50% 0%, rgba(255,255,255,0.16), transparent 60%), radial-gradient(80% 60% at 50% 120%, rgba(0,0,0,0.18), transparent 70%)",
             }}
             aria-hidden="true"
           />
-          {/* Sunburst rays fanning up from below the value — the classic "prize" coupon cue, kept faint. */}
+          {/* Sunburst rays fanning up from below the value — the classic "prize"
+              coupon cue. Kept very faint and masked to the outer edges (a
+              transparent hole in the middle) so the rays never run behind the
+              discount and subline text, which made them harder to read. */}
           <div
-            className="pointer-events-none absolute inset-0 -z-10 opacity-[0.09]"
+            className="pointer-events-none absolute inset-0 -z-10 opacity-[0.045]"
             style={{
               background: "repeating-conic-gradient(from 0deg at 50% 115%, #fff 0deg 5deg, transparent 5deg 12deg)",
-              maskImage: "radial-gradient(ellipse 75% 95% at 50% 100%, #000 30%, transparent 75%)",
-              WebkitMaskImage: "radial-gradient(ellipse 75% 95% at 50% 100%, #000 30%, transparent 75%)",
+              maskImage: "radial-gradient(ellipse 70% 75% at 50% 55%, transparent 45%, #000 85%)",
+              WebkitMaskImage: "radial-gradient(ellipse 70% 75% at 50% 55%, transparent 45%, #000 85%)",
             }}
             aria-hidden="true"
           />
           <div
-            className="pointer-events-none absolute -left-16 -top-16 -z-10 h-48 w-48 rounded-full border-[18px] opacity-[0.08]"
+            className="pointer-events-none absolute -left-16 -top-16 -z-10 h-48 w-48 rounded-full border-[18px] opacity-[0.05]"
             style={{ borderColor: "#fff" }}
             aria-hidden="true"
           />
           <div
-            className="pointer-events-none absolute -bottom-20 -right-14 -z-10 h-56 w-56 rounded-full border-[22px] opacity-[0.08]"
+            className="pointer-events-none absolute -bottom-20 -right-14 -z-10 h-56 w-56 rounded-full border-[22px] opacity-[0.05]"
             style={{ borderColor: "#fff" }}
             aria-hidden="true"
           />
@@ -295,7 +298,8 @@ export function OfferVoucher({
               the /deals grid, where many of these sit side by side. */}
           <h1
             className="mt-3 flex min-h-[82px] flex-col items-center justify-center font-store-serif md:min-h-[120px]"
-            style={{ color: "var(--on-accent)", textShadow: "0 2px 18px rgba(0,0,0,0.12)" }}
+            // The tight 1px shadow crisps the letter edges against the coral; the soft one lifts the text off the decoration.
+            style={{ color: "var(--on-accent)", textShadow: "0 1px 2px rgba(0,0,0,0.18), 0 2px 18px rgba(0,0,0,0.14)" }}
           >
             <span className="inline-flex flex-wrap items-baseline justify-center gap-x-2 gap-y-0">
               <span className={`whitespace-nowrap ${voucherValueClass(offer.discountLabel)}`}>{offer.discountLabel}</span>

@@ -45,29 +45,31 @@ export default async function DealsPage({
 
   return (
     <div
-      className={`store-scope relative overflow-hidden ${storeSourceSerif.variable} ${storeFigtree.variable} ${storePlexMono.variable}`}
+      // -mb-12 cancels the site <Footer>'s mt-12 so this full-bleed green runs
+      // straight into the footer instead of leaving a strip of page background.
+      className={`store-scope relative isolate -mb-12 overflow-hidden ${storeSourceSerif.variable} ${storeFigtree.variable} ${storePlexMono.variable}`}
       style={
         {
           ...themeVars,
           fontFamily: "var(--font-figtree), sans-serif",
-          // Whole page on the same dark green the store pages use behind
-          // their voucher (StoreHero.tsx's `var(--primary)` band) — not just
-          // a wrapper around each card — so every voucher (light "ticket"
-          // card by design) sits consistently on that backdrop the way it
-          // does on /stores/[slug], instead of the page reverting to the
-          // plain cream `var(--page)` background around each card.
-          background: "var(--primary)",
+          // Whole page on the exact backdrop of the store page hero
+          // (StoreHero.tsx): near-black brand field lit by an accent glow top
+          // right and a primary glow bottom left, plus the dot grain below —
+          // so each store section here looks like its /stores/[slug] hero.
+          background:
+            "radial-gradient(900px 560px at 88% -8%, color-mix(in srgb, var(--accent) 30%, transparent), transparent 62%), radial-gradient(1000px 640px at -12% 112%, color-mix(in srgb, var(--primary) 75%, transparent), transparent 62%), var(--footer)",
           color: "var(--page)",
         } as CSSProperties
       }
     >
+      {/* Fine dot grain — same texture as the store page hero. */}
       <div
-        className="pointer-events-none absolute -right-24 -top-24 h-[300px] w-[300px] rounded-full md:h-[520px] md:w-[520px]"
-        style={{ background: "rgba(255,255,255,0.05)" }}
+        className="pointer-events-none absolute inset-0 -z-10 opacity-[0.05]"
+        style={{ backgroundImage: "radial-gradient(#fff 1px, transparent 1px)", backgroundSize: "22px 22px" }}
         aria-hidden="true"
       />
 
-      <div className="relative mx-auto max-w-6xl px-5 py-14 sm:px-8">
+      <div className="relative mx-auto max-w-[1240px] px-4 pb-20 pt-14 sm:px-8 md:pb-24 md:pt-16">
         <div className="mx-auto max-w-xl text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.18em]" style={{ color: "var(--success)" }}>
             {visible.length > 0 ? `${visible.length} verified ${visible.length === 1 ? "offer" : "offers"}` : "Verified offers"}
@@ -113,7 +115,9 @@ export default async function DealsPage({
             </Link>
           </div>
         ) : (
-          <div className="mt-10 grid grid-cols-1 items-stretch gap-10 sm:grid-cols-2 2xl:grid-cols-3">
+          // One full-width section per store, laid out like the store page
+          // hero (see DealVoucherCard), stacked with a hairline between them.
+          <div className="mt-12 flex flex-col gap-14 md:mt-14 [&>*+*]:border-t [&>*+*]:border-white/10 [&>*+*]:pt-14">
             {visible.map((entry) => (
               // No googleAdsConversionId/Label here, deliberately: the "Coupon
               // Outbound Click" Ads conversion is scoped to /stores/[slug] and
