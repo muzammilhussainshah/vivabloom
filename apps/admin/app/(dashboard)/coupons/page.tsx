@@ -1,5 +1,6 @@
-import Link from "next/link";
 import type { Metadata } from "next";
+import { Badge, ButtonLink, EmptyState, PageHeader, PageShell, PlusIcon, Toolbar, siteUrl } from "@/components/ui";
+import { AutoSubmitSelect, ClearFilters } from "@/components/ui/client";
 import { connectToDatabase, Coupon, Store } from "@monocoupon/db";
 import { CouponBoard, type CouponRow, type StoreGroup } from "./CouponBoard";
 
@@ -64,55 +65,65 @@ export default async function CouponsListPage({
   const unverified = coupons.filter((c) => !c.isVerified).length;
 
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-10">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold">Coupons</h1>
-          <p className="mt-1 text-sm text-text-muted">
-            {total} total · {active} active · {unverified} not verified
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Link
-            href="/coupons/bulk-new"
-            className="rounded-base border border-border px-4 py-2 text-sm font-medium hover:bg-surface-muted"
-          >
-            Bulk Create
-          </Link>
-          <Link
-            href="/coupons/new"
-            className="rounded-base bg-brand-primary px-4 py-2 text-sm font-medium text-white hover:bg-brand-primary-hover"
-          >
-            New Coupon
-          </Link>
-        </div>
-      </div>
+    <PageShell>
+      <PageHeader
+        title="Coupons"
+        count={total}
+        description="Drag coupons within a store to set the order visitors see on its page."
+        actions={
+          <>
+            <ButtonLink href="/coupons/bulk-new" variant="secondary">
+              Bulk create
+            </ButtonLink>
+            <ButtonLink href="/coupons/new">
+              <PlusIcon />
+              New coupon
+            </ButtonLink>
+          </>
+        }
+      />
 
-      <form className="flex gap-2">
-        <select
-          name="store"
-          defaultValue={storeFilter ?? ""}
-          className="rounded-base border border-border bg-surface px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
-        >
-          <option value="">All stores</option>
-          {stores.map((s) => (
-            <option key={String(s._id)} value={String(s._id)}>
-              {s.name}
-            </option>
-          ))}
-        </select>
-        <button type="submit" className="rounded-base border border-border px-4 py-2 text-sm hover:bg-surface-muted">
-          Filter
-        </button>
-      </form>
+      <Toolbar
+        summary={
+          <span className="flex flex-wrap items-center gap-2">
+            <Badge tone="success" dot>
+              {active} active
+            </Badge>
+            <Badge tone={unverified > 0 ? "warning" : "neutral"} dot>
+              {unverified} not verified
+            </Badge>
+          </span>
+        }
+      >
+        <form className="flex flex-wrap items-center gap-2">
+          <AutoSubmitSelect name="store" defaultValue={storeFilter ?? ""} aria-label="Filter by store">
+            <option value="">All stores</option>
+            {stores.map((s) => (
+              <option key={String(s._id)} value={String(s._id)}>
+                {s.name}
+              </option>
+            ))}
+          </AutoSubmitSelect>
+          <ClearFilters href="/coupons" active={Boolean(storeFilter)} />
+        </form>
+      </Toolbar>
 
       {storeGroups.length === 0 ? (
-        <div className="rounded-base border border-border bg-surface p-10 text-center text-sm text-text-muted">
-          No coupons found.
+        <div className="rounded-2xl border border-border bg-white">
+          <EmptyState
+            title={storeFilter ? "No coupons for this store" : "No coupons yet"}
+            description="Add a coupon to show it on the store page."
+            action={
+              <ButtonLink href="/coupons/new">
+                <PlusIcon />
+                New coupon
+              </ButtonLink>
+            }
+          />
         </div>
       ) : (
-        <CouponBoard groups={storeGroups} webUrl={process.env.WEB_APP_URL?.split(",").map((u) => u.trim()).filter(Boolean).at(-1) ?? null} />
+        <CouponBoard groups={storeGroups} webUrl={siteUrl("")} />
       )}
-    </div>
+    </PageShell>
   );
 }

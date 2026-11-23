@@ -1,5 +1,7 @@
+import { connectToDatabase, getSiteSettings } from "@monocoupon/db";
 import { auth, signOut } from "@/auth";
 import { AdminSidebar } from "@/components/AdminSidebar";
+import { siteUrl } from "@/components/ui";
 
 export default async function DashboardLayout({
   children,
@@ -8,7 +10,8 @@ export default async function DashboardLayout({
   children: React.ReactNode;
   modal: React.ReactNode;
 }) {
-  const session = await auth();
+  await connectToDatabase();
+  const [session, settings] = await Promise.all([auth(), getSiteSettings()]);
 
   async function signOutAction() {
     "use server";
@@ -17,9 +20,15 @@ export default async function DashboardLayout({
 
   return (
     <div className="min-h-screen">
-      <AdminSidebar userEmail={session?.user?.email} signOutAction={signOutAction} />
+      <AdminSidebar
+        userEmail={session?.user?.email}
+        siteName={settings.siteName || "VivaBloom"}
+        siteUrl={siteUrl("")}
+        signOutAction={signOutAction}
+      />
       <div className="flex min-h-screen flex-col md:pl-64">
-        <main className="flex-1 bg-surface-muted">{children}</main>
+        {/* Off-white canvas so the white cards and tables stand out. */}
+        <main className="flex-1 bg-surface">{children}</main>
       </div>
       {modal}
     </div>

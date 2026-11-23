@@ -1,5 +1,7 @@
 "use client";
 
+import { Select } from "@/components/ui/Select";
+
 import { useState } from "react";
 
 const RANGE_OPTIONS = [
@@ -39,7 +41,7 @@ export function RangeControls({
         <label className="text-xs text-text-muted" htmlFor={`${idPrefix}range`}>
           Duration
         </label>
-        <select
+        <Select
           id={`${idPrefix}range`}
           name="range"
           value={selected}
@@ -51,7 +53,7 @@ export function RangeControls({
               {o.label}
             </option>
           ))}
-        </select>
+        </Select>
       </div>
       {isCustom && (
         <>

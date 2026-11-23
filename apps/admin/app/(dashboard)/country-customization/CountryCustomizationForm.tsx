@@ -1,5 +1,7 @@
 "use client";
 
+import { Select } from "@/components/ui/Select";
+
 import { useActionState, useState } from "react";
 import type { StoreOfferFormData, FaqField } from "../stores/StoreForm";
 import type { ActionState } from "./actions";
@@ -138,12 +140,12 @@ export function CountryCustomizationForm({
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium">Mechanic</label>
             <EnglishRef value={englishOffer.mechanic || "(auto from top coupon)"} />
-            <select value={locale.mechanic} onChange={(e) => update("mechanic", e.target.value as LocaleOfferData["mechanic"])} name="mechanic" className={inputClass}>
+            <Select value={locale.mechanic} onChange={(e) => update("mechanic", e.target.value as LocaleOfferData["mechanic"])} name="mechanic" className={inputClass}>
               <option value="">Same as English</option>
               <option value="link">Link — discount rides the referral URL</option>
               <option value="code">Code — pasted at checkout</option>
               <option value="popup">Popup — store shows its own offer</option>
-            </select>
+            </Select>
           </div>
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium">Code</label>

@@ -1,5 +1,7 @@
 "use client";
 
+import { Select } from "@/components/ui/Select";
+
 import { useActionState, useState } from "react";
 import { upsertPaymentTerm, type ActionState } from "./actions";
 
@@ -61,7 +63,7 @@ export function PaymentTermForm({
           <label htmlFor="pt-store" className="text-xs font-medium text-text-muted">
             Store
           </label>
-          <select id="pt-store" name="store" required defaultValue={data.store} className="rounded-base border border-border bg-surface px-3 py-2 text-sm">
+          <Select id="pt-store" name="store" required defaultValue={data.store} className="rounded-base border border-border bg-surface px-3 py-2 text-sm">
             <option value="" disabled>
               Select…
             </option>
@@ -70,13 +72,13 @@ export function PaymentTermForm({
                 {s.name}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
         <div className="flex flex-col gap-1">
           <label htmlFor="pt-cycle" className="text-xs font-medium text-text-muted">
             Batching
           </label>
-          <select
+          <Select
             id="pt-cycle"
             name="batchCycle"
             value={batchCycle}
@@ -86,7 +88,7 @@ export function PaymentTermForm({
             <option value="none">None — pays per day</option>
             <option value="weekly">Weekly (Mon-Sun)</option>
             <option value="monthly">Monthly (calendar month)</option>
-          </select>
+          </Select>
         </div>
         <div className="flex flex-col gap-1">
           <label htmlFor="pt-netdays" className="text-xs font-medium text-text-muted">
@@ -100,7 +102,7 @@ export function PaymentTermForm({
             <label htmlFor="pt-dow" className="text-xs font-medium text-text-muted">
               Paid on
             </label>
-            <select id="pt-dow" name="payDayOfWeek" required defaultValue={data.payDayOfWeek} className="rounded-base border border-border bg-surface px-3 py-2 text-sm">
+            <Select id="pt-dow" name="payDayOfWeek" required defaultValue={data.payDayOfWeek} className="rounded-base border border-border bg-surface px-3 py-2 text-sm">
               <option value="" disabled>
                 Select…
               </option>
@@ -109,7 +111,7 @@ export function PaymentTermForm({
                   {d.label}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
         )}
 

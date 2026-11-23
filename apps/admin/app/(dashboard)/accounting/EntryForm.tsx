@@ -1,5 +1,7 @@
 "use client";
 
+import { Select } from "@/components/ui/Select";
+
 import { useActionState, useEffect, useRef } from "react";
 import { upsertEntry, type ActionState } from "./actions";
 
@@ -41,7 +43,7 @@ export function EntryForm({
           <label htmlFor="ef-store" className="text-xs font-medium text-text-muted">
             Store
           </label>
-          <select
+          <Select
             id="ef-store"
             name="store"
             required
@@ -56,7 +58,7 @@ export function EntryForm({
                 {s.name}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
         <div className="flex flex-col gap-1">
           <label htmlFor="ef-date" className="text-xs font-medium text-text-muted">

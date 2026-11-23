@@ -1,5 +1,7 @@
 "use client";
 
+import { Select } from "@/components/ui/Select";
+
 import { useActionState, useState } from "react";
 import { ImageUploadButton } from "@/components/ImageUploadButton";
 import { slugify } from "@/lib/slugify";
@@ -47,7 +49,7 @@ export function BundleForm({
         <label htmlFor="store" className="text-sm font-medium">
           Store
         </label>
-        <select
+        <Select
           id="store"
           name="store"
           required
@@ -62,7 +64,7 @@ export function BundleForm({
               {s.name}
             </option>
           ))}
-        </select>
+        </Select>
       </div>
 
       <div className="flex flex-col gap-1">

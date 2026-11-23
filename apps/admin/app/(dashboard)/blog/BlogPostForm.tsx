@@ -1,5 +1,7 @@
 "use client";
 
+import { Select } from "@/components/ui/Select";
+
 import { useActionState, useEffect, useRef, useState } from "react";
 import { slugify } from "@/lib/slugify";
 import { RichTextEditor, type RichTextEditorHandle } from "@/components/RichTextEditor";
@@ -280,7 +282,7 @@ export function BlogPostForm({
             <label htmlFor="storeId" className="text-sm font-medium">
               Store <span className="text-text-muted">(optional)</span>
             </label>
-            <select
+            <Select
               id="storeId"
               value={storeId}
               onChange={(e) => setStoreId(e.target.value)}
@@ -292,13 +294,13 @@ export function BlogPostForm({
                   {s.name}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
           <div className="flex flex-col gap-1">
             <label htmlFor="country" className="text-sm font-medium">
               Country <span className="text-text-muted">(optional — localizes topics &amp; content)</span>
             </label>
-            <select
+            <Select
               id="country"
               value={country}
               onChange={(e) => setCountry(e.target.value)}
@@ -310,7 +312,7 @@ export function BlogPostForm({
                   {c.name}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
         </div>
 
@@ -536,7 +538,7 @@ export function BlogPostForm({
           <label htmlFor="category" className="text-sm font-medium">
             Category
           </label>
-          <select
+          <Select
             id="category"
             name="category"
             required
@@ -552,7 +554,7 @@ export function BlogPostForm({
                 {c.name}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
         <div className="flex flex-col gap-1">
           <label htmlFor="author" className="text-sm font-medium">
@@ -616,7 +618,7 @@ export function BlogPostForm({
           <label htmlFor="status" className="text-sm font-medium">
             Status
           </label>
-          <select
+          <Select
             id="status"
             name="status"
             value={status}
@@ -626,7 +628,7 @@ export function BlogPostForm({
             <option value="draft">Draft</option>
             <option value="published">Published</option>
             <option value="scheduled">Scheduled</option>
-          </select>
+          </Select>
         </div>
         {(status === "published" || status === "scheduled") && (
           <div className="flex flex-col gap-1">

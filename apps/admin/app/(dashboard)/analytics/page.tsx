@@ -1,3 +1,4 @@
+import { Select } from "@/components/ui/Select";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { UAParser } from "ua-parser-js";
@@ -145,14 +146,14 @@ interface AnalyticsSearchParams {
   highlight?: string;
 }
 
-/** A <select> for narrowing a tab to one store; part of the filter form, submitted via the Filter button like sort/order. */
+/** A <Select> for narrowing a tab to one store; part of the filter form, submitted via the Filter button like sort/order. */
 function StoreSelect({ stores, value }: { stores: { slug: string; name: string }[]; value?: string }) {
   return (
     <div className="flex flex-col gap-1">
       <label className="text-xs text-text-muted" htmlFor="store">
         Store
       </label>
-      <select
+      <Select
         id="store"
         name="store"
         defaultValue={value ?? ""}
@@ -164,7 +165,7 @@ function StoreSelect({ stores, value }: { stores: { slug: string; name: string }
             {s.name}
           </option>
         ))}
-      </select>
+      </Select>
     </div>
   );
 }
@@ -418,7 +419,7 @@ async function OverviewTab({
           <label className="text-xs text-text-muted" htmlFor="sort">
             Sort by
           </label>
-          <select
+          <Select
             id="sort"
             name="sort"
             defaultValue={sortField}
@@ -427,13 +428,13 @@ async function OverviewTab({
             <option value="createdAt">Date</option>
             <option value="path">Path</option>
             <option value="country">Country</option>
-          </select>
+          </Select>
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-xs text-text-muted" htmlFor="order">
             Order
           </label>
-          <select
+          <Select
             id="order"
             name="order"
             defaultValue={order === "asc" ? "asc" : "desc"}
@@ -441,7 +442,7 @@ async function OverviewTab({
           >
             <option value="desc">Newest first</option>
             <option value="asc">Oldest first</option>
-          </select>
+          </Select>
         </div>
         <StoreSelect stores={stores} value={store} />
         <label className="flex cursor-pointer items-center gap-2 pb-2 text-sm text-text-muted" title="Hides visits whose IP country is Pakistan or India, or whose IP is localhost (::1) — your own and your team's browsing. On by default.">
@@ -701,7 +702,7 @@ async function EngagementTab({
           <label className="text-xs text-text-muted" htmlFor="type">
             Type
           </label>
-          <select
+          <Select
             id="type"
             name="type"
             defaultValue={type ?? ""}
@@ -713,7 +714,7 @@ async function EngagementTab({
                 {ENGAGEMENT_TYPE_LABELS[t]}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
         <RangeControls range={range} from={from} to={to} idPrefix="e" />
         <StoreSelect stores={stores} value={store} />
@@ -938,7 +939,7 @@ function SuspiciousTab({
           <label className="text-xs text-text-muted" htmlFor="reason">
             Reason
           </label>
-          <select
+          <Select
             id="reason"
             name="reason"
             defaultValue={reasonFilter ?? ""}
@@ -950,7 +951,7 @@ function SuspiciousTab({
                 {o.label}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
         <label className="flex cursor-pointer items-center gap-2 pb-2 text-sm text-text-muted" title="Shows only sessions that carried a Google Ads click ID (gclid) or utm_medium=cpc/ppc.">
           <input type="checkbox" name="paidOnly" value="1" defaultChecked={paidOnly} className="h-4 w-4 accent-brand-primary" />

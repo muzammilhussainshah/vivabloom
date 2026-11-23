@@ -1,5 +1,7 @@
 "use client";
 
+import { Select } from "@/components/ui/Select";
+
 import { useActionState, useState } from "react";
 import { AIGenerateTextButton } from "@/components/AIGenerateTextButton";
 import { couponDescriptionPrompt } from "@/lib/ai/prompts";
@@ -56,7 +58,7 @@ export function CouponForm({
         <label htmlFor="store" className="text-sm font-medium">
           Store
         </label>
-        <select
+        <Select
           id="store"
           name="store"
           required
@@ -71,7 +73,7 @@ export function CouponForm({
               {s.name}
             </option>
           ))}
-        </select>
+        </Select>
       </div>
 
       <div className="flex flex-col gap-1">
@@ -152,7 +154,7 @@ export function CouponForm({
           <label htmlFor="discountType" className="text-sm font-medium">
             Discount type
           </label>
-          <select
+          <Select
             id="discountType"
             name="discountType"
             defaultValue={initialData?.discountType ?? "other"}
@@ -161,7 +163,7 @@ export function CouponForm({
             <option value="percentage">Percentage</option>
             <option value="fixed">Fixed amount</option>
             <option value="other">Other</option>
-          </select>
+          </Select>
         </div>
         <div className="flex flex-col gap-1">
           <label htmlFor="discountValue" className="text-sm font-medium">

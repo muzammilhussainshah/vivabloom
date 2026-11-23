@@ -1,5 +1,7 @@
 "use client";
 
+import { Select } from "@/components/ui/Select";
+
 import { useActionState, useState } from "react";
 import { markReturned, type ActionState } from "./actions";
 
@@ -26,7 +28,7 @@ export function ReturnForm({ stores, returnTo }: { stores: { id: string; name: s
               <label htmlFor="rf-store" className="text-xs font-medium text-text-muted">
                 Store
               </label>
-              <select id="rf-store" name="store" required defaultValue="" className="rounded-base border border-border bg-surface px-3 py-2 text-sm">
+              <Select id="rf-store" name="store" required defaultValue="" className="rounded-base border border-border bg-surface px-3 py-2 text-sm">
                 <option value="" disabled>
                   Select…
                 </option>
@@ -35,7 +37,7 @@ export function ReturnForm({ stores, returnTo }: { stores: { id: string; name: s
                     {s.name} — {s.pendingLabel}
                   </option>
                 ))}
-              </select>
+              </Select>
             </div>
             <div className="flex flex-col gap-1">
               <label htmlFor="rf-amount" className="text-xs font-medium text-text-muted">

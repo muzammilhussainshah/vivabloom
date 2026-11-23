@@ -403,9 +403,13 @@ export function formatDate(value: Date | string | null | undefined) {
   return new Date(value).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 }
 
-/** Public-site URL for a path, or null when WEB_APP_URL isn't configured. */
+/**
+ * Public-site URL for a path, or null when WEB_APP_URL isn't configured.
+ * WEB_APP_URL can be a comma-separated list (revalidation targets); like the
+ * coupons board, the last entry is treated as the public site.
+ */
 export function siteUrl(path: string) {
-  const base = process.env.WEB_APP_URL;
+  const base = process.env.WEB_APP_URL?.split(",").map((u) => u.trim()).filter(Boolean).at(-1);
   return base ? `${base.replace(/\/$/, "")}${path}` : null;
 }
 

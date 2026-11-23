@@ -1,5 +1,7 @@
 "use client";
 
+import { Select } from "@/components/ui/Select";
+
 import { useActionState, useState } from "react";
 import { slugify } from "@/lib/slugify";
 import { AIGenerateTextButton } from "@/components/AIGenerateTextButton";
@@ -337,7 +339,7 @@ export function StoreForm({
             <label htmlFor="offerMechanic" className="text-sm font-medium">
               Mechanic
             </label>
-            <select
+            <Select
               id="offerMechanic"
               name="offerMechanic"
               value={offer.mechanic}
@@ -348,7 +350,7 @@ export function StoreForm({
               <option value="link">Link — discount rides the referral URL</option>
               <option value="code">Code — pasted at checkout</option>
               <option value="popup">Popup — store shows its own offer</option>
-            </select>
+            </Select>
           </div>
           <div className="flex flex-col gap-1">
             <label htmlFor="offerCode" className="text-sm font-medium">

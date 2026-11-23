@@ -1,5 +1,7 @@
 "use client";
 
+import { Select } from "@/components/ui/Select";
+
 import { useRouter, usePathname } from "next/navigation";
 
 export interface StoreOption {
@@ -44,7 +46,7 @@ export function StoreCountrySelectors({
     <div className="flex flex-wrap gap-4">
       <div className="flex flex-col gap-1">
         <label className="text-sm font-medium">Store</label>
-        <select
+        <Select
           value={currentStore}
           onChange={(e) => navigate(e.target.value, currentCountry)}
           className="min-w-56 rounded-base border border-border bg-surface px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
@@ -55,11 +57,11 @@ export function StoreCountrySelectors({
               {s.name}
             </option>
           ))}
-        </select>
+        </Select>
       </div>
       <div className="flex flex-col gap-1">
         <label className="text-sm font-medium">Language</label>
-        <select
+        <Select
           value={currentCountry}
           onChange={(e) => navigate(currentStore, e.target.value)}
           className="min-w-56 rounded-base border border-border bg-surface px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
@@ -70,7 +72,7 @@ export function StoreCountrySelectors({
               {c.countryName}
             </option>
           ))}
-        </select>
+        </Select>
       </div>
     </div>
   );

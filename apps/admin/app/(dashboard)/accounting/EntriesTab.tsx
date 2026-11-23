@@ -1,3 +1,4 @@
+import { Select } from "@/components/ui/Select";
 import Link from "next/link";
 import { connectToDatabase, Store, AccountingEntry, AccountingSettlement } from "@monocoupon/db";
 import { deleteEntry } from "./actions";
@@ -87,14 +88,14 @@ export async function EntriesTab({ searchParams }: { searchParams: EntriesSearch
           <label htmlFor="f-store" className="text-xs text-text-muted">
             Store
           </label>
-          <select id="f-store" name="enStore" defaultValue={store ?? ""} className="rounded-base border border-border bg-surface px-3 py-2 text-sm">
+          <Select id="f-store" name="enStore" defaultValue={store ?? ""} className="rounded-base border border-border bg-surface px-3 py-2 text-sm">
             <option value="">All stores</option>
             {storeOptions.map((s) => (
               <option key={s.id} value={s.id}>
                 {s.name}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
         <div className="flex flex-col gap-1">
           <label htmlFor="f-from" className="text-xs text-text-muted">

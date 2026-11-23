@@ -1,5 +1,7 @@
 "use client";
 
+import { Select } from "@/components/ui/Select";
+
 import { useActionState, useEffect, useState } from "react";
 import { COUPON_TEMPLATE } from "../couponTemplate";
 import type { ActionState } from "../actions";
@@ -43,7 +45,7 @@ export function BulkCouponForm({
         <label htmlFor="store" className="text-sm font-medium">
           Store
         </label>
-        <select
+        <Select
           id="store"
           name="store"
           required
@@ -59,7 +61,7 @@ export function BulkCouponForm({
               {s.name}
             </option>
           ))}
-        </select>
+        </Select>
       </div>
 
       <div className="flex flex-col gap-1">
@@ -173,7 +175,7 @@ export function BulkCouponForm({
               disabled={!included[i]}
               className="flex-1 rounded-base border border-border bg-surface px-3 py-2 text-sm focus:border-brand-primary focus:outline-none disabled:opacity-50"
             />
-            <select
+            <Select
               name={`discountType-${i}`}
               defaultValue={row.discountType}
               disabled={!included[i]}
@@ -182,7 +184,7 @@ export function BulkCouponForm({
               <option value="percentage">%</option>
               <option value="fixed">$</option>
               <option value="other">Other</option>
-            </select>
+            </Select>
             <input
               name={`discountValue-${i}`}
               type="number"

@@ -1,5 +1,7 @@
 "use client";
 
+import { Select } from "@/components/ui/Select";
+
 import { useMemo, useState } from "react";
 import {
   batchKeywords,
@@ -389,7 +391,7 @@ function RegionPicker({
         <label htmlFor="addRegion" className="text-sm font-medium">
           Campaigns <span className="text-text-muted">(one keyword list per campaign)</span>
         </label>
-        <select
+        <Select
           id="addRegion"
           value=""
           onChange={(e) => e.target.value && addRegion(e.target.value)}
@@ -401,7 +403,7 @@ function RegionPicker({
               {countryLabel(country)}
             </option>
           ))}
-        </select>
+        </Select>
         <p className="text-xs text-text-muted">
           Add more than one country to a campaign when they share a market — Germany, Austria and Switzerland are one
           German campaign, not three. Languages default to the local ones plus English, since Keyword Planner shows
@@ -430,7 +432,7 @@ function RegionPicker({
                 )}
               </span>
             ))}
-            <select
+            <Select
               value=""
               onChange={(e) => e.target.value && addCountry(region.id, e.target.value)}
               disabled={available.length === 0}
@@ -442,7 +444,7 @@ function RegionPicker({
                   {countryLabel(country)}
                 </option>
               ))}
-            </select>
+            </Select>
             <button
               type="button"
               onClick={() => onChange(regions.filter((r) => r.id !== region.id))}
@@ -683,7 +685,7 @@ export function AdKeywordsGenerator({
                 <label htmlFor="template" className="text-sm font-medium">
                   Base keyword list
                 </label>
-                <select
+                <Select
                   id="template"
                   value={templateId}
                   onChange={(e) => setTemplateId(e.target.value)}
@@ -694,14 +696,14 @@ export function AdKeywordsGenerator({
                       {t.name} ({t.keywords.length} keywords, {t.negativeKeywords.length} negatives)
                     </option>
                   ))}
-                </select>
+                </Select>
               </div>
 
               <div className="flex flex-col gap-1">
                 <label htmlFor="store" className="text-sm font-medium">
                   Store
                 </label>
-                <select
+                <Select
                   id="store"
                   value={storeId}
                   onChange={(e) => {
@@ -716,7 +718,7 @@ export function AdKeywordsGenerator({
                       {s.name}
                     </option>
                   ))}
-                </select>
+                </Select>
               </div>
             </div>
 
@@ -1378,7 +1380,7 @@ function SiteLinkPanel({
           <label htmlFor="siteLinkLanguage" className="text-sm font-medium">
             Language
           </label>
-          <select
+          <Select
             id="siteLinkLanguage"
             value={language}
             onChange={(e) => {
@@ -1392,7 +1394,7 @@ function SiteLinkPanel({
                 {code === ENGLISH ? "English" : (localeNames.get(code) ?? code.toUpperCase())}
               </option>
             ))}
-          </select>
+          </Select>
           <p className="text-xs text-text-muted">
             Writes the sitelink text and descriptions in this language. Only languages generated above are offered.
           </p>

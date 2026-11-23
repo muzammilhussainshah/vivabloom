@@ -1,5 +1,7 @@
 "use client";
 
+import { Select } from "@/components/ui/Select";
+
 import { useActionState } from "react";
 import {
   AI_TASKS,
@@ -39,7 +41,7 @@ export function AiSettingsForm({ overrides }: { overrides: Record<string, string
                   <code>{def}</code>
                 </p>
               </div>
-              <select
+              <Select
                 id={`model_${task.key}`}
                 name={`model_${task.key}`}
                 defaultValue={current}
@@ -51,7 +53,7 @@ export function AiSettingsForm({ overrides }: { overrides: Record<string, string
                     {opt === def ? " (default)" : ""}
                   </option>
                 ))}
-              </select>
+              </Select>
             </div>
           );
         })}

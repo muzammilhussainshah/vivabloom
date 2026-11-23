@@ -4,6 +4,9 @@ import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode, type SelectHTMLAttributes } from "react";
 import { useFormStatus } from "react-dom";
 import { SearchIcon, TrashIcon, iconButtonClass } from "./index";
+import { Select } from "./Select";
+
+export { Select };
 
 const fieldClass =
   "h-10 rounded-[10px] border border-border bg-white px-3 text-sm text-text shadow-[0_1px_1px_rgba(16,24,20,0.03)] transition-colors hover:border-text-muted/40 focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/15";
@@ -20,13 +23,12 @@ export function Spinner({ className = "h-4 w-4" }: { className?: string }) {
 /** A <select> that submits its GET form as soon as the value changes — no separate "Filter" button. */
 export function AutoSubmitSelect(props: SelectHTMLAttributes<HTMLSelectElement>) {
   return (
-    <select
+    <Select
       {...props}
       onChange={(e) => {
         props.onChange?.(e);
         e.currentTarget.form?.requestSubmit();
       }}
-      className={`${fieldClass} min-w-[160px] cursor-pointer pr-8 ${props.className ?? ""}`}
     />
   );
 }
