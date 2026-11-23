@@ -26,7 +26,9 @@ export interface GeneratedImage {
  */
 export async function generateImage(
   prompt: string,
-  model: string = AI_MODELS.image.blogCover
+  model: string = AI_MODELS.image.blogCover,
+  /** e.g. "16:9". Gemini renders at this ratio; Cloudflare FLUX has no size option, so callers crop instead (lib/ai/imageShape.ts). */
+  options: { aspectRatio?: string } = {}
 ): Promise<GeneratedImage> {
   if (isCloudflareModel(model)) return generateCloudflareImage(prompt, model);
 
@@ -37,6 +39,7 @@ export async function generateImage(
     contents: prompt,
     config: {
       responseModalities: ["IMAGE"],
+      ...(options.aspectRatio ? { imageConfig: { aspectRatio: options.aspectRatio } } : {}),
     },
   });
 

@@ -137,6 +137,27 @@ export function Toolbar({ children, summary }: { children: ReactNode; summary?: 
 
 /* ---------- New / Edit pages ---------- */
 
+export function ChevronLeftIcon({ className = iconBase }: IconProps) {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <path d="M12 15 7 10l5-5" />
+    </svg>
+  );
+}
+
+/** The admin's one back control: a compact bordered button with a chevron, used above every New/Edit/detail page. */
+export function BackButton({ href, label }: { href: string; label: string }) {
+  return (
+    <Link
+      href={href}
+      className="group inline-flex h-9 w-fit items-center gap-1.5 rounded-[10px] border border-border bg-white pl-2 pr-3.5 text-sm font-medium text-text-muted shadow-[0_1px_1px_rgba(16,24,20,0.04)] transition-colors hover:border-text-muted/40 hover:text-text"
+    >
+      <ChevronLeftIcon className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
+      {label}
+    </Link>
+  );
+}
+
 /**
  * Shell for every New/Edit page: a back link, a header showing what's being
  * edited (its image, name, status and a "View on site" link), and the form
@@ -166,25 +187,31 @@ export function FormPage({
   children: ReactNode;
 }) {
   return (
-    <div className={`mx-auto flex w-full flex-col gap-6 px-4 py-8 md:px-8 md:py-10 ${width === "lg" ? "max-w-4xl" : "max-w-3xl"}`}>
-      <Link href={backHref} className="inline-flex w-fit items-center gap-1.5 text-sm font-medium text-text-muted transition-colors hover:text-brand-primary">
-        <span aria-hidden="true">←</span>
-        {backLabel}
-      </Link>
+    <div className={`mx-auto flex w-full flex-col gap-5 px-4 py-8 md:px-8 md:py-10 ${width === "lg" ? "max-w-4xl" : "max-w-3xl"}`}>
+      <BackButton href={backHref} label={backLabel} />
 
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex min-w-0 items-center gap-4">
+      {/* Title wraps to two lines instead of truncating, and the action never wraps or squeezes. */}
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+        <div className="flex min-w-0 items-start gap-4">
           {media}
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="truncate text-2xl font-semibold tracking-tight text-text">{title}</h1>
-              {meta}
-            </div>
-            {subtitle && <p className="mt-1 truncate text-sm text-text-muted">{subtitle}</p>}
+          <div className="min-w-0 flex-1">
+            {meta && <div className="mb-1.5 flex flex-wrap items-center gap-2">{meta}</div>}
+            <h1 className="line-clamp-2 text-xl font-semibold leading-snug tracking-tight text-text md:text-2xl" title={title}>
+              {title}
+            </h1>
+            {subtitle &&
+              (typeof subtitle === "string" && subtitle.startsWith("/") ? (
+                // A URL path (the item's public address) — shown as a compact chip.
+                <p className="mt-2 flex min-w-0">
+                  <span className="truncate rounded-md bg-white px-2 py-0.5 font-mono text-xs text-text-muted ring-1 ring-inset ring-border">{subtitle}</span>
+                </p>
+              ) : (
+                <p className="mt-1 text-sm text-text-muted">{subtitle}</p>
+              ))}
           </div>
         </div>
         {viewHref && (
-          <a href={viewHref} target="_blank" rel="noopener" className={buttonStyles.secondary}>
+          <a href={viewHref} target="_blank" rel="noopener" className={`${buttonStyles.secondary} shrink-0 whitespace-nowrap`}>
             <ExternalIcon />
             View on site
           </a>

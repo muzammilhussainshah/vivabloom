@@ -4,7 +4,9 @@ import { auth } from "@/auth";
 import { connectToDatabase, AuditLog } from "@monocoupon/db";
 import { checkRateLimit } from "@/lib/rateLimit";
 import { generateImage } from "@/lib/ai/gemini";
-import { resolveModel } from "@/lib/ai/prompts";
+import { generateText } from "@/lib/ai/openai";
+import { toLandscape } from "@/lib/ai/imageShape";
+import { blogCoverFallbackScene, blogCoverRenderPrompt, resolveModel } from "@/lib/ai/prompts";
 import { getAiModelOverrides } from "@/lib/ai/overrides";
 
 export async function POST(request: NextRequest) {
@@ -42,8 +44,29 @@ export async function POST(request: NextRequest) {
 
   try {
     const overrides = await getAiModelOverrides();
-    const model = resolveModel(typeof task === "string" ? task : null, overrides);
-    const image = await generateImage(prompt, model);
+    const taskName = typeof task === "string" ? task : null;
+    const model = resolveModel(taskName, overrides);
+    const isBlogCover = taskName === "blogCover";
+
+    // Blog covers: `prompt` is the art-director brief (blogCoverImagePrompt).
+    // The text model turns it into one photo scene, which is wrapped with the
+    // photographic/landscape rules for the image model. If the text step fails
+    // the cover is still generated, from a scene built off the title.
+    let finalPrompt = prompt;
+    if (isBlogCover) {
+      let scene: string;
+      try {
+        scene = await generateText(prompt, resolveModel("blogCoverScene", overrides));
+      } catch (err) {
+        console.warn("blog cover scene step failed; using title fallback", err);
+        scene = blogCoverFallbackScene(prompt);
+      }
+      finalPrompt = blogCoverRenderPrompt(scene);
+    }
+
+    let image = await generateImage(finalPrompt, model, isBlogCover ? { aspectRatio: "16:9" } : {});
+    // Blog banners are 16:9; FLUX only returns squares, so crop them to fit.
+    if (isBlogCover) image = await toLandscape(image);
     const extension = image.mimeType === "image/jpeg" ? "jpg" : "png";
     const filename = `ai/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${extension}`;
 
@@ -56,7 +79,7 @@ export async function POST(request: NextRequest) {
     await AuditLog.create({
       user: session.user.id,
       action: "ai.generate_image",
-      promptSummary: prompt.slice(0, 200),
+      promptSummary: finalPrompt.slice(0, 200),
     });
 
     return NextResponse.json({ url: blob.url });

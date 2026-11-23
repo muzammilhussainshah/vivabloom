@@ -52,6 +52,8 @@ export const AI_MODELS = {
     siteLinkCopy: "groq/openai/gpt-oss-120b",
     categorySuggest: "groq/openai/gpt-oss-120b",
     categoryContent: "groq/openai/gpt-oss-120b",
+    /** Step 1 of blog cover images: writes the photo scene the image model renders. */
+    blogCoverScene: "groq/openai/gpt-oss-120b",
   },
   /** Models used for image generation (Cloudflare FLUX by default; Gemini ids also work). */
   image: {
@@ -77,6 +79,7 @@ export const AI_TASKS = [
   { key: "couponDescription", label: "Coupon description", kind: "text" },
   { key: "adCopy", label: "Google Ads copy (headlines & descriptions)", kind: "text" },
   { key: "siteLinkCopy", label: "Google Ads sitelink copy (text & descriptions)", kind: "text" },
+  { key: "blogCoverScene", label: "Blog cover image — scene description (step 1)", kind: "text" },
   { key: "blogCover", label: "Blog cover image", kind: "image" },
   { key: "heroBackground", label: "Homepage hero image", kind: "image" },
   { key: "categorySuggest", label: "Category suggestions (from store URL)", kind: "text" },
@@ -1675,93 +1678,67 @@ Produce the JSON with all 6 page keys, each holding one text (≤25 chars), desc
 // ===========================================================================
 
 /**
- * Generates an SEO/SEM friendly image prompt by analyzing blog content.
- * @param title - The title of the blog post.
- * @param excerpt - The brief summary of the blog post.
- * @param content - The main body text of the article.
- * @param category - The blog's category name, if selected.
- * @param tags - The blog's tags, if any.
- * @param store - The related store name, if any.
- * @returns A detailed image generation prompt.
+ * Blog cover images are made in two steps (see app/api/ai/generate-image):
+ *
+ *  1. blogCoverImagePrompt — an "art director" brief for the TEXT model: it
+ *     reads the article and writes a short, concrete photo scene that
+ *     illustrates the article's TOPIC (people, setting, activity, mood).
+ *  2. blogCoverRenderPrompt — wraps that scene with the photographic,
+ *     landscape and no-text rules for the IMAGE model.
+ *
+ * Why two steps: the image model (FLUX on Cloudflare) only accepts 2048
+ * characters, and the old single prompt put the whole article in the middle,
+ * so every rule after it — style, 16:9, "no products" — was cut off. The
+ * model then mostly saw article text full of product names and drew product
+ * packshots. FLUX also follows a clear positive scene description far better
+ * than long lists of "do not" rules.
  */
+const BLOG_COVER_CONTENT_CHARS = 1500;
+
 export function blogCoverImagePrompt({
   title,
   excerpt,
   content,
   category,
   tags,
-  store,
 }: {
   title: string;
   excerpt: string;
   content: string;
   category?: string;
   tags?: string[];
+  /** Accepted for compatibility; deliberately not used — a store name pulls the image toward its products. */
   store?: string;
 }): string {
-  return `
-Create a premium editorial blog cover image for THIS SPECIFIC article. The image must visually depict this article's actual subject matter — a reader should be able to tell what the article is about just by looking at the image. Do not produce a generic "shopping deals" stock photo that could belong to any article.
+  const body = content.replace(/\s+/g, " ").trim().slice(0, BLOG_COVER_CONTENT_CHARS);
+  return `ARTICLE TITLE: ${title}
+${excerpt ? `SUMMARY: ${excerpt}\n` : ""}${category ? `CATEGORY: ${category}\n` : ""}${tags && tags.length ? `TAGS: ${tags.join(", ")}\n` : ""}${body ? `ARTICLE START: ${body}\n` : ""}
+You are the photo editor of a lifestyle magazine. Describe ONE photograph to use as the wide cover banner of the article above.
 
-ARTICLE TITLE
-"${title}"
+The photo must illustrate what the article is ABOUT — the real-life situation, activity, goal or benefit a reader cares about — not the products it mentions. For example: an article about choosing supplements → a person preparing a healthy breakfast in a sunlit kitchen; about pickleball paddles → players mid-rally on an outdoor court; about skincare routines → a calm morning bathroom scene with someone applying moisturiser; about saving money while shopping → a person comparing options on a laptop at a cosy desk.
 
-ARTICLE SUMMARY
-"${excerpt}"
-${category ? `\nCATEGORY\n"${category}"` : ""}
-${tags && tags.length ? `\nTAGS\n${tags.join(", ")}` : ""}
-${store ? `\nRELATED STORE\n"${store}"` : ""}
-${content ? `\nARTICLE CONTENT\n"${content}"` : ""}
+Rules for your description:
+- One concrete scene: who is in it (if anyone), what they are doing, where, the time of day and light, the mood.
+- Never make a product the subject: no bottles, jars, pills, packaging, boxes, labelled items or product line-ups, and no brand names.
+- No text, signs, screens with readable words, logos or price tags.
+- People, if present, are natural and candid, not posing for the camera.
+- It must read clearly as a wide horizontal banner, with the main subject in the middle of the frame.
 
-STEP 1 — IDENTIFY THE SUBJECT
-From the title, summary, category, tags and content above, find the concrete, specific things this article is actually about: the exact products, activities, places, ingredients, or scenarios it names (for example "wireless noise-cancelling headphones", "packing a carry-on suitcase", "espresso machine", "running shoes on a trail"). Do not default to a vague generic category — pick the most specific visual anchor the article gives you. If it covers several items, choose the one or two most visually distinctive ones as the hero subject.
+Reply with only the description: one paragraph, 40–70 words, no preamble, no quotes, no lists.`;
+}
 
-IMAGE STYLE
+/** Step 2: the prompt actually sent to the image model, built around the scene from step 1. Kept well under FLUX's 2048-character limit. */
+export function blogCoverRenderPrompt(scene: string): string {
+  const cleanScene = scene.replace(/\s+/g, " ").replace(/^["']|["']$/g, "").trim().slice(0, 900);
+  return `Wide cinematic landscape photograph, 16:9 banner for a lifestyle blog article. ${cleanScene}
 
-Ultra photorealistic.
-Premium commercial product/lifestyle photography.
-Editorial magazine quality.
-8K detail.
+Composition: horizontal frame, main subject in the centre band with breathing room above and below, rule of thirds, layered foreground and background, shallow depth of field. Style: authentic editorial lifestyle photography, natural light, realistic skin and materials, true-to-life colours, magazine quality, sharp focus. The image shows a real-life moment and setting, not a product catalogue shot, with no packaging or labelled products in focus. No text, no letters, no words, no logos, no watermarks, no captions.`;
+}
 
-COMPOSITION
-
-• Wide landscape (16:9)
-• The specific subject identified in Step 1 is the clear hero, positioned naturally in the foreground
-• Subject placed off-center using the rule of thirds
-• Shallow depth of field with a softly blurred background
-
-SCENE & BACKGROUND
-
-Set the scene wherever that subject would actually be found or used (a kitchen for cookware, a trail for hiking gear, a desk for tech, a closet for fashion, an airport for travel gear, a gym for fitness equipment, etc). Let the specific article content drive this choice each time — do not default to the same luxury showroom, marble countertop, or minimalist interior for every image.
-
-LIGHTING
-
-Choose lighting that fits the scene (bright daylight, warm indoor light, studio light, outdoor golden hour, etc). Vary it based on the setting rather than reusing the same bright-window look every time.
-
-DETAIL
-
-Realistic shadows, reflections and materials true to the actual subject, with natural imperfections. Avoid an overly staged, identical "luxury home photoshoot" look unless the subject genuinely calls for it.
-
-OPTIONAL ACCENTS
-
-Only if it fits the subject naturally, you may include one small, subtle discount/savings visual cue (like a small price tag or badge) rendered in translucent glass. Do not force this into every image, and never let it dominate or repeat as the main visual element.
-
-DO NOT
-
-No text.
-No logo.
-No watermark.
-No brand names.
-No labels.
-No people looking at the camera.
-No low quality CGI.
-No cartoon style.
-No clutter.
-Do not reuse the same generic scene (marble countertop, floating glass badges, minimalist showroom) if it does not genuinely match this article's actual subject.
-
-OUTPUT
-
-An image that could be used as the hero banner of this specific blog article on a modern coupon and deals website — instantly recognizable as being about "${title}", and visually distinct from the covers of other articles.
-`;
+/** Fallback scene when the text model is unavailable — derived from the brief's title line only. */
+export function blogCoverFallbackScene(brief: string): string {
+  const title = /^ARTICLE TITLE: (.+)$/m.exec(brief)?.[1]?.trim() ?? "a lifestyle blog article";
+  return `A candid, natural real-life scene that illustrates the topic "${title}": people and a setting where this topic matters in everyday life, warm natural light.`;
 }
 
 /**

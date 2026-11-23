@@ -1,5 +1,5 @@
-import Link from "next/link";
 import type { Metadata } from "next";
+import { BackButton } from "@/components/ui";
 import { getSessionJourney } from "./getSessionJourney";
 import { SessionJourneyContent } from "./SessionJourneyContent";
 
@@ -25,9 +25,7 @@ export default async function SessionJourneyPage({
 
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-6 px-4 py-10">
-      <Link href={backHref} className="text-sm text-brand-primary hover:underline">
-        ← Back to Analytics
-      </Link>
+      <BackButton href={backHref} label="Back to analytics" />
       <SessionJourneyContent sessionId={sessionId} {...data} />
     </div>
   );

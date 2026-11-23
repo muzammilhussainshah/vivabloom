@@ -42,9 +42,12 @@ export function SessionDrawer({ children }: { children: React.ReactNode }) {
         <button
           type="button"
           onClick={close}
-          className="mb-4 self-start text-sm text-brand-primary hover:underline"
+          className="group mb-4 inline-flex h-9 items-center gap-1.5 self-start rounded-[10px] border border-border bg-white pl-2 pr-3.5 text-sm font-medium text-text-muted shadow-[0_1px_1px_rgba(16,24,20,0.04)] transition-colors hover:border-text-muted/40 hover:text-text"
         >
-          ← Close
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" aria-hidden="true">
+            <path d="M12 15 7 10l5-5" />
+          </svg>
+          Close
         </button>
         {children}
       </div>

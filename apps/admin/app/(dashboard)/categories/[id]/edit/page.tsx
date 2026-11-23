@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { FormPage, Thumb, ActiveBadge, siteUrl } from "@/components/ui";
 import { notFound } from "next/navigation";
 import { connectToDatabase, Category } from "@monocoupon/db";
 import { CategoryForm } from "../../CategoryForm";
@@ -16,11 +16,15 @@ export default async function EditCategoryPage({ params }: { params: Promise<{ i
   const action = updateCategory.bind(null, id);
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-10">
-      <Link href="/categories" className="text-sm text-brand-primary hover:underline">
-        ← All categories
-      </Link>
-      <h1 className="text-2xl font-semibold">Edit Category</h1>
+    <FormPage
+      backHref="/categories"
+      backLabel="All categories"
+      title={category.name}
+      subtitle={`/category/${category.slug}`}
+      media={<Thumb src={category.image} alt={category.name} size="lg" fallback={category.name} />}
+      meta={<ActiveBadge active={category.isActive ?? true} />}
+      viewHref={siteUrl(`/category/${category.slug}`)}
+    >
       <CategoryForm
         action={action}
         submitLabel="Save Changes"
@@ -36,6 +40,6 @@ export default async function EditCategoryPage({ params }: { params: Promise<{ i
           sortOrder: category.sortOrder ?? 0,
         }}
       />
-    </div>
+    </FormPage>
   );
 }

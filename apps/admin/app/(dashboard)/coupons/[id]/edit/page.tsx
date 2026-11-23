@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { FormPage, Thumb, ActiveBadge, Badge, siteUrl } from "@/components/ui";
 import { notFound } from "next/navigation";
 import { connectToDatabase, Coupon, Store } from "@monocoupon/db";
 import { CouponForm } from "../../CouponForm";
@@ -17,13 +17,23 @@ export default async function EditCouponPage({ params }: { params: Promise<{ id:
   if (!coupon) notFound();
 
   const action = updateCoupon.bind(null, id);
+  const couponStore = stores.find((s) => String(s._id) === String(coupon.store));
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-10">
-      <Link href="/coupons" className="text-sm text-brand-primary hover:underline">
-        ← All coupons
-      </Link>
-      <h1 className="text-2xl font-semibold">Edit Coupon</h1>
+    <FormPage
+      backHref="/coupons"
+      backLabel="All coupons"
+      title={coupon.title}
+      subtitle={couponStore ? `Coupon for ${couponStore.name}` : undefined}
+      media={<Thumb src={couponStore?.logo} alt={couponStore?.name ?? ""} size="lg" fit="contain" fallback={couponStore?.name ?? "C"} />}
+      meta={
+        <>
+          <ActiveBadge active={coupon.isActive ?? true} />
+          {coupon.isVerified ? <Badge tone="info" dot>Verified</Badge> : <Badge tone="warning" dot>Not verified</Badge>}
+        </>
+      }
+      viewHref={couponStore ? siteUrl(`/stores/${couponStore.slug}`) : null}
+    >
       <CouponForm
         action={action}
         submitLabel="Save Changes"
@@ -47,6 +57,6 @@ export default async function EditCouponPage({ params }: { params: Promise<{ id:
           sortOrder: coupon.sortOrder ?? 0,
         }}
       />
-    </div>
+    </FormPage>
   );
 }

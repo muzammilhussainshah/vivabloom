@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { FormPage } from "@/components/ui";
 import { connectToDatabase, Store } from "@monocoupon/db";
 import { CouponForm } from "../CouponForm";
 import { createCoupon } from "../actions";
@@ -11,16 +11,12 @@ export default async function NewCouponPage() {
   const stores = await Store.find({}).sort({ name: 1 }).lean();
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-10">
-      <Link href="/coupons" className="text-sm text-brand-primary hover:underline">
-        ← All coupons
-      </Link>
-      <h1 className="text-2xl font-semibold">New Coupon</h1>
+    <FormPage backHref="/coupons" backLabel="All coupons" title="New coupon" subtitle="Add a code or deal to a store's page.">
       <CouponForm
         action={createCoupon}
         submitLabel="Create Coupon"
         storeOptions={stores.map((s) => ({ id: String(s._id), name: s.name }))}
       />
-    </div>
+    </FormPage>
   );
 }
