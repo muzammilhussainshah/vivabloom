@@ -187,4 +187,132 @@ export const THEME_PRESETS: { id: string; label: string; values: MainThemeBase }
       text: "#0C2624", textMuted: "#566B67", border: "#D4E2DC", footerBg: "#072F2E",
     },
   },
+  {
+    id: "sage",
+    label: "Sage & Rust",
+    values: {
+      brandPrimary: "#2F4F3E", brandSecondary: "#5E7F4F", brandAccent: "#A4552B", surface: "#F7F6F1", surfaceMuted: "#ECEDE4",
+      text: "#1A241E", textMuted: "#5F6B63", border: "#D5D9CC", footerBg: "#17241D",
+    },
+  },
+  {
+    id: "ocean",
+    label: "Ocean & Sand",
+    values: {
+      brandPrimary: "#0B3B5C", brandSecondary: "#1F6F8B", brandAccent: "#C2561C", surface: "#F4F8FA", surfaceMuted: "#E6EEF3",
+      text: "#0E2233", textMuted: "#55697A", border: "#CFDCE5", footerBg: "#0A2433",
+    },
+  },
+  {
+    id: "rose",
+    label: "Rose & Charcoal",
+    values: {
+      brandPrimary: "#4A1D2E", brandSecondary: "#9C3D5E", brandAccent: "#B0245A", surface: "#FBF6F5", surfaceMuted: "#F3EAE8",
+      text: "#2A1620", textMuted: "#7A5F69", border: "#E7D7D8", footerBg: "#2A101A",
+    },
+  },
+  {
+    id: "olive",
+    label: "Olive & Saffron",
+    values: {
+      brandPrimary: "#3D4A1E", brandSecondary: "#6B7A2F", brandAccent: "#8A5A0B", surface: "#F8F6EE", surfaceMuted: "#EEEBDD",
+      text: "#1F2612", textMuted: "#666B4E", border: "#DCD8C0", footerBg: "#20280F",
+    },
+  },
+  {
+    id: "berry",
+    label: "Berry & Blush",
+    values: {
+      brandPrimary: "#5B0F3A", brandSecondary: "#8E1F5C", brandAccent: "#C01F5C", surface: "#FFF8FA", surfaceMuted: "#FBEAF0",
+      text: "#2B0C1E", textMuted: "#76546A", border: "#F0D9E3", footerBg: "#3A0A26",
+    },
+  },
+  {
+    id: "graphite",
+    label: "Graphite & Teal",
+    values: {
+      brandPrimary: "#2B2F36", brandSecondary: "#4B5563", brandAccent: "#0F766E", surface: "#F5F5F4", surfaceMuted: "#E7E7E5",
+      text: "#111318", textMuted: "#5B6170", border: "#D6D7D9", footerBg: "#15171C",
+    },
+  },
+  {
+    id: "sunset",
+    label: "Sunset & Cocoa",
+    values: {
+      brandPrimary: "#7A2E0E", brandSecondary: "#C2410C", brandAccent: "#9A3412", surface: "#FFF7F0", surfaceMuted: "#FCEBDC",
+      text: "#2A1408", textMuted: "#7C5A46", border: "#F0D6C2", footerBg: "#3B1606",
+    },
+  },
+  {
+    id: "lavender",
+    label: "Lavender & Indigo",
+    values: {
+      brandPrimary: "#2E2A6B", brandSecondary: "#5B52C4", brandAccent: "#6D28D9", surface: "#F7F6FD", surfaceMuted: "#ECEBFA",
+      text: "#1A1838", textMuted: "#5F5C7E", border: "#DEDCF0", footerBg: "#1B1941",
+    },
+  },
+  {
+    id: "nordic",
+    label: "Nordic Frost",
+    values: {
+      brandPrimary: "#1E3A5F", brandSecondary: "#3A6A96", brandAccent: "#B4532A", surface: "#F5F8FB", surfaceMuted: "#E4ECF3",
+      text: "#132338", textMuted: "#56687D", border: "#D2DEE9", footerBg: "#14263D",
+    },
+  },
+  {
+    id: "espresso",
+    label: "Espresso & Cream",
+    values: {
+      brandPrimary: "#3B2A20", brandSecondary: "#8A5A3C", brandAccent: "#9A5B22", surface: "#FBF6EE", surfaceMuted: "#F1E8DB",
+      text: "#2A1E16", textMuted: "#7A6253", border: "#E3D6C4", footerBg: "#2A1F18",
+    },
+  },
+  {
+    id: "jade",
+    label: "Jade & Ivory",
+    values: {
+      brandPrimary: "#0E5E4E", brandSecondary: "#237A66", brandAccent: "#8A6508", surface: "#F6F8F3", surfaceMuted: "#E9EFE6",
+      text: "#0E2A24", textMuted: "#5A6B64", border: "#D5E0D6", footerBg: "#0A2E27",
+    },
+  },
+  {
+    id: "crimson",
+    label: "Crimson Velvet",
+    values: {
+      brandPrimary: "#6E0E1A", brandSecondary: "#A3212F", brandAccent: "#8E1B26", surface: "#FBF5F4", surfaceMuted: "#F2E6E4",
+      text: "#2A0A0E", textMuted: "#7A5A5C", border: "#E6D2D0", footerBg: "#3A0A11",
+    },
+  },
+  {
+    id: "midnight-amber",
+    label: "Midnight & Amber",
+    values: {
+      brandPrimary: "#0B1E3F", brandSecondary: "#2D4A7A", brandAccent: "#8A5300", surface: "#F6F7FA", surfaceMuted: "#E6E9F1",
+      text: "#0C1628", textMuted: "#56617A", border: "#D3D9E6", footerBg: "#081427",
+    },
+  },
+  {
+    id: "matcha",
+    label: "Matcha Garden",
+    values: {
+      brandPrimary: "#4B5D2A", brandSecondary: "#5F7230", brandAccent: "#3F6212", surface: "#F8F9F2", surfaceMuted: "#EDF0E0",
+      text: "#1C2410", textMuted: "#5E6848", border: "#D9DEC6", footerBg: "#243014",
+    },
+  },
+  {
+    id: "cobalt",
+    label: "Cobalt & Citrus",
+    values: {
+      brandPrimary: "#1A3FA6", brandSecondary: "#3B63D6", brandAccent: "#9A4A06", surface: "#F7F9FE", surfaceMuted: "#E8EEFB",
+      text: "#0E1B42", textMuted: "#56648A", border: "#D5DEF3", footerBg: "#0F2470",
+    },
+  },
+  {
+    id: "charcoal",
+    label: "Charcoal & Mint",
+    values: {
+      brandPrimary: "#1F2937", brandSecondary: "#0F766E", brandAccent: "#047857", surface: "#F7F8F8", surfaceMuted: "#E7EAEC",
+      text: "#111827", textMuted: "#5B6573", border: "#D4D9DE", footerBg: "#111827",
+    },
+  },
 ];

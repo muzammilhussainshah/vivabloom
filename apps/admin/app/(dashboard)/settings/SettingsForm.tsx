@@ -22,6 +22,22 @@ const THEME_PRESETS = [
   { id: "slate", label: "Slate & Electric", values: { brandPrimary: "#263238", brandSecondary: "#1D4ED8", brandAccent: "#2563EB", surface: "#F5F6F7", surfaceMuted: "#E9ECEE", text: "#10181C", textMuted: "#5C6A72", border: "#D8DDE0", footerBg: "#0B1114" } },
   { id: "kraft", label: "Kraft & Post Red", values: { brandPrimary: "#6B4A2B", brandSecondary: "#C9A227", brandAccent: "#C8262C", surface: "#F3E9D7", surfaceMuted: "#E9DCC4", text: "#2A1D10", textMuted: "#6E5A42", border: "#D9C7A8", footerBg: "#241809" } },
   { id: "teal", label: "Teal & Melon", values: { brandPrimary: "#0F4C4A", brandSecondary: "#0E7C74", brandAccent: "#FF8552", surface: "#F4F7F5", surfaceMuted: "#E6EEEA", text: "#0C2624", textMuted: "#566B67", border: "#D4E2DC", footerBg: "#072F2E" } },
+  { id: "sage", label: "Sage & Rust", values: { brandPrimary: "#2F4F3E", brandSecondary: "#5E7F4F", brandAccent: "#A4552B", surface: "#F7F6F1", surfaceMuted: "#ECEDE4", text: "#1A241E", textMuted: "#5F6B63", border: "#D5D9CC", footerBg: "#17241D" } },
+  { id: "ocean", label: "Ocean & Sand", values: { brandPrimary: "#0B3B5C", brandSecondary: "#1F6F8B", brandAccent: "#C2561C", surface: "#F4F8FA", surfaceMuted: "#E6EEF3", text: "#0E2233", textMuted: "#55697A", border: "#CFDCE5", footerBg: "#0A2433" } },
+  { id: "rose", label: "Rose & Charcoal", values: { brandPrimary: "#4A1D2E", brandSecondary: "#9C3D5E", brandAccent: "#B0245A", surface: "#FBF6F5", surfaceMuted: "#F3EAE8", text: "#2A1620", textMuted: "#7A5F69", border: "#E7D7D8", footerBg: "#2A101A" } },
+  { id: "olive", label: "Olive & Saffron", values: { brandPrimary: "#3D4A1E", brandSecondary: "#6B7A2F", brandAccent: "#8A5A0B", surface: "#F8F6EE", surfaceMuted: "#EEEBDD", text: "#1F2612", textMuted: "#666B4E", border: "#DCD8C0", footerBg: "#20280F" } },
+  { id: "berry", label: "Berry & Blush", values: { brandPrimary: "#5B0F3A", brandSecondary: "#8E1F5C", brandAccent: "#C01F5C", surface: "#FFF8FA", surfaceMuted: "#FBEAF0", text: "#2B0C1E", textMuted: "#76546A", border: "#F0D9E3", footerBg: "#3A0A26" } },
+  { id: "graphite", label: "Graphite & Teal", values: { brandPrimary: "#2B2F36", brandSecondary: "#4B5563", brandAccent: "#0F766E", surface: "#F5F5F4", surfaceMuted: "#E7E7E5", text: "#111318", textMuted: "#5B6170", border: "#D6D7D9", footerBg: "#15171C" } },
+  { id: "sunset", label: "Sunset & Cocoa", values: { brandPrimary: "#7A2E0E", brandSecondary: "#C2410C", brandAccent: "#9A3412", surface: "#FFF7F0", surfaceMuted: "#FCEBDC", text: "#2A1408", textMuted: "#7C5A46", border: "#F0D6C2", footerBg: "#3B1606" } },
+  { id: "lavender", label: "Lavender & Indigo", values: { brandPrimary: "#2E2A6B", brandSecondary: "#5B52C4", brandAccent: "#6D28D9", surface: "#F7F6FD", surfaceMuted: "#ECEBFA", text: "#1A1838", textMuted: "#5F5C7E", border: "#DEDCF0", footerBg: "#1B1941" } },
+  { id: "nordic", label: "Nordic Frost", values: { brandPrimary: "#1E3A5F", brandSecondary: "#3A6A96", brandAccent: "#B4532A", surface: "#F5F8FB", surfaceMuted: "#E4ECF3", text: "#132338", textMuted: "#56687D", border: "#D2DEE9", footerBg: "#14263D" } },
+  { id: "espresso", label: "Espresso & Cream", values: { brandPrimary: "#3B2A20", brandSecondary: "#8A5A3C", brandAccent: "#9A5B22", surface: "#FBF6EE", surfaceMuted: "#F1E8DB", text: "#2A1E16", textMuted: "#7A6253", border: "#E3D6C4", footerBg: "#2A1F18" } },
+  { id: "jade", label: "Jade & Ivory", values: { brandPrimary: "#0E5E4E", brandSecondary: "#237A66", brandAccent: "#8A6508", surface: "#F6F8F3", surfaceMuted: "#E9EFE6", text: "#0E2A24", textMuted: "#5A6B64", border: "#D5E0D6", footerBg: "#0A2E27" } },
+  { id: "crimson", label: "Crimson Velvet", values: { brandPrimary: "#6E0E1A", brandSecondary: "#A3212F", brandAccent: "#8E1B26", surface: "#FBF5F4", surfaceMuted: "#F2E6E4", text: "#2A0A0E", textMuted: "#7A5A5C", border: "#E6D2D0", footerBg: "#3A0A11" } },
+  { id: "midnight-amber", label: "Midnight & Amber", values: { brandPrimary: "#0B1E3F", brandSecondary: "#2D4A7A", brandAccent: "#8A5300", surface: "#F6F7FA", surfaceMuted: "#E6E9F1", text: "#0C1628", textMuted: "#56617A", border: "#D3D9E6", footerBg: "#081427" } },
+  { id: "matcha", label: "Matcha Garden", values: { brandPrimary: "#4B5D2A", brandSecondary: "#5F7230", brandAccent: "#3F6212", surface: "#F8F9F2", surfaceMuted: "#EDF0E0", text: "#1C2410", textMuted: "#5E6848", border: "#D9DEC6", footerBg: "#243014" } },
+  { id: "cobalt", label: "Cobalt & Citrus", values: { brandPrimary: "#1A3FA6", brandSecondary: "#3B63D6", brandAccent: "#9A4A06", surface: "#F7F9FE", surfaceMuted: "#E8EEFB", text: "#0E1B42", textMuted: "#56648A", border: "#D5DEF3", footerBg: "#0F2470" } },
+  { id: "charcoal", label: "Charcoal & Mint", values: { brandPrimary: "#1F2937", brandSecondary: "#0F766E", brandAccent: "#047857", surface: "#F7F8F8", surfaceMuted: "#E7EAEC", text: "#111827", textMuted: "#5B6573", border: "#D4D9DE", footerBg: "#111827" } },
 ] as const;
 
 // Light green-brand default palette (modeled on coupondazzle.com) — brand
@@ -79,23 +95,106 @@ export interface SettingsFormInitialData {
   blockedIps?: string;
 }
 
-function ColorField({ id, label, defaultValue }: { id: string; label: string; defaultValue: string }) {
+const HEX_RE = /^#[0-9a-fA-F]{6}$/;
+
+/** A colour picker and a hex field that stay in sync. The picker's value is what gets submitted. */
+function ColorField({ id, label, value, onChange }: { id: string; label: string; value: string; onChange: (v: string) => void }) {
+  const valid = HEX_RE.test(value);
+  const safe = valid ? value : "#000000";
   return (
-    <div className="flex flex-col gap-1">
-      <label htmlFor={id} className="text-sm font-medium">
+    <div className="flex flex-col gap-1.5">
+      <label htmlFor={id} className="text-sm font-medium text-text">
         {label}
       </label>
-      <div className="flex items-center gap-2">
-        <input id={id} name={id} type="color" defaultValue={defaultValue} className="h-9 w-12 rounded-base border border-border bg-surface p-1" />
+      <div
+        className={`flex items-center gap-2 rounded-[10px] border bg-white p-1.5 pr-3 transition-colors focus-within:ring-2 focus-within:ring-brand-primary/15 ${
+          valid ? "border-border focus-within:border-brand-primary" : "border-red-300 focus-within:border-red-400"
+        }`}
+      >
+        <span className="relative h-8 w-9 shrink-0 overflow-hidden rounded-lg border border-black/10 shadow-inner" style={{ background: safe }}>
+          <input
+            id={id}
+            name={id}
+            type="color"
+            value={safe}
+            onChange={(e) => onChange(e.target.value)}
+            className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+            aria-label={label}
+          />
+        </span>
         <input
           type="text"
-          defaultValue={defaultValue}
-          onChange={(e) => {
-            const colorInput = document.getElementById(id) as HTMLInputElement | null;
-            if (colorInput && /^#[0-9a-fA-F]{6}$/.test(e.target.value)) colorInput.value = e.target.value;
-          }}
-          className="w-28 rounded-base border border-border bg-surface px-2 py-1.5 font-mono text-sm focus:border-brand-primary focus:outline-none"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          maxLength={7}
+          spellCheck={false}
+          aria-label={`${label} hex code`}
+          className="w-full bg-transparent font-mono text-sm uppercase text-text outline-none"
         />
+        {!valid && <span className="text-xs font-medium text-red-600">Invalid</span>}
+      </div>
+    </div>
+  );
+}
+
+/** A miniature of the public homepage + store voucher, painted with the colours being edited, so changes can be judged before saving. */
+function ThemePreview({ colors }: { colors: Record<keyof typeof DEFAULT_THEME, string> }) {
+  const c = colors;
+  const ok = (v: string) => (HEX_RE.test(v) ? v : "#000000");
+  return (
+    <div className="overflow-hidden rounded-2xl border border-border shadow-[0_12px_32px_-16px_rgba(16,24,20,0.25)]" style={{ background: ok(c.surface) }}>
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-3" style={{ background: ok(c.brandPrimary) }}>
+        <span className="flex items-center gap-2">
+          <span className="h-5 w-5 rounded-md" style={{ background: ok(c.brandAccent) }} />
+          <span className="text-xs font-bold" style={{ color: ok(c.surface) }}>
+            Site name
+          </span>
+        </span>
+        <span className="rounded-md px-2.5 py-1 text-[11px] font-semibold" style={{ background: ok(c.brandAccent), color: ok(c.surface) }}>
+          Get code
+        </span>
+      </div>
+
+      {/* Hero */}
+      <div className="flex flex-col gap-2 px-4 pb-5 pt-5">
+        <span className="w-fit rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide" style={{ background: ok(c.surfaceMuted), color: ok(c.brandAccent) }}>
+          Verified deals
+        </span>
+        <p className="text-lg font-bold leading-tight" style={{ color: ok(c.text) }}>
+          Save more on the brands you buy
+        </p>
+        <p className="text-xs leading-relaxed" style={{ color: ok(c.textMuted) }}>
+          Hand-checked coupons and deals, updated every week.
+        </p>
+        <span className="mt-1 w-fit rounded-lg px-3.5 py-2 text-xs font-semibold" style={{ background: ok(c.brandSecondary), color: ok(c.surface) }}>
+          Browse deals
+        </span>
+      </div>
+
+      {/* Card */}
+      <div className="mx-4 mb-5 rounded-xl border p-3" style={{ background: ok(c.surfaceMuted), borderColor: ok(c.border) }}>
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-semibold" style={{ color: ok(c.text) }}>
+            Top offer
+          </span>
+          <span className="text-[11px] font-bold" style={{ color: ok(c.brandAccent) }}>
+            −47%
+          </span>
+        </div>
+        <div className="mt-2 h-1.5 w-full rounded-full" style={{ background: ok(c.border) }}>
+          <div className="h-1.5 w-2/3 rounded-full" style={{ background: ok(c.brandPrimary) }} />
+        </div>
+        <p className="mt-2 text-[11px]" style={{ color: ok(c.textMuted) }}>
+          Tested 2 days ago
+        </p>
+      </div>
+
+      {/* Footer */}
+      <div className="px-4 py-3" style={{ background: ok(c.footerBg) }}>
+        <p className="text-[11px]" style={{ color: ok(c.surface), opacity: 0.8 }}>
+          © Site name · Privacy · Terms
+        </p>
       </div>
     </div>
   );
@@ -124,14 +223,8 @@ export function SettingsForm({ initialData }: { initialData: SettingsFormInitial
     border: initialData.border,
     footerBg: initialData.footerBg,
   });
-  // ColorField's inputs are uncontrolled (defaultValue) — bumping this key
-  // forces them to remount and re-read colorValues, which is how "Reset"
-  // takes visual effect without fighting the uncontrolled inputs' state.
-  const [resetNonce, setResetNonce] = useState(0);
-
   function handleResetTheme() {
     setColorValues(DEFAULT_THEME);
-    setResetNonce((n) => n + 1);
     setActivePreset(null);
   }
 
@@ -139,8 +232,12 @@ export function SettingsForm({ initialData }: { initialData: SettingsFormInitial
 
   function applyThemePreset(preset: (typeof THEME_PRESETS)[number]) {
     setColorValues(preset.values);
-    setResetNonce((n) => n + 1);
     setActivePreset(preset.id);
+  }
+
+  function updateColor(key: keyof typeof colorValues, value: string) {
+    setColorValues((prev) => ({ ...prev, [key]: value }));
+    setActivePreset(null);
   }
 
   // Adjusts state during render (React's documented pattern for "sync state
@@ -157,8 +254,8 @@ export function SettingsForm({ initialData }: { initialData: SettingsFormInitial
 
   return (
     <form action={formAction} className="flex flex-col gap-8">
-      <section className="flex flex-col gap-4">
-        <h2 className="text-lg font-semibold">Brand</h2>
+      <section className="flex flex-col gap-5 rounded-2xl border border-border bg-white p-5 shadow-[0_1px_2px_rgba(16,24,20,0.04),0_8px_24px_-12px_rgba(16,24,20,0.08)] md:p-7">
+        <h2 className="text-base font-semibold text-text">Brand</h2>
         <div className="flex flex-col gap-1">
           <label htmlFor="siteName" className="text-sm font-medium">
             Site name
@@ -167,7 +264,7 @@ export function SettingsForm({ initialData }: { initialData: SettingsFormInitial
             id="siteName"
             name="siteName"
             defaultValue={initialData.siteName}
-            className="max-w-sm rounded-base border border-border bg-surface px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
+            className="max-w-sm rounded-[10px] border border-border bg-white px-3 py-2 text-sm text-text shadow-[0_1px_1px_rgba(16,24,20,0.03)] transition-colors hover:border-text-muted/40 focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/15"
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -180,7 +277,7 @@ export function SettingsForm({ initialData }: { initialData: SettingsFormInitial
             rows={2}
             defaultValue={initialData.tagline ?? ""}
             placeholder="Read. Learn. Grow."
-            className="max-w-md rounded-base border border-border bg-surface px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
+            className="max-w-md rounded-[10px] border border-border bg-white px-3 py-2 text-sm text-text shadow-[0_1px_1px_rgba(16,24,20,0.03)] transition-colors hover:border-text-muted/40 focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/15"
           />
           <p className="text-xs text-text-muted">
             The large headline on the homepage hero. Press Enter (or type <code>\n</code>) for a line
@@ -196,7 +293,7 @@ export function SettingsForm({ initialData }: { initialData: SettingsFormInitial
             name="heroOverline"
             defaultValue={initialData.heroOverline ?? ""}
             placeholder="Insights that matter, stories that inspire"
-            className="max-w-md rounded-base border border-border bg-surface px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
+            className="max-w-md rounded-[10px] border border-border bg-white px-3 py-2 text-sm text-text shadow-[0_1px_1px_rgba(16,24,20,0.03)] transition-colors hover:border-text-muted/40 focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/15"
           />
           <p className="text-xs text-text-muted">Small uppercase line shown above the hero heading.</p>
         </div>
@@ -210,7 +307,7 @@ export function SettingsForm({ initialData }: { initialData: SettingsFormInitial
             rows={3}
             defaultValue={initialData.heroDescription ?? ""}
             placeholder="Discover powerful ideas, practical tips, and real-world knowledge…"
-            className="max-w-md rounded-base border border-border bg-surface px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
+            className="max-w-md rounded-[10px] border border-border bg-white px-3 py-2 text-sm text-text shadow-[0_1px_1px_rgba(16,24,20,0.03)] transition-colors hover:border-text-muted/40 focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/15"
           />
           <p className="text-xs text-text-muted">
             Paragraph under the hero heading. Press Enter (or type <code>\n</code>) for a line break.
@@ -225,7 +322,7 @@ export function SettingsForm({ initialData }: { initialData: SettingsFormInitial
             name="logoUrl"
             type="url"
             defaultValue={initialData.logoUrl ?? ""}
-            className="max-w-md rounded-base border border-border bg-surface px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
+            className="max-w-md rounded-[10px] border border-border bg-white px-3 py-2 text-sm text-text shadow-[0_1px_1px_rgba(16,24,20,0.03)] transition-colors hover:border-text-muted/40 focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/15"
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -246,7 +343,7 @@ export function SettingsForm({ initialData }: { initialData: SettingsFormInitial
             placeholder="https://…"
             value={heroImage}
             onChange={(e) => setHeroImage(e.target.value)}
-            className="max-w-md rounded-base border border-border bg-surface px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
+            className="max-w-md rounded-[10px] border border-border bg-white px-3 py-2 text-sm text-text shadow-[0_1px_1px_rgba(16,24,20,0.03)] transition-colors hover:border-text-muted/40 focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/15"
           />
           <p className="text-xs text-text-muted">
             Shown behind the gradient on the homepage banner. Leave blank for a plain gradient.
@@ -258,59 +355,92 @@ export function SettingsForm({ initialData }: { initialData: SettingsFormInitial
         </div>
       </section>
 
-      <section className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Theme Colors</h2>
+      <section className="flex flex-col gap-5 rounded-2xl border border-border bg-white p-5 shadow-[0_1px_2px_rgba(16,24,20,0.04),0_8px_24px_-12px_rgba(16,24,20,0.08)] md:p-7">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="text-base font-semibold text-text">Theme colors</h2>
+            <p className="mt-1 text-sm text-text-muted">
+              Drives the whole site, including the <code className="rounded bg-surface px-1 text-xs">/stores/[slug]</code> pages and their PPC-variant URLs.
+            </p>
+          </div>
           <button
             type="button"
             onClick={handleResetTheme}
-            className="rounded-base border border-border px-3 py-1.5 text-xs font-medium hover:bg-surface-muted"
+            className="inline-flex h-9 items-center rounded-[10px] border border-border bg-white px-3.5 text-sm font-medium text-text-muted transition-colors hover:border-text-muted/40 hover:text-text"
           >
-            Reset to Default Theme
+            Reset to default
           </button>
         </div>
-        <p className="-mt-2 text-xs text-text-muted">
-          Drives the whole site, including the <code>/stores/[slug]</code> pages and their PPC-variant URLs.
-        </p>
-        <div className="flex flex-wrap gap-2">
-          {THEME_PRESETS.map((preset) => (
-            <button
-              key={preset.id}
-              type="button"
-              onClick={() => applyThemePreset(preset)}
-              className={`flex items-center gap-2 rounded-base border px-2.5 py-1.5 text-xs font-medium transition-colors ${
-                activePreset === preset.id ? "border-brand-primary bg-brand-primary/10" : "border-border hover:bg-surface-muted"
-              }`}
-            >
-              <span className="flex h-3.5 w-3.5 overflow-hidden rounded-full border border-border">
-                <span className="w-1/3" style={{ backgroundColor: preset.values.brandPrimary }} />
-                <span className="w-1/3" style={{ backgroundColor: preset.values.brandAccent }} />
-                <span className="w-1/3" style={{ backgroundColor: preset.values.surface }} />
-              </span>
-              {preset.label}
-            </button>
-          ))}
-        </div>
-        <p className="-mt-2 text-xs text-text-muted">Picking a preset or resetting only updates the fields below — click Save Settings to apply.</p>
-        <div key={resetNonce} className="flex flex-col gap-6">
-          <div className="flex flex-wrap gap-6">
-            <ColorField id="brandPrimary" label="Primary color" defaultValue={colorValues.brandPrimary} />
-            <ColorField id="brandSecondary" label="Secondary color" defaultValue={colorValues.brandSecondary} />
-            <ColorField id="brandAccent" label="Accent color" defaultValue={colorValues.brandAccent} />
+
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
+          <div className="flex min-w-0 flex-col gap-6">
+            <div className="flex flex-col gap-3">
+              <div className="flex items-baseline justify-between">
+                <p className="text-sm font-medium text-text">Presets</p>
+                <p className="text-xs text-text-muted">{THEME_PRESETS.length} palettes</p>
+              </div>
+              <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-4">
+                {THEME_PRESETS.map((preset) => {
+                  const active = activePreset === preset.id;
+                  return (
+                    <button
+                      key={preset.id}
+                      type="button"
+                      onClick={() => applyThemePreset(preset)}
+                      aria-pressed={active}
+                      className={`group relative flex flex-col overflow-hidden rounded-xl border bg-white text-left transition-all ${
+                        active
+                          ? "border-brand-primary shadow-[0_0_0_3px_rgba(31,111,92,0.15)]"
+                          : "border-border hover:-translate-y-0.5 hover:border-text-muted/40 hover:shadow-sm"
+                      }`}
+                    >
+                      <span className="flex h-12 w-full">
+                        <span className="flex-[3]" style={{ background: preset.values.brandPrimary }} />
+                        <span className="flex-[2]" style={{ background: preset.values.brandSecondary }} />
+                        <span className="flex-[2]" style={{ background: preset.values.brandAccent }} />
+                        <span className="flex-[2]" style={{ background: preset.values.surfaceMuted }} />
+                      </span>
+                      <span className="flex items-center justify-between gap-2 px-2.5 py-2">
+                        <span className="truncate text-xs font-semibold text-text">{preset.label}</span>
+                        {active && (
+                          <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-brand-primary text-white">
+                            <svg viewBox="0 0 12 12" className="h-2.5 w-2.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                              <path d="m2.5 6.2 2.2 2.2 4.8-4.8" />
+                            </svg>
+                          </span>
+                        )}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-text-muted">Picking a preset only fills the fields below. Click Save changes to publish it.</p>
+            </div>
+
+            <div className="grid grid-cols-1 gap-x-5 gap-y-4 border-t border-border pt-6 sm:grid-cols-2">
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-text-muted sm:col-span-2">Brand</p>
+              <ColorField id="brandPrimary" label="Primary" value={colorValues.brandPrimary} onChange={(v) => updateColor("brandPrimary", v)} />
+              <ColorField id="brandSecondary" label="Secondary" value={colorValues.brandSecondary} onChange={(v) => updateColor("brandSecondary", v)} />
+              <ColorField id="brandAccent" label="Accent" value={colorValues.brandAccent} onChange={(v) => updateColor("brandAccent", v)} />
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-text-muted sm:col-span-2 sm:pt-2">Surfaces &amp; text</p>
+              <ColorField id="surface" label="Page background" value={colorValues.surface} onChange={(v) => updateColor("surface", v)} />
+              <ColorField id="surfaceMuted" label="Card background" value={colorValues.surfaceMuted} onChange={(v) => updateColor("surfaceMuted", v)} />
+              <ColorField id="text" label="Text" value={colorValues.text} onChange={(v) => updateColor("text", v)} />
+              <ColorField id="textMuted" label="Muted text" value={colorValues.textMuted} onChange={(v) => updateColor("textMuted", v)} />
+              <ColorField id="border" label="Border" value={colorValues.border} onChange={(v) => updateColor("border", v)} />
+              <ColorField id="footerBg" label="Footer" value={colorValues.footerBg} onChange={(v) => updateColor("footerBg", v)} />
+            </div>
           </div>
-          <div className="flex flex-wrap gap-6">
-            <ColorField id="surface" label="Page background" defaultValue={colorValues.surface} />
-            <ColorField id="surfaceMuted" label="Muted background" defaultValue={colorValues.surfaceMuted} />
-            <ColorField id="text" label="Text color" defaultValue={colorValues.text} />
-            <ColorField id="textMuted" label="Muted text color" defaultValue={colorValues.textMuted} />
-            <ColorField id="border" label="Border color" defaultValue={colorValues.border} />
-            <ColorField id="footerBg" label="Footer background" defaultValue={colorValues.footerBg} />
+
+          <div className="xl:sticky xl:top-6 xl:self-start">
+            <p className="mb-2 text-sm font-medium text-text">Live preview</p>
+            <ThemePreview colors={colorValues} />
           </div>
         </div>
       </section>
 
-      <section className="flex flex-col gap-4">
-        <h2 className="text-lg font-semibold">Contact</h2>
+      <section className="flex flex-col gap-5 rounded-2xl border border-border bg-white p-5 shadow-[0_1px_2px_rgba(16,24,20,0.04),0_8px_24px_-12px_rgba(16,24,20,0.08)] md:p-7">
+        <h2 className="text-base font-semibold text-text">Contact</h2>
         <div className="grid grid-cols-2 gap-4">
           <div className="flex flex-col gap-1">
             <label htmlFor="contactEmail" className="text-sm font-medium">
@@ -321,7 +451,7 @@ export function SettingsForm({ initialData }: { initialData: SettingsFormInitial
               name="contactEmail"
               type="email"
               defaultValue={initialData.contactEmail ?? ""}
-              className="rounded-base border border-border bg-surface px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
+              className="rounded-[10px] border border-border bg-white px-3 py-2 text-sm text-text shadow-[0_1px_1px_rgba(16,24,20,0.03)] transition-colors hover:border-text-muted/40 focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/15"
             />
           </div>
           <div className="flex flex-col gap-1">
@@ -332,7 +462,7 @@ export function SettingsForm({ initialData }: { initialData: SettingsFormInitial
               id="contactPhone"
               name="contactPhone"
               defaultValue={initialData.contactPhone ?? ""}
-              className="rounded-base border border-border bg-surface px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
+              className="rounded-[10px] border border-border bg-white px-3 py-2 text-sm text-text shadow-[0_1px_1px_rgba(16,24,20,0.03)] transition-colors hover:border-text-muted/40 focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/15"
             />
           </div>
         </div>
@@ -344,13 +474,13 @@ export function SettingsForm({ initialData }: { initialData: SettingsFormInitial
             id="contactAddress"
             name="contactAddress"
             defaultValue={initialData.contactAddress ?? ""}
-            className="max-w-md rounded-base border border-border bg-surface px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
+            className="max-w-md rounded-[10px] border border-border bg-white px-3 py-2 text-sm text-text shadow-[0_1px_1px_rgba(16,24,20,0.03)] transition-colors hover:border-text-muted/40 focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/15"
           />
         </div>
       </section>
 
-      <section className="flex flex-col gap-4">
-        <h2 className="text-lg font-semibold">Social Links</h2>
+      <section className="flex flex-col gap-5 rounded-2xl border border-border bg-white p-5 shadow-[0_1px_2px_rgba(16,24,20,0.04),0_8px_24px_-12px_rgba(16,24,20,0.08)] md:p-7">
+        <h2 className="text-base font-semibold text-text">Social Links</h2>
         <div className="grid grid-cols-2 gap-4">
           <div className="flex flex-col gap-1">
             <label htmlFor="socialFacebook" className="text-sm font-medium">
@@ -361,7 +491,7 @@ export function SettingsForm({ initialData }: { initialData: SettingsFormInitial
               name="socialFacebook"
               type="url"
               defaultValue={initialData.socialFacebook ?? ""}
-              className="rounded-base border border-border bg-surface px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
+              className="rounded-[10px] border border-border bg-white px-3 py-2 text-sm text-text shadow-[0_1px_1px_rgba(16,24,20,0.03)] transition-colors hover:border-text-muted/40 focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/15"
             />
           </div>
           <div className="flex flex-col gap-1">
@@ -373,7 +503,7 @@ export function SettingsForm({ initialData }: { initialData: SettingsFormInitial
               name="socialInstagram"
               type="url"
               defaultValue={initialData.socialInstagram ?? ""}
-              className="rounded-base border border-border bg-surface px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
+              className="rounded-[10px] border border-border bg-white px-3 py-2 text-sm text-text shadow-[0_1px_1px_rgba(16,24,20,0.03)] transition-colors hover:border-text-muted/40 focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/15"
             />
           </div>
           <div className="flex flex-col gap-1">
@@ -385,7 +515,7 @@ export function SettingsForm({ initialData }: { initialData: SettingsFormInitial
               name="socialYoutube"
               type="url"
               defaultValue={initialData.socialYoutube ?? ""}
-              className="rounded-base border border-border bg-surface px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
+              className="rounded-[10px] border border-border bg-white px-3 py-2 text-sm text-text shadow-[0_1px_1px_rgba(16,24,20,0.03)] transition-colors hover:border-text-muted/40 focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/15"
             />
           </div>
           <div className="flex flex-col gap-1">
@@ -397,7 +527,7 @@ export function SettingsForm({ initialData }: { initialData: SettingsFormInitial
               name="socialTiktok"
               type="url"
               defaultValue={initialData.socialTiktok ?? ""}
-              className="rounded-base border border-border bg-surface px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
+              className="rounded-[10px] border border-border bg-white px-3 py-2 text-sm text-text shadow-[0_1px_1px_rgba(16,24,20,0.03)] transition-colors hover:border-text-muted/40 focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/15"
             />
           </div>
           <div className="flex flex-col gap-1">
@@ -409,14 +539,14 @@ export function SettingsForm({ initialData }: { initialData: SettingsFormInitial
               name="socialDiscord"
               type="url"
               defaultValue={initialData.socialDiscord ?? ""}
-              className="rounded-base border border-border bg-surface px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
+              className="rounded-[10px] border border-border bg-white px-3 py-2 text-sm text-text shadow-[0_1px_1px_rgba(16,24,20,0.03)] transition-colors hover:border-text-muted/40 focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/15"
             />
           </div>
         </div>
       </section>
 
-      <section className="flex flex-col gap-4">
-        <h2 className="text-lg font-semibold">
+      <section className="flex flex-col gap-5 rounded-2xl border border-border bg-white p-5 shadow-[0_1px_2px_rgba(16,24,20,0.04),0_8px_24px_-12px_rgba(16,24,20,0.08)] md:p-7">
+        <h2 className="text-base font-semibold text-text">
           Analytics &amp; Ads <span className="text-sm font-normal text-text-muted">(IDs only — wired up in a later phase)</span>
         </h2>
         <div className="grid grid-cols-2 gap-4">
@@ -429,7 +559,7 @@ export function SettingsForm({ initialData }: { initialData: SettingsFormInitial
               name="ga4Id"
               placeholder="G-XXXXXXXXXX"
               defaultValue={initialData.ga4Id ?? ""}
-              className="rounded-base border border-border bg-surface px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
+              className="rounded-[10px] border border-border bg-white px-3 py-2 text-sm text-text shadow-[0_1px_1px_rgba(16,24,20,0.03)] transition-colors hover:border-text-muted/40 focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/15"
             />
           </div>
           <div className="flex flex-col gap-1">
@@ -441,7 +571,7 @@ export function SettingsForm({ initialData }: { initialData: SettingsFormInitial
               name="gtmId"
               placeholder="GTM-XXXXXXX"
               defaultValue={initialData.gtmId ?? ""}
-              className="rounded-base border border-border bg-surface px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
+              className="rounded-[10px] border border-border bg-white px-3 py-2 text-sm text-text shadow-[0_1px_1px_rgba(16,24,20,0.03)] transition-colors hover:border-text-muted/40 focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/15"
             />
           </div>
           <div className="flex flex-col gap-1">
@@ -453,7 +583,7 @@ export function SettingsForm({ initialData }: { initialData: SettingsFormInitial
               name="googleAdsConversionId"
               placeholder="AW-XXXXXXXXX"
               defaultValue={initialData.googleAdsConversionId ?? ""}
-              className="rounded-base border border-border bg-surface px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
+              className="rounded-[10px] border border-border bg-white px-3 py-2 text-sm text-text shadow-[0_1px_1px_rgba(16,24,20,0.03)] transition-colors hover:border-text-muted/40 focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/15"
             />
           </div>
           <div className="flex flex-col gap-1">
@@ -464,7 +594,7 @@ export function SettingsForm({ initialData }: { initialData: SettingsFormInitial
               id="googleAdsConversionLabel"
               name="googleAdsConversionLabel"
               defaultValue={initialData.googleAdsConversionLabel ?? ""}
-              className="rounded-base border border-border bg-surface px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
+              className="rounded-[10px] border border-border bg-white px-3 py-2 text-sm text-text shadow-[0_1px_1px_rgba(16,24,20,0.03)] transition-colors hover:border-text-muted/40 focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/15"
             />
           </div>
           <div className="flex flex-col gap-1">
@@ -476,7 +606,7 @@ export function SettingsForm({ initialData }: { initialData: SettingsFormInitial
               name="clarityId"
               placeholder="e.g. abcd1234ef"
               defaultValue={initialData.clarityId ?? ""}
-              className="rounded-base border border-border bg-surface px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
+              className="rounded-[10px] border border-border bg-white px-3 py-2 text-sm text-text shadow-[0_1px_1px_rgba(16,24,20,0.03)] transition-colors hover:border-text-muted/40 focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/15"
             />
             <p className="text-xs text-text-muted">
               From clarity.microsoft.com → your project → Settings → Setup. Records session replays and heatmaps,
@@ -486,8 +616,8 @@ export function SettingsForm({ initialData }: { initialData: SettingsFormInitial
         </div>
       </section>
 
-      <section className="flex flex-col gap-4">
-        <h2 className="text-lg font-semibold">Regional Access</h2>
+      <section className="flex flex-col gap-5 rounded-2xl border border-border bg-white p-5 shadow-[0_1px_2px_rgba(16,24,20,0.04),0_8px_24px_-12px_rgba(16,24,20,0.08)] md:p-7">
+        <h2 className="text-base font-semibold text-text">Regional Access</h2>
         <div className="flex flex-col gap-1">
           <label htmlFor="blockedCountries" className="text-sm font-medium">
             Blocked countries <span className="text-text-muted">(optional)</span>
@@ -498,7 +628,7 @@ export function SettingsForm({ initialData }: { initialData: SettingsFormInitial
             value={blockedCountries}
             onChange={(e) => setBlockedCountries(e.target.value)}
             placeholder="PK, IN"
-            className="max-w-md rounded-base border border-border bg-surface px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
+            className="max-w-md rounded-[10px] border border-border bg-white px-3 py-2 text-sm text-text shadow-[0_1px_1px_rgba(16,24,20,0.03)] transition-colors hover:border-text-muted/40 focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/15"
           />
           <p className="text-xs text-text-muted">
             Comma-separated ISO country codes (e.g. <code>PK, IN</code>). Visitors from these countries see a
@@ -517,7 +647,7 @@ export function SettingsForm({ initialData }: { initialData: SettingsFormInitial
             onChange={(e) => setBlockedIps(e.target.value)}
             placeholder={"203.0.113.5\n198.51.100.20"}
             rows={4}
-            className="max-w-md resize-y rounded-base border border-border bg-surface px-3 py-2 font-mono text-sm focus:border-brand-primary focus:outline-none"
+            className="max-w-md resize-y rounded-[10px] border border-border bg-white px-3 py-2 font-mono text-sm text-text shadow-[0_1px_1px_rgba(16,24,20,0.03)] transition-colors hover:border-text-muted/40 focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/15"
           />
           <p className="text-xs text-text-muted">
             One IP per line, or comma-separated — paste directly from the Suspicious activity tab&rsquo;s
@@ -528,16 +658,19 @@ export function SettingsForm({ initialData }: { initialData: SettingsFormInitial
         </div>
       </section>
 
-      <div className="flex items-center gap-4">
+      <div className="sticky bottom-4 z-10 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-white/95 px-4 py-3 shadow-[0_12px_32px_-12px_rgba(16,24,20,0.25)] backdrop-blur">
+        <p className="text-xs text-text-muted">Changes go live on the public site after you save.</p>
+        <div className="flex flex-wrap items-center gap-3">
         <button
           type="submit"
           disabled={isPending}
-          className="self-start rounded-base bg-brand-primary px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-primary-hover disabled:opacity-60"
+          className="inline-flex h-10 items-center justify-center rounded-[10px] bg-brand-primary px-6 text-sm font-semibold text-white shadow-sm shadow-brand-primary/25 transition-colors hover:bg-brand-primary-hover disabled:opacity-60"
         >
           {isPending ? "Saving…" : "Save Settings"}
         </button>
         {state?.success && <p className="text-sm text-brand-accent">Saved — public site updated.</p>}
         {state?.error && <p role="alert" className="rounded-[10px] border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700">{state.error}</p>}
+        </div>
       </div>
     </form>
   );
