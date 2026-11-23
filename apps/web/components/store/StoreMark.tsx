@@ -26,7 +26,10 @@ export function StoreMark({
 }) {
   if (logo) {
     return (
-      <span className={`relative shrink-0 overflow-hidden ${className}`} style={style}>
+      // White tile behind a real logo, whatever background the caller passes
+      // (that color is for the letter fallback): logos are usually exported on
+      // white, so on a coloured tile they showed as a white box floating in it.
+      <span className={`relative shrink-0 overflow-hidden ${className}`} style={{ ...style, background: "#fff" }}>
         {/* priority: this mark is (by default) in the above-the-fold hero/
             voucher band, never in a lazy-loaded list — RemoteImage defaults
             to loading="lazy", which on a store logo meant it often never
@@ -34,16 +37,14 @@ export function StoreMark({
             near-viewport heuristics), leaving the letter fallback showing
             even for stores with a real logo set.
 
-            object-cover (not object-contain + padding): most uploaded store
-            logos are a flat/opaque image with their own hard rectangular
-            edges. object-contain plus padding left that rectangle floating
-            inset within the rounded tile, so the tile's own rounding was
-            invisible — the picture's straight edges were the only thing
-            touching the corners. Filling the tile edge-to-edge means the
-            *tile's* rounding is what actually clips the visible image, at
-            the cost of cropping a sliver of the logo — an acceptable trade
-            for a small identity badge, unlike a full product photo. */}
-        <RemoteImage src={logo} alt={name} sizes="100px" className="h-full w-full rounded-[inherit]" imgClassName="object-cover" priority={priority} />
+            object-contain + padding, so the WHOLE logo is always visible.
+            This used to be object-cover (edge-to-edge, tile rounding clips
+            the image), but logos are often wide wordmarks on a transparent
+            background (e.g. a 144x107 "I·M·8" PNG) and cover cropped the
+            sides off them — a brand mark with letters missing is worse than
+            a rectangle sitting inset in the tile. The tile's own background
+            (the cream page color) shows around the logo. */}
+        <RemoteImage src={logo} alt={name} sizes="100px" className="h-full w-full rounded-[inherit]" imgClassName="object-contain p-[14%]" priority={priority} />
       </span>
     );
   }
