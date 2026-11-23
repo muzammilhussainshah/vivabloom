@@ -126,7 +126,7 @@ export function EntryForm({
             Cancel edit
           </a>
         )}
-        {state?.error && <p className="text-sm text-brand-secondary">{state.error}</p>}
+        {state?.error && <p role="alert" className="rounded-[10px] border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700">{state.error}</p>}
       </div>
       <p className="text-xs text-text-muted">Re-submitting the same store + date updates that day instead of creating a duplicate.</p>
     </form>

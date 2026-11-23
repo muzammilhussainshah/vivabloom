@@ -103,7 +103,7 @@ export function CategoryAISuggest() {
               {isPending ? "Checking…" : "Suggest Categories"}
             </button>
           </div>
-          {error && <p className="text-xs text-brand-secondary">{error}</p>}
+          {error && <p role="alert" className="text-xs font-medium text-red-600">{error}</p>}
 
           {result && (
             <div className="flex flex-col gap-3 border-t border-border pt-3">

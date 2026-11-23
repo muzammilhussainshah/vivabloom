@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { FormPage, Thumb, ActiveBadge, siteUrl } from "@/components/ui";
 import { notFound } from "next/navigation";
 import { connectToDatabase, Product, Store } from "@monocoupon/db";
 import { ProductForm } from "../../ProductForm";
@@ -19,11 +19,15 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
   const action = updateProduct.bind(null, id);
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-10">
-      <Link href="/products" className="text-sm text-brand-primary hover:underline">
-        ← All products
-      </Link>
-      <h1 className="text-2xl font-semibold">Edit Product</h1>
+    <FormPage
+      backHref="/products"
+      backLabel="All products"
+      title={product.name}
+      subtitle={`/products/${product.slug}`}
+      media={<Thumb src={product.image} alt={product.name} size="lg" />}
+      meta={<ActiveBadge active={product.isActive ?? true} />}
+      viewHref={siteUrl(`/products/${product.slug}`)}
+    >
       <ProductForm
         action={action}
         submitLabel="Save Changes"
@@ -41,6 +45,6 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
           isActive: product.isActive ?? true,
         }}
       />
-    </div>
+    </FormPage>
   );
 }

@@ -62,7 +62,7 @@ export function PaymentForm({ stores, returnTo }: { stores: { id: string; name: 
         <button type="submit" disabled={isPending} className="self-start rounded-base bg-brand-primary px-4 py-2 text-sm font-semibold text-white hover:bg-brand-primary-hover disabled:opacity-60">
           {isPending ? "Recording…" : "Record payment"}
         </button>
-        {state?.error && <p className="text-sm text-brand-secondary">{state.error}</p>}
+        {state?.error && <p role="alert" className="rounded-[10px] border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700">{state.error}</p>}
       </div>
       <p className="text-xs text-text-muted">
         Applied automatically, oldest unpaid day first, up through the date received — whatever&rsquo;s left over is flagged as

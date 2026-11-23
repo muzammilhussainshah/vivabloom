@@ -19,3 +19,31 @@ body {
   outline: 2px solid var(--brand-primary);
   outline-offset: 2px;
 }
+
+/*
+ * Baseline for every admin form control. Kept in the base layer so each
+ * form's own Tailwind classes still win; this only evens out heights, gives a
+ * clear focus ring (the forms used to only change the border color) and
+ * brand-colors checkboxes.
+ */
+@layer base {
+  :where(input:not([type="checkbox"], [type="radio"], [type="file"], [type="color"], [type="range"]), select) {
+    min-height: 2.5rem;
+  }
+  :where(input, select, textarea) {
+    transition:
+      border-color 120ms ease,
+      box-shadow 120ms ease;
+  }
+  :where(input:not([type="checkbox"], [type="radio"]), select, textarea):focus {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 16%, transparent);
+  }
+  :where(input[type="checkbox"], input[type="radio"]) {
+    accent-color: var(--brand-primary);
+    width: 1rem;
+    height: 1rem;
+  }
+  :where(label) {
+    color: var(--text);
+  }
+}

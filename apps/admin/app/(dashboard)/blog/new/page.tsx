@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { FormPage } from "@/components/ui";
 import { connectToDatabase, Category, Store, Product } from "@monocoupon/db";
 import { BLOG_COUNTRIES } from "@monocoupon/validation";
 import { BlogPostForm } from "../BlogPostForm";
@@ -16,11 +16,7 @@ export default async function NewBlogPostPage() {
   ]);
 
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-6 px-4 py-10">
-      <Link href="/blog" className="text-sm text-brand-primary hover:underline">
-        ← All posts
-      </Link>
-      <h1 className="text-2xl font-semibold">New Blog Post</h1>
+    <FormPage backHref="/blog" backLabel="All posts" title="New blog post" subtitle="Write or generate a new article." width="lg">
       <BlogPostForm
         action={createBlogPost}
         submitLabel="Create Post"
@@ -35,6 +31,6 @@ export default async function NewBlogPostPage() {
         }))}
         countryOptions={BLOG_COUNTRIES.map((c) => ({ code: c.code, name: c.name }))}
       />
-    </div>
+    </FormPage>
   );
 }

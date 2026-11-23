@@ -1241,7 +1241,7 @@ function AdCopyPanel({
         {loading ? "Generating…" : adCopy ? "Regenerate ad copy" : "Generate ad copy"}
       </button>
 
-      {error && <p className="text-sm text-brand-secondary">{error}</p>}
+      {error && <p role="alert" className="rounded-[10px] border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700">{error}</p>}
 
       {adCopy && (
         <div className="grid gap-6 lg:grid-cols-2">
@@ -1421,7 +1421,7 @@ function SiteLinkPanel({
         {loading ? "Generating…" : siteLinks ? "Regenerate sitelink copy" : "Generate sitelink copy"}
       </button>
 
-      {error && <p className="text-sm text-brand-secondary">{error}</p>}
+      {error && <p role="alert" className="rounded-[10px] border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700">{error}</p>}
 
       {siteLinks && (
         <div className="grid gap-4 sm:grid-cols-2">

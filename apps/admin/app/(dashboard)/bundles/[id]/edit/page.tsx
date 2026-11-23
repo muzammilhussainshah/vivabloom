@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { FormPage, Thumb, ActiveBadge, siteUrl } from "@/components/ui";
 import { notFound } from "next/navigation";
 import { connectToDatabase, Bundle, Store } from "@monocoupon/db";
 import { BundleForm } from "../../BundleForm";
@@ -19,11 +19,15 @@ export default async function EditBundlePage({ params }: { params: Promise<{ id:
   const action = updateBundle.bind(null, id);
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-10">
-      <Link href="/bundles" className="text-sm text-brand-primary hover:underline">
-        ← All bundles
-      </Link>
-      <h1 className="text-2xl font-semibold">Edit Bundle</h1>
+    <FormPage
+      backHref="/bundles"
+      backLabel="All bundles"
+      title={bundle.name}
+      subtitle={`/products/${bundle.slug}`}
+      media={<Thumb src={bundle.image} alt={bundle.name} size="lg" />}
+      meta={<ActiveBadge active={bundle.isActive ?? true} />}
+      viewHref={siteUrl(`/products/${bundle.slug}`)}
+    >
       <BundleForm
         action={action}
         submitLabel="Save Changes"
@@ -42,6 +46,6 @@ export default async function EditBundlePage({ params }: { params: Promise<{ id:
           isActive: bundle.isActive ?? true,
         }}
       />
-    </div>
+    </FormPage>
   );
 }

@@ -38,36 +38,7 @@
      category-tint tiles/spotlights. */
   --accent-ochre: #b0853a;
   --accent-ochre-hover: #94702f;
-
-  --radius-base: 0.75rem;
-}
-
-@theme inline` block below.
- */
-
-:root {
-  --brand-primary: #7c6cf0;
-  --brand-primary-hover: #1a8459;
-  --brand-secondary: #5b4bd5;
-  --brand-secondary-hover: #0f5934;
-  --brand-accent: #c2379b;
-  --brand-accent-hover: #126c34;
-
-  --surface: #f7f8ff;
-  --surface-muted: #ffffff;
-  --text: #1e2440;
-  --text-muted: #6b7391;
-  --border: #e4e8f5;
-  --footer-bg: #1f1b3d;
-
-  /* Fixed editorial accent for the blog — deliberately NOT part of admin
-     theming (unlike every other color above, which flows from SiteSettings
-     .themeTokens via apps/web/app/layout.tsx's themeStyle). This site's
-     brand-accent/brand-secondary are already gold-toned (a "Forest & Gold"
-     theme, admin-configured), so gold itself needs no new fixed token —
-     this teal exists purely to give the category-tint palette a third real
-     hue alongside the two admin greens/golds. Used sparingly: category-tint
-     tiles/spotlights. */
+  /* Extra fixed hue for multi-series charts (admin accounting share chart). */
   --accent-teal: #2f6f6a;
   --accent-teal-hover: #285e5a;
 

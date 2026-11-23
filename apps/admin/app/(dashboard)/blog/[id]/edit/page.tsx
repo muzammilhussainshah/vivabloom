@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { FormPage, Thumb, Badge, siteUrl } from "@/components/ui";
 import { notFound } from "next/navigation";
 import { connectToDatabase, BlogPost, Category, Store, Product } from "@monocoupon/db";
 import { BLOG_COUNTRIES } from "@monocoupon/validation";
@@ -22,11 +22,20 @@ export default async function EditBlogPostPage({ params }: { params: Promise<{ i
   const action = updateBlogPost.bind(null, id);
 
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-6 px-4 py-10">
-      <Link href="/blog" className="text-sm text-brand-primary hover:underline">
-        ← All posts
-      </Link>
-      <h1 className="text-2xl font-semibold">Edit Blog Post</h1>
+    <FormPage
+      backHref="/blog"
+      backLabel="All posts"
+      title={post.title}
+      subtitle={`/blog/${post.slug}`}
+      media={<Thumb src={post.coverImage} alt={post.title} size="lgWide" />}
+      meta={
+        <Badge tone={post.status === "published" ? "success" : post.status === "scheduled" ? "warning" : "neutral"} dot>
+          <span className="capitalize">{post.status ?? "draft"}</span>
+        </Badge>
+      }
+      viewHref={post.status === "published" ? siteUrl(`/blog/${post.slug}`) : null}
+      width="lg"
+    >
       <BlogPostForm
         action={action}
         submitLabel="Save Changes"
@@ -60,6 +69,6 @@ export default async function EditBlogPostPage({ params }: { params: Promise<{ i
           aiCountry: post.aiCountry,
         }}
       />
-    </div>
+    </FormPage>
   );
 }

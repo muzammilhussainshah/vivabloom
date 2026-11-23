@@ -1,10 +1,32 @@
-import Link from "next/link";
 import type { Metadata } from "next";
-import { connectToDatabase, Store } from "@monocoupon/db";
+import { connectToDatabase, Product, Store } from "@monocoupon/db";
 import { deleteStore } from "./actions";
+import {
+  ActiveBadge,
+  Badge,
+  ButtonLink,
+  EditAction,
+  EmptyState,
+  ItemCell,
+  PageHeader,
+  PageShell,
+  PlusIcon,
+  RowActions,
+  TableCard,
+  Thumb,
+  Toolbar,
+  ViewAction,
+  siteUrl,
+  table,
+} from "@/components/ui";
+import { ClearFilters, DeleteButton, SearchField } from "@/components/ui/client";
 
 export const metadata: Metadata = { title: "Stores" };
 export const dynamic = "force-dynamic";
+
+function escapeRegex(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
 
 export default async function StoresListPage({
   searchParams,
@@ -14,92 +36,114 @@ export default async function StoresListPage({
   const { q } = await searchParams;
   await connectToDatabase();
 
-  const filter = q ? { name: { $regex: q, $options: "i" } } : {};
-  const stores = await Store.find(filter)
-    .populate("categories", "name")
-    .sort({ isFeatured: -1, sortOrder: 1, name: 1 })
-    .lean();
+  const filter = q ? { name: { $regex: escapeRegex(q), $options: "i" } } : {};
+  const [stores, total, productCounts] = await Promise.all([
+    Store.find(filter).populate("categories", "name").sort({ isFeatured: -1, sortOrder: 1, name: 1 }).lean(),
+    Store.estimatedDocumentCount(),
+    Product.aggregate<{ _id: unknown; count: number }>([{ $group: { _id: "$store", count: { $sum: 1 } } }]),
+  ]);
+  const productsByStore = new Map(productCounts.map((r) => [String(r._id), r.count]));
+  const activeCount = stores.filter((s) => s.isActive).length;
 
   return (
-    <div className="mx-auto flex max-w-5xl flex-col gap-6 px-4 py-10">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Stores</h1>
-        <Link
-          href="/stores/new"
-          className="rounded-base bg-brand-primary px-4 py-2 text-sm font-medium text-white hover:bg-brand-primary-hover"
-        >
-          New Store
-        </Link>
-      </div>
+    <PageShell>
+      <PageHeader
+        title="Stores"
+        count={total}
+        description="Every store with its own landing page. Featured stores are listed first."
+        actions={
+          <ButtonLink href="/stores/new">
+            <PlusIcon />
+            New store
+          </ButtonLink>
+        }
+      />
 
-      <form className="flex gap-2">
-        <input
-          type="search"
-          name="q"
-          defaultValue={q ?? ""}
-          placeholder="Search stores by name…"
-          className="w-full max-w-sm rounded-base border border-border bg-surface px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
-        />
-        <button type="submit" className="rounded-base border border-border px-4 py-2 text-sm hover:bg-surface-muted">
-          Search
-        </button>
-      </form>
+      <Toolbar summary={`${stores.length} shown · ${activeCount} active`}>
+        <form className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+          <SearchField name="q" defaultValue={q} placeholder="Search stores by name…" clearHref="/stores" />
+          <ClearFilters href="/stores" active={Boolean(q)} />
+        </form>
+      </Toolbar>
 
-      <div className="overflow-x-auto rounded-base border border-border bg-surface">
-        <table className="w-full text-sm">
-          <thead className="border-b border-border bg-surface-muted text-left">
-            <tr>
-              <th className="p-3">Name</th>
-              <th className="p-3">Categories</th>
-              <th className="p-3">Sort</th>
-              <th className="p-3">Coupons</th>
-              <th className="p-3">Status</th>
-              <th className="p-3"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {stores.map((s) => (
-              <tr key={String(s._id)} className="border-b border-border last:border-0">
-                <td className="p-3 font-medium">
-                  {s.name}
-                  {s.isFeatured && <span className="ml-2 text-xs text-brand-secondary">★ Featured</span>}
+      <TableCard>
+        <thead className={table.thead}>
+          <tr>
+            <th className={table.th}>Store</th>
+            <th className={table.th}>Categories</th>
+            <th className={table.thRight}>Coupons</th>
+            <th className={table.thRight}>Products</th>
+            <th className={table.thRight}>Sort</th>
+            <th className={table.th}>Status</th>
+            <th className={table.thRight}>
+              <span className="sr-only">Actions</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {stores.map((s) => {
+            const id = String(s._id);
+            const categories = (s.categories as unknown as { _id: unknown; name: string }[] | undefined) ?? [];
+            return (
+              <tr key={id} className={table.tr}>
+                <td className={`${table.td} max-w-[340px]`}>
+                  <ItemCell
+                    href={`/stores/${id}/edit`}
+                    title={s.name}
+                    subtitle={
+                      <span className="flex items-center gap-2">
+                        <span>/stores/{s.slug}</span>
+                        {s.isFeatured && <Badge tone="warning">★ Featured</Badge>}
+                      </span>
+                    }
+                    thumb={<Thumb src={s.logo} alt={s.name} fit="contain" fallback={s.name} />}
+                  />
                 </td>
-                <td className="p-3 text-text-muted">
-                  {(s.categories as unknown as { name: string }[])?.map((c) => c.name).join(", ") || "—"}
-                </td>
-                <td className="p-3 text-text-muted">{s.sortOrder ?? 0}</td>
-                <td className="p-3">{s.stats?.totalCoupons ?? 0}</td>
-                <td className="p-3">
-                  {s.isActive ? (
-                    <span className="text-brand-accent">Active</span>
+                <td className={table.td}>
+                  {categories.length > 0 ? (
+                    <div className="flex flex-wrap gap-1.5">
+                      {categories.map((c) => (
+                        <Badge key={String(c._id)}>{c.name}</Badge>
+                      ))}
+                    </div>
                   ) : (
-                    <span className="text-text-muted">Inactive</span>
+                    <span className="text-text-muted">—</span>
                   )}
                 </td>
-                <td className="p-3 text-right">
-                  <div className="flex justify-end gap-3">
-                    <Link href={`/stores/${s._id}/edit`} className="text-brand-primary hover:underline">
-                      Edit
-                    </Link>
-                    <form action={deleteStore.bind(null, String(s._id))}>
-                      <button type="submit" className="text-brand-secondary hover:underline">
-                        Delete
-                      </button>
-                    </form>
-                  </div>
+                <td className={`${table.tdRight} font-semibold`}>{s.stats?.totalCoupons ?? 0}</td>
+                <td className={`${table.tdRight} font-semibold`}>{productsByStore.get(id) ?? 0}</td>
+                <td className={`${table.tdRight} text-text-muted`}>{s.sortOrder ?? 0}</td>
+                <td className={table.td}>
+                  <ActiveBadge active={s.isActive ?? true} />
+                </td>
+                <td className={table.td}>
+                  <RowActions>
+                    <ViewAction href={siteUrl(`/stores/${s.slug}`)} />
+                    <EditAction href={`/stores/${id}/edit`} />
+                    <DeleteButton action={deleteStore.bind(null, id)} itemName={s.name} itemType="store" />
+                  </RowActions>
                 </td>
               </tr>
-            ))}
-            {stores.length === 0 && (
-              <tr>
-                <td colSpan={6} className="p-6 text-center text-text-muted">
-                  No stores found.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-    </div>
+            );
+          })}
+          {stores.length === 0 && (
+            <tr>
+              <td colSpan={7}>
+                <EmptyState
+                  title={q ? `No stores match “${q}”` : "No stores yet"}
+                  description={q ? "Check the spelling or clear the search." : "Add a store to create its landing page."}
+                  action={
+                    <ButtonLink href="/stores/new">
+                      <PlusIcon />
+                      New store
+                    </ButtonLink>
+                  }
+                />
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </TableCard>
+    </PageShell>
   );
 }

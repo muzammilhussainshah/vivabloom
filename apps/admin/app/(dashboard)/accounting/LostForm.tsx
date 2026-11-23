@@ -60,7 +60,7 @@ export function LostForm({ stores, returnTo }: { stores: { id: string; name: str
             <button type="submit" disabled={isPending} className="self-start rounded-base bg-brand-secondary px-4 py-2 text-sm font-semibold text-white hover:bg-brand-secondary-hover disabled:opacity-60">
               {isPending ? "Writing off…" : "Mark as lost"}
             </button>
-            {state?.error && <p className="text-sm text-brand-secondary">{state.error}</p>}
+            {state?.error && <p role="alert" className="rounded-[10px] border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700">{state.error}</p>}
           </div>
         </form>
       )}

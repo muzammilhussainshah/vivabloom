@@ -60,7 +60,7 @@ export function ReturnForm({ stores, returnTo }: { stores: { id: string; name: s
             <button type="submit" disabled={isPending} className="self-start rounded-base bg-brand-primary px-4 py-2 text-sm font-semibold text-white hover:bg-brand-primary-hover disabled:opacity-60">
               {isPending ? "Adjusting…" : "Record return"}
             </button>
-            {state?.error && <p className="text-sm text-brand-secondary">{state.error}</p>}
+            {state?.error && <p role="alert" className="rounded-[10px] border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700">{state.error}</p>}
           </div>
           <p className="text-xs text-text-muted">
             Only reduces still-pending earnings, oldest day first. If this commission was already recovered (paid to you), the network

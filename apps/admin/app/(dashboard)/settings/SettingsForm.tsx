@@ -537,7 +537,7 @@ export function SettingsForm({ initialData }: { initialData: SettingsFormInitial
           {isPending ? "Saving…" : "Save Settings"}
         </button>
         {state?.success && <p className="text-sm text-brand-accent">Saved — public site updated.</p>}
-        {state?.error && <p className="text-sm text-brand-secondary">{state.error}</p>}
+        {state?.error && <p role="alert" className="rounded-[10px] border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700">{state.error}</p>}
       </div>
     </form>
   );

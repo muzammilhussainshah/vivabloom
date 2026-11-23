@@ -75,7 +75,7 @@ export async function EntriesTab({ searchParams }: { searchParams: EntriesSearch
 
   return (
     <div className="flex flex-col gap-6">
-      {error && <p className="rounded-base border border-brand-secondary bg-surface p-3 text-sm text-brand-secondary">{error}</p>}
+      {error && <p role="alert" className="rounded-[10px] border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700">{error}</p>}
 
       <EntryForm stores={storeOptions} initialData={editInitialData} returnTo={returnTo} isEditing={!!editInitialData} />
 
