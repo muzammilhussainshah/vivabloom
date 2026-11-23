@@ -101,6 +101,16 @@ export function Select({ children, className, value, defaultValue, placeholder, 
   const autoId = useId();
   const triggerId = id ?? autoId;
 
+  // form.reset() (e.g. accounting EntryForm after a save) resets the hidden
+  // select to its default; mirror that so the button doesn't show a stale label.
+  useEffect(() => {
+    const form = nativeRef.current?.form;
+    if (!form || isControlled) return;
+    const onReset = () => setTimeout(() => setInner(nativeRef.current?.value ?? ""), 0);
+    form.addEventListener("reset", onReset);
+    return () => form.removeEventListener("reset", onReset);
+  }, [isControlled]);
+
   const searchable = options.length > 8;
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -245,7 +255,9 @@ export function Select({ children, className, value, defaultValue, placeholder, 
         tabIndex={-1}
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 h-full w-full opacity-0"
-        onFocus={() => triggerRef.current?.focus()}
+        // Focus is deliberately NOT bounced to the button: when a required
+        // select is empty, the browser focuses this element to show its
+        // "Please select an item" bubble, and moving focus would hide it.
         onChange={(e) => {
           if (!isControlled) setInner(e.target.value);
           rest.onChange?.(e);
