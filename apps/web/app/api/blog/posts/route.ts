@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getBlogPostsPage } from "@/lib/data";
+import { getBlogPostsPage, toBlogPostCard } from "@/lib/data";
 
 // Paginated published-post feed for the homepage "Load More Articles" button.
 export const dynamic = "force-dynamic";
@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
 
   const { posts, total } = await getBlogPostsPage({ skip, limit, q });
   return NextResponse.json({
-    posts,
+    posts: posts.map(toBlogPostCard),
     total,
     hasMore: skip + posts.length < total,
   });

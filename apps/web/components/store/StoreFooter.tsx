@@ -1,7 +1,5 @@
-"use client";
 
 import type { Dictionary } from "@/lib/i18n";
-import { useSiteName } from "@/components/SiteNameProvider";
 
 /**
  * Footer for the store-detail routes only — see app/(store)/layout.tsx (and
@@ -12,13 +10,14 @@ import { useSiteName } from "@/components/SiteNameProvider";
  */
 export function StoreFooter({
   dict,
+  siteName,
   clearStickyBar = false,
 }: {
   dict: Dictionary["footer"];
+  siteName: string;
   /** Pad the bottom so the fixed StickyMobileBar doesn't cover the footer (mobile only). */
   clearStickyBar?: boolean;
 }) {
-  const siteName = useSiteName();
   return (
     <footer className={clearStickyBar ? "sv-footer--bar" : undefined} style={{ background: "var(--footer)", color: "var(--on-primary-dim)" }}>
       <div className="mx-auto grid max-w-[1240px] grid-cols-2 gap-8 px-4 py-10 md:grid-cols-4 md:py-12">

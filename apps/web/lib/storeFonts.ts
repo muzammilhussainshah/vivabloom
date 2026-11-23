@@ -29,4 +29,8 @@ export const storePlexMono = IBM_Plex_Mono({
   variable: "--font-plex-mono",
   subsets: ["latin"],
   weight: ["400", "600"],
+  // Only small labels use the mono face, so it isn't worth preloading: its
+  // two files would compete for bandwidth with the serif that renders the
+  // LCP text. It still loads from the stylesheet and swaps in.
+  preload: false,
 });

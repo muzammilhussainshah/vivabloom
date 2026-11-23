@@ -3,6 +3,7 @@
 import { RemoteImage } from "@/components/RemoteImage";
 import { GiftIcon } from "@/components/CouponIcons";
 import { OfferVoucher } from "@/components/store/OfferVoucher";
+import { resolveOfferVoucherText } from "@/components/store/storeText";
 import { copyCouponCode, trackCouponClick } from "@/lib/couponInteraction";
 import { deriveOffer } from "@/lib/offerContent";
 import { useSiteName } from "@/components/SiteNameProvider";
@@ -50,8 +51,8 @@ export function DealVoucherCard({
   // Computed client-side (not passed down as a prop from the server page)
   // because Dictionary["offerVoucher"] carries functions (voucherLabel,
   // serialLine) — those can't cross the server/client boundary as props.
-  // Same reason StoreDetailViewV2 calls getDictionary itself instead of
-  // receiving dict from its (server) page.
+  // (The store page avoids this by resolving those templates on the server —
+  // see components/store/storeText.ts.)
   const dict = getDictionary(country);
   const siteName = useSiteName();
   const offer = deriveOffer(store, store.offer, coupon, store.websiteUrl ?? "", country, siteName);
@@ -81,7 +82,7 @@ export function DealVoucherCard({
         storeSlug={store.slug}
         couponId={coupon?._id ?? null}
         onCtaClick={handleCtaClick}
-        dict={dict.offerVoucher}
+        dict={resolveOfferVoucherText(dict.offerVoucher, store.name, offer)}
         footerNote={
           tiles.length > 0 ? (
             <div className="mt-3">

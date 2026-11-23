@@ -6,7 +6,8 @@ import { CopyIcon, CheckIcon } from "@/components/CouponIcons";
 import { copyCouponCode, maskCode, maskUrlTail } from "@/lib/couponInteraction";
 import { useCenterFocus } from "@/lib/useCenterFocus";
 import type { CouponCard } from "@/lib/data";
-import type { Dictionary } from "@/lib/i18n";
+import type { AllDealsText } from "./storeText";
+import { useStoreActions } from "./StoreActions";
 import { formatFixedAmount } from "@monocoupon/validation/countries";
 
 const CTA_COUNTDOWN_SECONDS = 3; // displayed ticks: 3, 2, 1
@@ -14,13 +15,13 @@ const CTA_COUNTDOWN_TOTAL_SECONDS = 0.5; // real elapsed time before opening —
 const CTA_COUNTDOWN_TICK_MS = (CTA_COUNTDOWN_TOTAL_SECONDS * 1000) / CTA_COUNTDOWN_SECONDS;
 
 /** Same value/unit split the voucher's discountLabel uses, just derived per-card instead of from the single top coupon. No dedicated field distinguishes a site-wide policy (e.g. "free shipping") from a product-tied deal, so anything without a real percentage/fixed value falls back to a plain "Deal" — an admin can still make that distinction with the coupon's own title/description text. */
-function cardValueParts(coupon: CouponCard, country: string | null | undefined, dict: Dictionary["allDeals"]): { value: string; unit: string } {
+function cardValueParts(coupon: CouponCard, country: string | null | undefined, dict: AllDealsText): { value: string; unit: string } {
   if (coupon.discountType === "percentage" && coupon.discountValue) return { value: `${coupon.discountValue}%`, unit: dict.offUnit };
   if (coupon.discountType === "fixed" && coupon.discountValue) return { value: formatFixedAmount(coupon.discountValue, country), unit: dict.offUnit };
   return { value: dict.dealFallbackLabel, unit: "" };
 }
 
-function cardTag(coupon: CouponCard, isFeatured: boolean, dict: Dictionary["allDeals"]): string {
+function cardTag(coupon: CouponCard, isFeatured: boolean, dict: AllDealsText): string {
   if (isFeatured) return coupon.code ? dict.verifiedCode : dict.verifiedLink;
   return coupon.type === "code" ? dict.codeDeal : dict.productDeal;
 }
@@ -83,7 +84,7 @@ function DealCtaButton({
   featured: boolean;
   storeSlug: string;
   onActivate: (meta: { couponId: string; couponCode: string | null; destinationUrl: string }) => void;
-  dict: Dictionary["allDeals"];
+  dict: AllDealsText;
   country?: string | null;
 }) {
   const [copied, setCopied] = useState(false);
@@ -216,7 +217,7 @@ function DealCard({
   storeName: string;
   storeSlug: string;
   onActivate: (meta: { couponId: string; couponCode: string | null; destinationUrl: string }) => void;
-  dict: Dictionary["allDeals"];
+  dict: AllDealsText;
   country?: string | null;
 }) {
   const { value, unit } = cardValueParts(coupon, country, dict);
@@ -312,17 +313,18 @@ export function AllDealsSection({
   coupons,
   storeName,
   storeSlug,
-  onActivate,
   dict,
   country,
 }: {
   coupons: CouponCard[];
   storeName: string;
   storeSlug: string;
-  onActivate: (meta: { couponId: string; couponCode: string | null; destinationUrl: string }) => void;
-  dict: Dictionary["allDeals"];
+  dict: AllDealsText;
   country?: string | null;
 }) {
+  // Tracking + handoff for these cards come from StoreActionsProvider.
+  const storeActions = useStoreActions();
+  const onActivate = storeActions?.dealClick ?? (() => {});
   if (coupons.length <= 1) return null;
 
   const featuredId = coupons[0]._id;
@@ -334,7 +336,7 @@ export function AllDealsSection({
       </p>
 
       <h2 className="sv-section-heading font-store-serif mt-2" style={{ color: "var(--text)" }}>
-        {dict.heading(coupons.length, storeName)}
+        {dict.heading}
       </h2>
 
       <div className="mt-6 flex flex-col gap-3 md:gap-4">
@@ -354,7 +356,7 @@ export function AllDealsSection({
 
       <div className="mt-5 rounded-[13px] px-4 pt-4 pb-2" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
         <p className="sv-body" style={{ color: "var(--text-soft)" }}>
-          <strong style={{ color: "var(--text)" }}>{dict.wholeListStrong}</strong> {dict.wholeListRest(storeName)}
+          <strong style={{ color: "var(--text)" }}>{dict.wholeListStrong}</strong> {dict.wholeListRest}
         </p>
       </div>
     </section>

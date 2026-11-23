@@ -6,7 +6,8 @@ import { StoreMark } from "./StoreMark";
 import { CopyIcon, CheckIcon } from "@/components/CouponIcons";
 import { copyCouponCode, maskCode } from "@/lib/couponInteraction";
 import type { DerivedOffer } from "@/lib/offerContent";
-import type { Dictionary } from "@/lib/i18n";
+import type { OfferVoucherText } from "./storeText";
+import { useStoreActions } from "./StoreActions";
 
 /**
  * `discountSuffix` is authored as one string — "off {storeName}" / "at
@@ -123,11 +124,14 @@ export function OfferVoucher({
   offer: DerivedOffer;
   storeSlug: string;
   couponId: string | null;
-  onCtaClick: () => void;
-  dict: Dictionary["offerVoucher"];
+  /** Defaults to the store page's shared CTA handler (StoreActionsProvider); /deals passes its own. */
+  onCtaClick?: () => void;
+  dict: OfferVoucherText;
   /** Overrides the default "paste it at checkout" instructional line right below the CTA button — e.g. the /deals index replaces it with a small product strip instead. Omit to keep the default copy (every /stores/[slug] route). */
   footerNote?: ReactNode;
 }) {
+  const storeActions = useStoreActions();
+  const handleCtaClick = onCtaClick ?? storeActions?.ctaClick ?? (() => {});
   const [copied, setCopied] = useState(false);
   const copiedTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -173,7 +177,7 @@ export function OfferVoucher({
       flushSync(() => setCopied(true));
       if (copiedTimeout.current) clearTimeout(copiedTimeout.current);
       copiedTimeout.current = setTimeout(() => setCopied(false), 2500);
-      onCtaClick();
+      handleCtaClick();
       return;
     }
 
@@ -192,7 +196,7 @@ export function OfferVoucher({
     // Copying also starts the countdown — the deal opens on its own once it
     // finishes, no second tap needed.
     if (ctaCountdown !== null) return; // already counting down from an earlier tap
-    onCtaClick();
+    handleCtaClick();
     let remaining = CTA_COUNTDOWN_SECONDS;
     setCtaCountdown(remaining);
     ctaCountdownInterval.current = setInterval(() => {
@@ -231,10 +235,10 @@ export function OfferVoucher({
           />
           <div className="min-w-0 flex-1">
             <p className="truncate text-[14px] font-extrabold uppercase tracking-wide" style={{ color: "var(--page)" }}>
-              {dict.voucherLabel(storeName)}
+              {dict.voucherLabel}
             </p>
             <p className="font-store-mono truncate text-[10px] tracking-[0.06em]" style={{ color: "rgba(255,255,255,0.5)" }}>
-              {dict.serialLine(offer.serial)}
+              {dict.serialLine}
             </p>
           </div>
           {offer.verifiedDateShort && (

@@ -1,6 +1,3 @@
-"use client";
-
-import { useEffect, useRef, useState } from "react";
 import { JsonLd } from "@/components/JsonLd";
 import { BlogViewBeacon } from "@/components/BlogViewBeacon";
 import { StoreHeader } from "./StoreHeader";
@@ -13,21 +10,14 @@ import { HonestyPanel } from "./HonestyPanel";
 import { HowWeCheckFaq } from "./HowWeCheckFaq";
 import { RelatedArticles } from "./RelatedArticles";
 import { EmptyOfferState } from "./EmptyOfferState";
-import type { HandoffData } from "./HandoffModal";
 import { StoreFooter } from "./StoreFooter";
-import dynamic from "next/dynamic";
-
-// The "welcome back" modal only ever appears after a visitor has clicked a
-// deal and come back to this tab — never on first paint — so its code is
-// split out of the landing page's initial bundle and only fetched once the
-// first CTA arms it (see `handoffArmed` below), while the visitor is busy on
-// the merchant's tab.
-const HandoffModal = dynamic(() => import("./HandoffModal").then((m) => m.HandoffModal), { ssr: false });
-import { copyCouponCode, trackCouponClick } from "@/lib/couponInteraction";
+import { StoreActionsProvider } from "./StoreActions";
+import { resolveEmptyHeaderText, resolveStoreText } from "./storeText";
 import { deriveOffer } from "@/lib/offerContent";
-import { useSiteName } from "@/components/SiteNameProvider";
 import { getDictionary } from "@/lib/i18n";
 import { breadcrumbJsonLd, faqPageJsonLd, storeOffersJsonLd } from "@/lib/seo";
+import { getCachedSiteSettings } from "@/lib/data";
+import { resolveSiteName } from "@/lib/brand";
 import { getSupportedCountry } from "@monocoupon/validation/countries";
 import type { StoreCard, CouponCard, ProductCard as ProductCardData, BundleCard as BundleCardData, BlogPostCard } from "@/lib/data";
 
@@ -41,8 +31,15 @@ import type { StoreCard, CouponCard, ProductCard as ProductCardData, BundleCard 
  * the old page there's no separate per-variant marketing headline to render;
  * the variants still differ in <head> metaTitle/metaDescription only).
  *
+ * A server component — this is the paid-campaign landing page, so it ships as
+ * little JavaScript as possible. Offer derivation, the i18n dictionaries
+ * (templated strings are resolved here, see storeText.ts), JSON-LD and the
+ * static sections never reach the browser. The interactive widgets (header
+ * CTA, voucher, product tiles, All Deals, FAQ accordion, sticky bar) are
+ * client islands that get their click handlers from StoreActionsProvider,
+ * which also owns tracking and the "welcome back" handoff modal.
  */
-export function StoreDetailViewV2({
+export async function StoreDetailViewV2({
   store,
   coupons,
   products,
@@ -66,217 +63,100 @@ export function StoreDetailViewV2({
   googleAdsConversionLabel?: string | null;
 }) {
   const dict = getDictionary(country);
-  const siteName = useSiteName();
+  const siteName = resolveSiteName((await getCachedSiteSettings()).siteName);
   const offer = deriveOffer(store, store.offer, coupons[0] ?? null, store.websiteUrl ?? "", country, siteName);
   const storePath = country ? `/${country}/stores/${store.slug}` : `/stores/${store.slug}`;
-
-  // Root layout's <html lang> is a static "en" — it can't read the current
-  // route's country without forcing the whole site into dynamic rendering
-  // (the same ISR-breaking gotcha app/(store)/layout.tsx documents for
-  // params). This keeps the authoritative SEO signal (hreflang alternates,
-  // set server-side in generateMetadata) correct in the raw HTML regardless,
-  // while still fixing the attribute for screen readers/assistive tech,
-  // which read the live DOM rather than the initial server response.
-  useEffect(() => {
-    const languageCode = country ? (getSupportedCountry(country)?.languageCode ?? "en") : "en";
-    const previous = document.documentElement.lang;
-    document.documentElement.lang = languageCode;
-    return () => {
-      document.documentElement.lang = previous;
-    };
-  }, [country]);
-
-  // The "welcome back" modal (HandoffModal.tsx): armed by any CTA below with
-  // that CTA's own coupon data, then shown ~1s after this tab regains
-  // visibility — not at the moment of the click, since the merchant tab just
-  // opened and a modal fighting for attention on *this* tab while the
-  // visitor is busy on the other one would just be in the way. `pendingRef`
-  // holds an armed-but-not-yet-shown handoff; `wasHiddenRef` tracks whether
-  // this tab has actually been backgrounded since arming, so an unrelated
-  // visibility blip (or the initial arm itself) can't trigger it — only a
-  // genuine hidden→visible round trip can.
-  //
-  // Shown every time: each CTA click re-arms it, and every genuine
-  // hidden→visible round trip after that shows it again — no longer gated to
-  // once per session, so a visitor who checks several coupons/products (each
-  // in its own new tab) sees the handoff after each one, not just the first.
-  const [handoffData, setHandoffData] = useState<HandoffData | null>(null);
-  const [handoffArmed, setHandoffArmed] = useState(false);
-  const pendingHandoffRef = useRef<HandoffData | null>(null);
-  const wasHiddenRef = useRef(false);
-
-  useEffect(() => {
-    function handleVisibilityChange() {
-      if (document.visibilityState === "hidden") {
-        wasHiddenRef.current = true;
-        return;
-      }
-      if (wasHiddenRef.current && pendingHandoffRef.current) {
-        const armed = pendingHandoffRef.current;
-        pendingHandoffRef.current = null; // consume — an unrelated later tab switch shouldn't re-show it
-        setTimeout(() => setHandoffData(armed), 1000);
-      }
-      wasHiddenRef.current = false;
-    }
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
-  }, []);
-
-  function armHandoff(data: HandoffData) {
-    pendingHandoffRef.current = data;
-    setHandoffArmed(true);
-  }
-
-  function handleCtaClick() {
-    const meta = { storeSlug: store.slug, couponId: coupons[0]?._id ?? null, couponCode: offer.code, destinationUrl: offer.affiliateUrl };
-    copyCouponCode(offer.code, meta);
-    trackCouponClick(googleAdsConversionId, googleAdsConversionLabel, meta);
-    armHandoff({
-      title: `${offer.discountLabel} ${offer.discountSuffix}`,
-      description: offer.offerSubline,
-      code: offer.code,
-      affiliateUrl: offer.affiliateUrl,
-      couponId: coupons[0]?._id ?? null,
-    });
-  }
-
-  // The hero's click-confirmation strip shows products and bundles, not the
-  // coupon itself — passing null/null deliberately skips the Ads conversion
-  // ping here (only the actual coupon CTAs — voucher, nav bar, All Deals —
-  // should count) while the affiliate_click engagement beacon still fires.
-  function handleProductClick(url: string) {
-    const meta = { storeSlug: store.slug, couponId: coupons[0]?._id ?? null, couponCode: offer.code, destinationUrl: url };
-    copyCouponCode(offer.code, meta);
-    trackCouponClick(null, null, meta);
-    armHandoff({
-      title: `${offer.discountLabel} ${offer.discountSuffix}`,
-      description: offer.offerSubline,
-      code: offer.code,
-      affiliateUrl: url,
-      couponId: coupons[0]?._id ?? null,
-    });
-  }
-
-  // AllDealsSection copies each card's own code/link itself (via
-  // copyCouponCode, scoped to that specific coupon) before calling this —
-  // this only needs to fire the click/conversion tracking and arm the
-  // handoff, not copy again. These cards are real coupon CTAs (not products
-  // or bundles), so they count toward the Ads conversion same as the main
-  // voucher and nav bar.
-  function handleDealCtaClick(meta: { couponId: string; couponCode: string | null; destinationUrl: string }) {
-    trackCouponClick(googleAdsConversionId, googleAdsConversionLabel, { storeSlug: store.slug, ...meta });
-    const coupon = coupons.find((c) => c._id === meta.couponId);
-    armHandoff({
-      title: coupon?.title ?? `${offer.discountLabel} ${offer.discountSuffix}`,
-      description: coupon?.description,
-      code: meta.couponCode,
-      affiliateUrl: meta.destinationUrl,
-      couponId: meta.couponId,
-    });
-  }
-
-  const headerOffer = offer.hasOffer
-    ? {
-        discountLabel: offer.discountLabel,
-        discountSuffix: offer.discountSuffix,
-        verifiedDateShort: offer.verifiedDateShort,
-        affiliateUrl: offer.affiliateUrl,
-        storeSlug: store.slug,
-        couponId: coupons[0]?._id ?? null,
-        couponCode: offer.code,
-      }
-    : null;
 
   if (!offer.hasOffer) {
     return (
       <div>
-        <StoreHeader storeName={store.name} offer={null} dict={dict.storeHeader} />
+        <StoreHeader storeName={store.name} offer={null} dict={resolveEmptyHeaderText(dict.storeHeader)} />
         <EmptyOfferState storeName={store.name} storeLogo={store.logo} monogramLetter={offer.monogramLetter} dict={dict.emptyOffer} />
-        <StoreFooter dict={dict.footer} />
+        <StoreFooter dict={dict.footer} siteName={siteName} />
       </div>
     );
   }
 
+  const text = resolveStoreText(dict, store.name, offer, coupons.length);
+  const primaryCouponId = coupons[0]?._id ?? null;
+  const offerTitle = `${offer.discountLabel} ${offer.discountSuffix}`;
+  const headerOffer = {
+    discountLabel: offer.discountLabel,
+    discountSuffix: offer.discountSuffix,
+    verifiedDateShort: offer.verifiedDateShort,
+    affiliateUrl: offer.affiliateUrl,
+    storeSlug: store.slug,
+    couponId: primaryCouponId,
+    couponCode: offer.code,
+  };
+
   return (
-    <div>
-      <StoreHeader storeName={store.name} offer={headerOffer} dict={dict.storeHeader} onCtaClick={handleCtaClick} />
-      <JsonLd
-        data={breadcrumbJsonLd([
-          { name: dict.storeHero.home, path: "/" },
-          { name: store.name, path: storePath },
-        ])}
-      />
-      <JsonLd
-        data={storeOffersJsonLd(store, [
-          { title: `${offer.discountLabel} ${offer.discountSuffix}`, description: offer.offerSubline ?? undefined, expiryDate: null },
-        ])}
-      />
-      {store.faqs && store.faqs.length > 0 && <JsonLd data={faqPageJsonLd(store.faqs)} />}
-      {store.categories?.map((category) => (
-        <BlogViewBeacon key={category._id} type="category" id={category._id} />
-      ))}
+    <StoreActionsProvider
+      storeSlug={store.slug}
+      storeName={store.name}
+      storeLogo={store.logo}
+      monogramLetter={offer.monogramLetter}
+      country={country}
+      languageCode={country ? (getSupportedCountry(country)?.languageCode ?? "en") : "en"}
+      googleAdsConversionId={googleAdsConversionId}
+      googleAdsConversionLabel={googleAdsConversionLabel}
+      primaryCouponId={primaryCouponId}
+      offer={{ code: offer.code, affiliateUrl: offer.affiliateUrl, title: offerTitle, description: offer.offerSubline }}
+      coupons={coupons.map((c) => ({ _id: c._id, title: c.title, description: c.description }))}
+      bundles={bundles}
+      products={products}
+    >
+      <div>
+        <StoreHeader storeName={store.name} offer={headerOffer} dict={text.header} />
+        <JsonLd
+          data={breadcrumbJsonLd([
+            { name: dict.storeHero.home, path: "/" },
+            { name: store.name, path: storePath },
+          ])}
+        />
+        <JsonLd data={storeOffersJsonLd(store, [{ title: offerTitle, description: offer.offerSubline ?? undefined, expiryDate: null }])} />
+        {store.faqs && store.faqs.length > 0 && <JsonLd data={faqPageJsonLd(store.faqs)} />}
+        {store.categories?.map((category) => (
+          <BlogViewBeacon key={category._id} type="category" id={category._id} />
+        ))}
 
-      <StoreHero
-        storeName={store.name}
-        storeLogo={store.logo}
-        monogramLetter={offer.monogramLetter}
-        categoryName={store.categories?.[0]?.name}
-        tagline={tagline}
-        offer={offer}
-        products={products}
-        bundles={bundles}
-        onProductClick={handleProductClick}
-        dict={dict.storeHero}
-        country={country}
-        voucher={
-          <OfferVoucher
-            storeName={store.name}
-            storeLogo={store.logo}
-            monogramLetter={offer.monogramLetter}
-            offer={offer}
-            storeSlug={store.slug}
-            couponId={coupons[0]?._id ?? null}
-            onCtaClick={handleCtaClick}
-            dict={dict.offerVoucher}
-          />
-        }
-      />
-
-      <AllDealsSection
-        coupons={coupons}
-        storeName={store.name}
-        storeSlug={store.slug}
-        onActivate={handleDealCtaClick}
-        dict={dict.allDeals}
-        country={country}
-      />
-
-      <ProofStrip offer={offer} storeName={store.name} dict={dict.proof} />
-      <HonestyPanel offer={offer} storeName={store.name} dict={dict.honesty} />
-      <div id="how-we-check" style={{ scrollMarginTop: "80px" }}>
-        <HowWeCheckFaq faqs={store.faqs ?? []} dict={dict.howWeCheck} />
-      </div>
-      <RelatedArticles posts={relatedPosts} dict={dict.relatedArticles} />
-
-      <StickyMobileBar offer={offer} onCtaClick={handleCtaClick} dict={dict.stickyMobileBar} />
-
-      {handoffArmed && (
-        <HandoffModal
-          data={handoffData}
-          onClose={() => setHandoffData(null)}
-          onReopen={armHandoff}
+        <StoreHero
           storeName={store.name}
           storeLogo={store.logo}
           monogramLetter={offer.monogramLetter}
-          storeSlug={store.slug}
-          bundles={bundles}
+          categoryName={store.categories?.[0]?.name}
+          tagline={tagline}
+          offer={offer}
           products={products}
-          dict={dict.handoff}
+          bundles={bundles}
+          dict={text.hero}
           country={country}
+          voucher={
+            <OfferVoucher
+              storeName={store.name}
+              storeLogo={store.logo}
+              monogramLetter={offer.monogramLetter}
+              offer={offer}
+              storeSlug={store.slug}
+              couponId={primaryCouponId}
+              dict={text.offerVoucher}
+            />
+          }
         />
-      )}
 
-      <StoreFooter dict={dict.footer} clearStickyBar />
-    </div>
+        <AllDealsSection coupons={coupons} storeName={store.name} storeSlug={store.slug} dict={text.allDeals} country={country} />
+
+        <ProofStrip offer={offer} storeName={store.name} dict={dict.proof} />
+        <HonestyPanel offer={offer} storeName={store.name} dict={dict.honesty} />
+        <div id="how-we-check" style={{ scrollMarginTop: "80px" }}>
+          <HowWeCheckFaq faqs={store.faqs ?? []} dict={dict.howWeCheck} />
+        </div>
+        <RelatedArticles posts={relatedPosts} dict={dict.relatedArticles} />
+
+        <StickyMobileBar offer={offer} dict={text.stickyMobileBar} />
+
+        <StoreFooter dict={dict.footer} siteName={siteName} clearStickyBar />
+      </div>
+    </StoreActionsProvider>
   );
 }

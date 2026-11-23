@@ -1,14 +1,15 @@
-"use client";
-
+// Server component: the only interactive part of the hero — the product
+// tiles' click tracking — lives in the small ProductTileLink client island.
 import type { ReactNode } from "react";
 import { RemoteImage } from "@/components/RemoteImage";
 import { StoreMark } from "./StoreMark";
+import { ProductTileLink } from "./StoreActions";
+import type { StoreHeroText } from "./storeText";
 import { GiftIcon } from "@/components/CouponIcons";
 import type { DerivedOffer } from "@/lib/offerContent";
 import type { ProductCard as ProductCardData, BundleCard as BundleCardData } from "@/lib/data";
 import { buildCatalogTiles } from "@/lib/catalogItems";
 import { getSupportedCountry } from "@monocoupon/validation/countries";
-import type { Dictionary } from "@/lib/i18n";
 
 function CheckIcon() {
   return (
@@ -60,7 +61,6 @@ export function StoreHero({
   offer,
   products,
   bundles,
-  onProductClick,
   voucher,
   dict,
   country,
@@ -74,13 +74,12 @@ export function StoreHero({
   offer: DerivedOffer;
   products: ProductCardData[];
   bundles: BundleCardData[];
-  onProductClick: (url: string) => void;
   voucher: ReactNode;
-  dict: Dictionary["storeHero"];
+  dict: StoreHeroText;
   country?: string | null;
 }) {
   const heroProducts = buildCatalogTiles(products, bundles, 3, country);
-  const steps = dict.steps(Boolean(offer.code), storeName, offer.discountLabel);
+  const steps = dict.steps;
   const trustChecks = offer.trustChecks.slice(0, 4);
 
   return (
@@ -138,7 +137,7 @@ export function StoreHero({
                 </p>
                 <p className="mt-0.5 flex items-center gap-1.5 text-[12.5px] font-semibold" style={{ color: "var(--success)" }}>
                   <span className="sv-pulse-dot h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: "var(--success)" }} aria-hidden="true" />
-                  {dict.liveOffer(offer.verifiedDateLong)}
+                  {dict.liveOffer}
                 </p>
               </div>
             </div>
@@ -182,7 +181,7 @@ export function StoreHero({
                   {dict.onTheRightPage}
                 </p>
                 <p className="hidden text-right text-[12.5px] md:block" style={{ color: "var(--on-primary-faint)" }}>
-                  {dict.ownCutsLine(storeName, offer.discountLabel)}
+                  {dict.ownCutsLine}
                 </p>
               </div>
 
@@ -192,12 +191,9 @@ export function StoreHero({
                   const hasDiscount = !!(item.originalPrice && item.originalPrice > item.price);
                   const percentOff = hasDiscount ? Math.ceil(((item.originalPrice! - item.price) / item.originalPrice!) * 100) : null;
                   return (
-                    <a
+                    <ProductTileLink
                       key={`${item.kind}-${item.id}`}
                       href={item.url}
-                      target="_blank"
-                      rel="nofollow sponsored noopener"
-                      onClick={() => onProductClick(item.url)}
                       className="group flex w-[172px] shrink-0 snap-start flex-col overflow-hidden rounded-2xl ring-1 ring-white/10 shadow-[0_16px_32px_-18px_rgba(0,0,0,0.8)] transition-transform duration-200 hover:-translate-y-1 md:w-auto"
                       style={{ background: "var(--page)" }}
                     >
@@ -248,7 +244,7 @@ export function StoreHero({
                           </span>
                         </div>
                       </div>
-                    </a>
+                    </ProductTileLink>
                   );
                 })}
               </div>

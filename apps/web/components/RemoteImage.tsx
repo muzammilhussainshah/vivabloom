@@ -29,7 +29,15 @@ export function RemoteImage({
 }) {
   return (
     <div className={`relative overflow-hidden ${className ?? ""}`}>
-      <Image src={src} alt={alt} fill sizes={sizes} priority={priority} className={imgClassName} />
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        sizes={sizes}
+        priority={priority}
+        fetchPriority={priority ? "high" : undefined}
+        className={imgClassName}
+      />
     </div>
   );
 }

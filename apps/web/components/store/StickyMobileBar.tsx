@@ -3,14 +3,16 @@
 import { useEffect, useRef, useState } from "react";
 import { CopyIcon, CheckIcon } from "@/components/CouponIcons";
 import type { DerivedOffer } from "@/lib/offerContent";
-import type { Dictionary } from "@/lib/i18n";
+import type { StickyMobileBarText } from "./storeText";
+import { useStoreActions } from "./StoreActions";
 
 /**
  * Mobile-only fixed CTA bar, always on screen from the first paint, so a
  * visitor can convert from anywhere on the page with one thumb-reach tap.
  * `store-scope`'s bottom padding (store.css) keeps page content clear of it.
  */
-export function StickyMobileBar({ offer, onCtaClick, dict }: { offer: DerivedOffer; onCtaClick: () => void; dict: Dictionary["stickyMobileBar"] }) {
+export function StickyMobileBar({ offer, dict }: { offer: DerivedOffer; dict: StickyMobileBarText }) {
+  const storeActions = useStoreActions();
   const [copied, setCopied] = useState(false);
   const copiedTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -22,7 +24,7 @@ export function StickyMobileBar({ offer, onCtaClick, dict }: { offer: DerivedOff
   );
 
   function handleClick() {
-    onCtaClick();
+    storeActions?.ctaClick();
     if (!offer.code) return;
     setCopied(true);
     if (copiedTimeout.current) clearTimeout(copiedTimeout.current);
@@ -46,11 +48,11 @@ export function StickyMobileBar({ offer, onCtaClick, dict }: { offer: DerivedOff
       <div className="flex min-w-0 flex-col gap-1">
         {/* Wraps to a second line rather than truncating — "Enjoy 10% off {store}" is wider than what the button leaves on a phone, and a cut-off store name reads as broken. */}
         <p className="line-clamp-2 text-[14.5px] font-extrabold leading-[1.2]" style={{ color: "var(--page)" }}>
-          {dict.enjoyOffer(offer.discountLabel, offer.discountSuffix)}
+          {dict.enjoyOffer}
         </p>
         <p className="flex items-center gap-1.5 truncate text-xs leading-tight" style={{ color: "var(--success)" }}>
           <span className="sv-pulse-dot h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: "var(--success)" }} aria-hidden="true" />
-          {offer.verifiedDateShort ? dict.testedPrefix(offer.verifiedDateShort) : ""}
+          {dict.testedPrefix}
           {dict.liveOffer}
         </p>
       </div>

@@ -10,7 +10,8 @@ import { splitWordmark } from "@/lib/brand";
 const STORE_MARK = "color-mix(in srgb, var(--primary) 45%, #fff)";
 import { CopyIcon, CheckIcon } from "@/components/CouponIcons";
 import { urlTail } from "@/lib/couponInteraction";
-import type { Dictionary } from "@/lib/i18n";
+import type { StoreHeaderText } from "./storeText";
+import { useStoreActions } from "./StoreActions";
 
 export interface StoreHeaderOffer {
   discountLabel: string;
@@ -39,11 +40,12 @@ export function StoreHeader({
 }: {
   storeName: string | null;
   offer: StoreHeaderOffer | null;
-  dict: Dictionary["storeHeader"];
-  /** Copies the code, fires tracking, and arms the shared "welcome back" handoff modal — StoreDetailViewV2's handleCtaClick owns all of that; this header has none of its own to avoid double-firing it. */
+  dict: StoreHeaderText;
+  /** Optional override. By default the header calls StoreActionsProvider's shared ctaClick (copies the code, fires tracking, arms the "welcome back" handoff modal) — it has no tracking of its own, to avoid double-firing it. */
   onCtaClick?: () => void;
 }) {
   const [brandFirst, brandSecond] = splitWordmark(useSiteName());
+  const storeActions = useStoreActions();
   const [copied, setCopied] = useState(false);
   const copiedTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -61,7 +63,7 @@ export function StoreHeader({
 
   function handleCtaClick() {
     if (!offer) return;
-    onCtaClick?.();
+    (onCtaClick ?? storeActions?.ctaClick)?.();
     if (!offer.couponCode) return;
     setCopied(true);
     if (copiedTimeout.current) clearTimeout(copiedTimeout.current);
@@ -88,12 +90,12 @@ export function StoreHeader({
           <div className="ml-auto hidden items-center gap-4 md:flex">
             <div className="flex flex-col items-end gap-1 text-right leading-tight">
               <p className="text-[14px] font-bold" style={{ color: "var(--page)" }}>
-                {dict.enjoyOffer(offer.discountLabel, offer.discountSuffix)}
+                {dict.enjoyOffer}
               </p>
               {offer.verifiedDateShort && (
                 <p className="flex items-center justify-end gap-1.5 text-[11.5px]" style={{ color: "var(--success)" }}>
                   <span className="sv-pulse-dot h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: "var(--success)" }} aria-hidden="true" />
-                  {dict.testedLiveOffer(offer.verifiedDateShort)}
+                  {dict.testedLiveOffer}
                 </p>
               )}
             </div>
@@ -102,7 +104,7 @@ export function StoreHeader({
               target="_blank"
               rel="nofollow sponsored noopener"
               onClick={handleCtaClick}
-              aria-label={dict.ctaAriaLabel(Boolean(offer.couponCode), storeName ?? "")}
+              aria-label={dict.ctaAriaLabel}
               className="group relative inline-flex shrink-0 items-center justify-center gap-1.5 overflow-hidden whitespace-nowrap rounded-[10px] px-[18px] py-[11px] text-[14px] font-extrabold transition-colors"
               style={{ background: "var(--accent)", color: "var(--on-accent)" }}
             >

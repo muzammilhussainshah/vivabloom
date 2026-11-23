@@ -261,6 +261,17 @@ export interface BlogPostCard {
   views?: number;
 }
 
+/**
+ * Narrows a post to exactly the BlogPostCard fields. The queries return whole
+ * documents (full HTML `content`, SEO fields, tags...) typed as cards, so
+ * anything handed to a client component or an API response should go through
+ * this — on the homepage the stray `content` alone was ~70KB of RSC payload.
+ */
+export function toBlogPostCard(post: BlogPostCard): BlogPostCard {
+  const { _id, title, slug, excerpt, coverImage, category, author, publishedAt, views } = post;
+  return { _id, title, slug, excerpt, coverImage, category, author, publishedAt, views };
+}
+
 export interface BlogPostDetail extends BlogPostCard {
   content: string;
   tags?: string[];

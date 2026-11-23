@@ -1,4 +1,4 @@
-import { getBlogHomeData, getCachedSiteSettings } from "@/lib/data";
+import { getBlogHomeData, getCachedSiteSettings, toBlogPostCard } from "@/lib/data";
 import { FeaturedHero, withLineBreaks } from "@/components/FeaturedHero";
 import { MostReadBand } from "@/components/MostReadBand";
 import { CategorySpotlight } from "@/components/CategorySpotlight";
@@ -84,7 +84,7 @@ export default async function Home() {
         {/* Fresh This Week — dense list with Load More */}
         <section className="flex flex-col gap-6">
           <Kicker label="Catch Up" title="Fresh This Week" subtitle="The latest arrivals, freshly published." />
-          <LoadMoreArticles initialPosts={initialPosts} total={totalPosts} />
+          <LoadMoreArticles initialPosts={initialPosts.map(toBlogPostCard)} total={totalPosts} />
         </section>
       </div>
     </div>

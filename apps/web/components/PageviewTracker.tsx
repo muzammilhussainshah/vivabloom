@@ -7,6 +7,45 @@ import { getDeviceFingerprint } from "@/lib/deviceFingerprint";
 
 const SCROLL_MILESTONES = [25, 50, 75, 100];
 
+/** requestIdleCallback with a deadline; Safari has no rIC, so it falls back to a short timeout. */
+function runWhenIdle(fn: () => void, timeout = 1500) {
+  if (typeof window.requestIdleCallback === "function") {
+    window.requestIdleCallback(fn, { timeout });
+  } else {
+    setTimeout(fn, 200);
+  }
+}
+
+/** The pageview beacon, for the route captured at the time of navigation. */
+function sendPageview(pathname: string, searchParams: URLSearchParams) {
+  getDeviceFingerprint().then((fingerprintId) =>
+    sendBeacon("/api/track", {
+      fingerprintId,
+      path: pathname,
+      referrer: document.referrer || null,
+      utmSource: searchParams.get("utm_source"),
+      utmMedium: searchParams.get("utm_medium"),
+      utmCampaign: searchParams.get("utm_campaign"),
+      utmTerm: searchParams.get("utm_term"),
+      utmContent: searchParams.get("utm_content"),
+      screenWidth: window.screen?.width ?? null,
+      screenHeight: window.screen?.height ?? null,
+      gclid: searchParams.get("gclid"),
+      clientTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone ?? null,
+      // Permissionless automation/fingerprint signals: webdriver is true in
+      // undisguised Selenium/Puppeteer/Playwright; the hardware hints expose
+      // headless defaults (e.g. "iPhone" UA with 0 touch points, DPR 1).
+      webdriver: navigator.webdriver === true,
+      hardwareConcurrency: navigator.hardwareConcurrency ?? null,
+      deviceMemory: (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? null,
+      maxTouchPoints: navigator.maxTouchPoints ?? null,
+      devicePixelRatio: window.devicePixelRatio ?? null,
+      viewportWidth: window.innerWidth || null,
+      viewportHeight: window.innerHeight || null,
+    })
+  );
+}
+
 // Fires a fire-and-forget beacon on mount and on every client-side route
 // change. Runs after paint, never blocks rendering and never surfaces an
 // error. Also tracks passive engagement signals for the current page: time
@@ -19,32 +58,16 @@ export function PageviewTracker() {
     // The fingerprint promise is computed once per page load and cached;
     // the beacon waits for it (a few ms) but the page never does. No
     // cancellation on route change — every pageview must be reported.
-    getDeviceFingerprint().then((fingerprintId) =>
-      sendBeacon("/api/track", {
-        fingerprintId,
-        path: pathname,
-        referrer: document.referrer || null,
-        utmSource: searchParams.get("utm_source"),
-        utmMedium: searchParams.get("utm_medium"),
-        utmCampaign: searchParams.get("utm_campaign"),
-        utmTerm: searchParams.get("utm_term"),
-        utmContent: searchParams.get("utm_content"),
-        screenWidth: window.screen?.width ?? null,
-        screenHeight: window.screen?.height ?? null,
-        gclid: searchParams.get("gclid"),
-        clientTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone ?? null,
-        // Permissionless automation/fingerprint signals: webdriver is true in
-        // undisguised Selenium/Puppeteer/Playwright; the hardware hints expose
-        // headless defaults (e.g. "iPhone" UA with 0 touch points, DPR 1).
-        webdriver: navigator.webdriver === true,
-        hardwareConcurrency: navigator.hardwareConcurrency ?? null,
-        deviceMemory: (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? null,
-        maxTouchPoints: navigator.maxTouchPoints ?? null,
-        devicePixelRatio: window.devicePixelRatio ?? null,
-        viewportWidth: window.innerWidth || null,
-        viewportHeight: window.innerHeight || null,
-      })
-    );
+    //
+    // Deferred to idle time: the fingerprint creates a WebGL context and draws
+    // to a canvas — expensive native work that, run straight from this
+    // hydration effect, landed inside the page's main load task and was the
+    // biggest single Total Blocking Time cost on the PPC landing pages. The
+    // 1.5s deadline still gets the pageview out for visitors who bounce fast.
+    // Values are captured now so the beacon reports this route, not a later one.
+    const path = pathname;
+    const params = new URLSearchParams(searchParams.toString());
+    runWhenIdle(() => sendPageview(path, params));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname, searchParams.toString()]);
 
