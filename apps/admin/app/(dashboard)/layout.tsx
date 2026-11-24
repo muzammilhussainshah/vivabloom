@@ -2,6 +2,7 @@ import { connectToDatabase, getSiteSettings } from "@monocoupon/db";
 import { auth, signOut } from "@/auth";
 import { AdminSidebar } from "@/components/AdminSidebar";
 import { siteUrl } from "@/components/ui";
+import { DialogProvider } from "@/components/ui/Dialogs";
 
 export default async function DashboardLayout({
   children,
@@ -19,6 +20,7 @@ export default async function DashboardLayout({
   }
 
   return (
+    <DialogProvider>
     <div className="min-h-screen">
       <AdminSidebar
         userEmail={session?.user?.email}
@@ -32,5 +34,6 @@ export default async function DashboardLayout({
       </div>
       {modal}
     </div>
+    </DialogProvider>
   );
 }

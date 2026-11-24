@@ -3,6 +3,7 @@
 import { useEditor, EditorContent, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
+import { useDialogs } from "@/components/ui/Dialogs";
 import { forwardRef, useImperativeHandle, useState } from "react";
 
 function ToolbarButton({
@@ -31,6 +32,7 @@ function ToolbarButton({
 }
 
 function Toolbar({ editor }: { editor: Editor }) {
+  const { prompt } = useDialogs();
   return (
     <div className="flex flex-wrap gap-1 rounded-t-base border border-b-0 border-border bg-surface-muted p-2">
       <ToolbarButton label="Bold" onClick={() => editor.chain().focus().toggleBold().run()} active={editor.isActive("bold")}>
@@ -69,8 +71,8 @@ function Toolbar({ editor }: { editor: Editor }) {
       </ToolbarButton>
       <ToolbarButton
         label="Link"
-        onClick={() => {
-          const url = window.prompt("URL");
+        onClick={async () => {
+          const url = await prompt({ title: "Add a link", label: "URL", placeholder: "https://", confirmLabel: "Add link" });
           if (url) editor.chain().focus().setLink({ href: url }).run();
         }}
         active={editor.isActive("link")}

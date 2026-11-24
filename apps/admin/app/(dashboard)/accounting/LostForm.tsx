@@ -1,5 +1,6 @@
 "use client";
 
+import { useDialogs } from "@/components/ui/Dialogs";
 import { Select } from "@/components/ui/Select";
 
 import { useActionState, useState } from "react";
@@ -8,6 +9,7 @@ import { markLost, type ActionState } from "./actions";
 export function LostForm({ stores, returnTo }: { stores: { id: string; name: string; pendingLabel: string }[]; returnTo: string }) {
   const [state, formAction, isPending] = useActionState<ActionState, FormData>(markLost, undefined);
   const [open, setOpen] = useState(false);
+  const { confirmSubmit } = useDialogs();
 
   return (
     <div className="rounded-base border border-border bg-surface p-4">
@@ -18,9 +20,12 @@ export function LostForm({ stores, returnTo }: { stores: { id: string; name: str
         <form
           action={formAction}
           className="mt-3 flex flex-col gap-3"
-          onSubmit={(e) => {
-            if (!confirm("This permanently marks pending earnings as unrecoverable. Continue?")) e.preventDefault();
-          }}
+          onSubmit={confirmSubmit({
+            title: "Write off this store as lost?",
+            message: "This permanently marks the pending earnings as unrecoverable.",
+            confirmLabel: "Write off",
+            tone: "danger",
+          })}
         >
           <input type="hidden" name="returnTo" value={returnTo} />
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4">

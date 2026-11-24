@@ -1,5 +1,6 @@
 "use client";
 
+import { useDialogs } from "@/components/ui/Dialogs";
 import { Select } from "@/components/ui/Select";
 
 import { useActionState, useState } from "react";
@@ -8,6 +9,7 @@ import { markReturned, type ActionState } from "./actions";
 export function ReturnForm({ stores, returnTo }: { stores: { id: string; name: string; pendingLabel: string }[]; returnTo: string }) {
   const [state, formAction, isPending] = useActionState<ActionState, FormData>(markReturned, undefined);
   const [open, setOpen] = useState(false);
+  const { confirmSubmit } = useDialogs();
 
   return (
     <div className="rounded-base border border-border bg-surface p-4">
@@ -18,9 +20,12 @@ export function ReturnForm({ stores, returnTo }: { stores: { id: string; name: s
         <form
           action={formAction}
           className="mt-3 flex flex-col gap-3"
-          onSubmit={(e) => {
-            if (!confirm("This removes the commission for a returned/cancelled sale from pending earnings. Continue?")) e.preventDefault();
-          }}
+          onSubmit={confirmSubmit({
+            title: "Remove this returned sale?",
+            message: "This removes the commission for a returned or cancelled sale from pending earnings.",
+            confirmLabel: "Remove commission",
+            tone: "warning",
+          })}
         >
           <input type="hidden" name="returnTo" value={returnTo} />
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4">

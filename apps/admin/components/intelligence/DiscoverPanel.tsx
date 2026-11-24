@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import { useDialogs } from "@/components/ui/Dialogs";
 import { RESEARCH_CATEGORIES, RESEARCH_COUNTRIES, getResearchCountry } from "@monocoupon/validation";
 import { Select, Spinner } from "@/components/ui/client";
 import type { DiscoveredStore, DiscoveryHistoryItem, HiddenStore } from "@/lib/intelligence/discover";
@@ -32,6 +33,7 @@ export interface DiscoverView {
  */
 export function DiscoverPanel({ history, view, totalFound }: { history: DiscoveryHistoryItem[]; view: DiscoverView | null; totalFound: number }) {
   const router = useRouter();
+  const { confirm } = useDialogs();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [starting, setStarting] = useState<string | null>(null);
@@ -97,7 +99,14 @@ export function DiscoverPanel({ history, view, totalFound }: { history: Discover
   }
 
   async function remove(item: DiscoveryHistoryItem) {
-    if (!confirm(`Delete the saved search “${item.category}${item.keyword ? ` · ${item.keyword}` : ""}”? Store reports you already ran are kept.`)) return;
+    const ok = await confirm({
+      title: "Delete this saved search?",
+      message: <span className="font-medium text-text">{item.category}{item.keyword ? ` · ${item.keyword}` : ""}</span>,
+      note: "Store reports you already ran are kept.",
+      confirmLabel: "Delete",
+      tone: "danger",
+    });
+    if (!ok) return;
     setDeleting(item.id);
     try {
       await fetch(`/api/intelligence/discover/${item.id}`, { method: "DELETE" });
@@ -239,8 +248,14 @@ export function DiscoverPanel({ history, view, totalFound }: { history: Discover
                   {view.params && (
                     <button
                       type="button"
-                      onClick={() => {
-                        if (confirm("Run this search again for fresh results? This uses about 3 web-search credits.")) void search(view.params as NonNullable<DiscoverView["params"]>, true);
+                      onClick={async () => {
+                        const ok = await confirm({
+                          title: "Run this search again?",
+                          message: "You'll get fresh results and the saved list is replaced.",
+                          note: "Uses about 3 web-search credits. Reopening a saved search is free.",
+                          confirmLabel: "Search again",
+                        });
+                        if (ok) void search(view.params as NonNullable<DiscoverView["params"]>, true);
                       }}
                       disabled={busy}
                       className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-[10px] border border-border bg-white px-3 text-sm font-semibold text-text hover:bg-surface disabled:opacity-60"

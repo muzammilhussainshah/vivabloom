@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, useTransition, type DragEvent } from "react";
+import { useDialogs } from "@/components/ui/Dialogs";
 import { deleteCoupon, markVerified, reorderCoupons } from "./actions";
 
 export interface CouponRow {
@@ -71,6 +72,7 @@ function move<T>(list: T[], from: number, to: number): T[] {
 }
 
 function StoreCouponList({ group, webUrl }: { group: StoreGroup; webUrl: string | null }) {
+  const { confirmSubmit } = useDialogs();
   const [items, setItems] = useState(group.coupons);
   const [dragId, setDragId] = useState<string | null>(null);
   const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
@@ -256,9 +258,13 @@ function StoreCouponList({ group, webUrl }: { group: StoreGroup; webUrl: string 
                 </Link>
                 <form
                   action={deleteCoupon.bind(null, c.id)}
-                  onSubmit={(e) => {
-                    if (!confirm(`Delete "${c.title}"?`)) e.preventDefault();
-                  }}
+                  onSubmit={confirmSubmit({
+                    title: "Delete this coupon?",
+                    message: <span className="font-medium text-text">{c.title}</span>,
+                    note: "It will be removed from the live site. This can't be undone.",
+                    confirmLabel: "Delete",
+                    tone: "danger",
+                  })}
                 >
                   <button type="submit" className="text-brand-secondary hover:underline">
                     Delete

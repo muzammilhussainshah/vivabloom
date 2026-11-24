@@ -3,16 +3,24 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Spinner } from "@/components/ui/client";
+import { useDialogs } from "@/components/ui/Dialogs";
 import { buttonStyles } from "@/components/ui";
 
 /** Re-runs every research step for this store (spends web-search credits again). */
 export function RecheckButton({ domain, country }: { domain: string; country: string | null }) {
   const router = useRouter();
+  const { confirm } = useDialogs();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function recheck() {
-    if (!confirm("Re-check this store from scratch? This uses about 8–10 web-search credits.")) return;
+    const ok = await confirm({
+      title: "Re-check this store?",
+      message: "Every research step runs again from scratch and replaces the saved report.",
+      note: "Uses about 8–10 web-search credits. Opening the saved report is always free.",
+      confirmLabel: "Re-check",
+    });
+    if (!ok) return;
     setBusy(true);
     setError(null);
     try {
