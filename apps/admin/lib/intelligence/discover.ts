@@ -1,12 +1,17 @@
-import { connectToDatabase, StoreCheck, StoreDiscovery } from "@monocoupon/db";
+import { connectToDatabase, Store, StoreCheck, StoreDiscovery } from "@monocoupon/db";
 import { discoveryExtractionSchema, getResearchCountry } from "@monocoupon/validation";
 import { STORE_DISCOVERY_SYSTEM_PROMPT, storeDiscoveryPrompt } from "@/lib/ai/prompts";
 import { llmJson } from "./llm";
 import { tavilySearchAll } from "./tavily";
-import { compact, domainOfUrl, isLikelyStoreDomain, nameFromDomain } from "./domain";
+import { compact, domainOfUrl, isLikelyStoreDomain, nameFromDomain, networkForUrl } from "./domain";
 import { normalizeForMatch, quoteInText } from "./evidence";
 import { mapLimit } from "./safeFetch";
 import { probeStoreSite } from "./identity";
+import { fetchTraffic, trafficTier } from "./traffic";
+import { htmlToText } from "./html";
+import { safeFetch } from "./safeFetch";
+import { leadScore, parseCommission, scanAdRules, type EarlyWarning, type LeadBand } from "./leads";
+import { getStoreMoneySummaries } from "@/lib/accounting/aggregate";
 import type { ScoreResult } from "./types";
 
 /**
@@ -27,6 +32,16 @@ export interface DiscoveredStore {
   check: { id: string; verdict: ScoreResult["verdict"]; trust: number } | null;
   /** Evidence that the store runs an affiliate program — only stores with it are shown. Undefined on searches saved before filtering. */
   program?: { via: "list" | "site"; label: string; url: string } | null;
+  /** Free early signals, filled in by enrichPending() after a search (see leads.ts). */
+  enriched?: boolean;
+  network?: string | null;
+  commission?: { min: number; max: number } | null;
+  rank?: number | null;
+  tier?: "very_high" | "high" | "medium" | "low" | "unranked" | null;
+  warning?: EarlyWarning | null;
+  /** Read-time: your own history with this store (never saved on the search). */
+  yours?: { onSite: boolean; lostCents: number; spentCents: number; netCents: number } | null;
+  lead?: { score: number; band: LeadBand };
 }
 
 export interface HiddenStore {
@@ -103,13 +118,36 @@ function focusListText(text: string, maxChars: number): string {
   return keep.sort((a, b) => a.i - b.i).map((x) => x.l).join("\n") || text.slice(0, maxChars);
 }
 
-/** Marks stores that already have a Store Check (matched by domain, else by name), so they open without spending credits. */
+/**
+ * Read-time decoration (never saved): the existing Store Check for a store (so
+ * it opens for free), your own history with it from Accounting, and the lead
+ * score that ranks it.
+ */
 async function attachChecks(stores: DiscoveredStore[]): Promise<DiscoveredStore[]> {
-  const checks = await StoreCheck.find({}, "domain name score").lean();
+  const [checks, mine, money] = await Promise.all([
+    StoreCheck.find({}, "domain name score").lean(),
+    Store.find({}, "name websiteUrl").lean(),
+    getStoreMoneySummaries().catch(() => []),
+  ]);
+  const mineByDomain = new Map(mine.filter((m) => m.websiteUrl).map((m) => [domainOfUrl(m.websiteUrl as string) ?? "", m]));
   return stores.map((s) => {
     const c = checks.find((x) => (s.domain && x.domain === s.domain) || (x.name && compact(x.name) === compact(s.name)));
     const score = c?.score as ScoreResult | null | undefined;
-    return { ...s, domain: s.domain ?? c?.domain ?? null, check: c && score ? { id: String(c._id), verdict: score.verdict, trust: score.trust } : null };
+    const domain = s.domain ?? c?.domain ?? null;
+    const own = domain ? mineByDomain.get(domain) : undefined;
+    const m = own ? money.find((x) => x.storeId === String(own._id)) : undefined;
+    const yours = own ? { onSite: true, lostCents: m?.lostCents ?? 0, spentCents: m?.spentCents ?? 0, netCents: m?.netCents ?? 0 } : null;
+    const check = c && score ? { id: String(c._id), verdict: score.verdict, trust: score.trust } : null;
+    const lead = leadScore({
+      hasSiteEvidence: s.program?.via === "site",
+      commissionMax: s.commission?.max ?? null,
+      network: s.network ?? null,
+      tier: s.tier ?? null,
+      warning: s.warning ?? null,
+      checkVerdict: check?.verdict ?? null,
+      lostMoneyBefore: (yours?.lostCents ?? 0) > 0,
+    });
+    return { ...s, domain, check, yours, lead };
   });
 }
 
@@ -126,7 +164,7 @@ export interface DiscoveryResult {
   createdAt: string;
 }
 
-export async function discoverStores(opts: { country: string; category: string; keyword?: string | null; force?: boolean }): Promise<{
+export async function discoverStores(opts: { country: string; category: string; keyword?: string | null; force?: boolean; more?: boolean }): Promise<{
   id: string;
   stores: DiscoveredStore[];
   cached: boolean;
@@ -139,16 +177,23 @@ export async function discoverStores(opts: { country: string; category: string; 
 
   const cached = await StoreDiscovery.findOne({ key }).lean();
   // A saved search is always reused — only an explicit "search again" spends credits.
-  if (cached && !opts.force) {
+  if (cached && !opts.force && !opts.more) {
     return { id: String(cached._id), stores: await attachChecks(cached.results as DiscoveredStore[]), cached: true, createdAt: new Date(cached.updatedAt).toISOString() };
   }
 
   const topic = keyword ? `${keyword} (${opts.category})` : opts.category;
-  const queries = [
-    `best ${topic} brands with affiliate programs ${countryName}`,
-    `${topic} affiliate programs ${countryName} commission brands list`,
-    `top direct-to-consumer ${topic} brands ${countryName} online store`,
-  ];
+  // "Find more" looks from different angles (network directories, coupon/PPC-friendly programs, programs with stated rates) and merges into the saved search.
+  const queries = opts.more
+    ? [
+        `${topic} brands on Impact OR Awin OR ShareASale OR "CJ Affiliate" OR FlexOffers OR Rakuten affiliate program ${countryName}`,
+        `${topic} affiliate program coupon sites allowed paid search PPC allowed ${countryName}`,
+        `${topic} brands "join our affiliate program" commission cookie ${countryName}`,
+      ]
+    : [
+        `best ${topic} brands with affiliate programs ${countryName}`,
+        `${topic} affiliate programs ${countryName} commission brands list`,
+        `top direct-to-consumer ${topic} brands ${countryName} online store`,
+      ];
   const searched = await tavilySearchAll(queries, { maxResults: 7, includeRawContent: true });
   const credits = searched.credits;
 
@@ -236,8 +281,17 @@ export async function discoverStores(opts: { country: string; category: string; 
 
   // Only stores with affiliate-program evidence are kept; the rest are listed as hidden.
   await addSiteEvidence(stores, Math.max(startedAt + 18_000, Date.now() + 14_000));
-  const kept = stores.filter((s) => s.program);
-  const hidden: HiddenStore[] = stores.filter((s) => !s.program).map((s) => ({ name: s.name, domain: s.domain }));
+  let kept = stores.filter((s) => s.program);
+  let hidden: HiddenStore[] = stores.filter((s) => !s.program).map((s) => ({ name: s.name, domain: s.domain }));
+
+  // "Find more" keeps everything already saved (including its enrichment) and only adds new brands.
+  if (opts.more && cached) {
+    const have = (cached.results ?? []) as DiscoveredStore[];
+    const same = (a: { name: string; domain: string | null }, b: { name: string; domain: string | null }) => (a.domain && a.domain === b.domain) || compact(a.name) === compact(b.name);
+    kept = [...have, ...kept.filter((n) => !have.some((h) => same(h, n)))];
+    const oldHidden = (cached.hidden ?? []) as HiddenStore[];
+    hidden = [...oldHidden, ...hidden.filter((h) => !oldHidden.some((o) => same(o, h)) && !kept.some((k) => same(k, h)))];
+  }
 
   const saved = await StoreDiscovery.findOneAndUpdate(
     { key },
@@ -265,6 +319,81 @@ export async function filterSavedDiscovery(id: string): Promise<void> {
   const kept = stores.filter((s) => s.program);
   const hidden: HiddenStore[] = stores.filter((s) => !s.program).map((s) => ({ name: s.name, domain: s.domain }));
   await StoreDiscovery.updateOne({ _id: d._id }, { $set: { results: kept, hidden, programFiltered: true } });
+}
+
+/* ---------- Free enrichment ---------- */
+
+async function enrichOne(s: DiscoveredStore, deadline: number): Promise<void> {
+  const domain = s.domain;
+  const text = `${s.program?.label ?? ""} ${s.note ?? ""}`;
+  s.commission = parseCommission(text);
+  if (!domain || Date.now() > deadline) return;
+  const [probe, traffic] = await Promise.all([probeStoreSite(domain).catch(() => null), fetchTraffic(domain).catch(() => null)]);
+  s.network = probe?.program?.network ?? (s.program?.url ? networkForUrl(s.program.url) : null) ?? s.network ?? null;
+  if (traffic) {
+    s.rank = traffic.rank;
+    s.tier = trafficTier(traffic.rank);
+  }
+  // Read the store's own affiliate page (not a network's) and look for rules about coupon sites / paid search / brand terms.
+  const pageUrl = probe?.program?.url ?? (s.program?.via === "site" ? s.program.url : null);
+  if (pageUrl && domainOfUrl(pageUrl) === domain && Date.now() < deadline) {
+    const res = await safeFetch(pageUrl, { timeoutMs: 7000, maxBytes: 1_500_000 }).catch(() => null);
+    if (res?.ok && res.text) s.warning = scanAdRules(htmlToText(res.text), pageUrl);
+  }
+  // Done only if the popularity lookup worked (it is rate-limited) — otherwise try again next time.
+  s.enriched = Boolean(traffic);
+}
+
+/**
+ * Adds free early signals (network, commission rate, popularity rank, rules on
+ * the store's affiliate page) to saved stores that don't have them yet. No web
+ * search credits and no AI; bounded per call — the page calls it again while
+ * `remaining` is above zero.
+ */
+export async function enrichPending(opts: { limit?: number; budgetMs?: number } = {}): Promise<{ done: number; remaining: number }> {
+  await connectToDatabase();
+  const deadline = Date.now() + (opts.budgetMs ?? 40_000);
+  const limit = opts.limit ?? 8;
+  const [docs, checks] = await Promise.all([StoreDiscovery.find({}).sort({ updatedAt: -1 }).limit(100), StoreCheck.find({}, "domain name").lean()]);
+  const pending: { doc: (typeof docs)[number]; store: DiscoveredStore }[] = [];
+  let total = 0;
+  for (const doc of docs) {
+    for (const store of (doc.results ?? []) as DiscoveredStore[]) {
+      // A store saved without a website can still be enriched once a Store Check has revealed its domain.
+      if (!store.domain) store.domain = domainFromChecks(store, checks);
+      if (!needsEnrichment(store)) continue;
+      total++;
+      if (pending.length < limit) pending.push({ doc, store });
+    }
+  }
+  await mapLimit(pending, 2, async ({ store }) => {
+    await enrichOne(store, deadline);
+  });
+  const touched = new Set(pending.map((p) => p.doc));
+  for (const doc of touched) {
+    // A plain $set (not doc.save) so two overlapping enrichment calls can't fail with a version conflict.
+    await StoreDiscovery.updateOne({ _id: doc._id }, { $set: { results: doc.toObject().results } }, { timestamps: false });
+  }
+  const finished = pending.filter((p) => p.store.enriched).length;
+  return { done: finished, remaining: Math.max(0, total - finished) };
+}
+
+function domainFromChecks(s: DiscoveredStore, checks: { domain: string; name?: string | null }[]): string | null {
+  return checks.find((c) => c.name && compact(c.name) === compact(s.name))?.domain ?? null;
+}
+
+/** Only stores with a known website can be enriched; the rest are skipped (not retried forever). */
+function needsEnrichment(s: DiscoveredStore): boolean {
+  return !s.enriched && Boolean(s.domain);
+}
+
+export async function countPendingEnrichment(): Promise<number> {
+  await connectToDatabase();
+  const [docs, checks] = await Promise.all([StoreDiscovery.find({}, "results").sort({ updatedAt: -1 }).limit(100).lean(), StoreCheck.find({}, "domain name").lean()]);
+  return docs.reduce(
+    (n, d) => n + ((d.results ?? []) as DiscoveredStore[]).filter((s) => !s.enriched && Boolean(s.domain ?? domainFromChecks(s, checks))).length,
+    0
+  );
 }
 
 /* ---------- History ---------- */

@@ -15,6 +15,12 @@ const HINTS: Record<(typeof RESEARCH_CATEGORIES)[number], string[]> = {
   Lifestyle: ["lifestyle", "gift", "stationery", "journal"],
   "Food & Drink": ["coffee", "tea", "snack", "chocolate", "beverage", "gourmet", "grocery", "wine", "drink"],
   "Jewelry & Accessories": ["jewelry", "jewellery", "watch", "wallet", "bracelet", "necklace", "accessor", "handbag", "sunglasses"],
+  "Mattresses & Sleep": ["mattress", "pillow", "sleep", "bedding", "duvet"],
+  Gaming: ["gaming", "gamer", "console", "esports", "controller"],
+  Automotive: ["car ", "auto parts", "automotive", "tyre", "tire", "motorcycle", "dash cam"],
+  "Garden & Tools": ["garden", "lawn", "tools", "power tool", "plant", "outdoor furniture"],
+  "Office & Stationery": ["office", "stationery", "desk", "notebook", "planner", "ergonomic"],
+  "Gifts & Flowers": ["flowers", "bouquet", "gift box", "gifts", "personalised", "personalized"],
   "Outdoor & Travel": ["outdoor", "camping", "hiking", "travel", "luggage", "backpack", "tent", "adventure"],
 };
 

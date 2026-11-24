@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { refreshUsage } from "@/components/UsageDock";
 import { useDialogs } from "@/components/ui/Dialogs";
-import { RESEARCH_CATEGORIES, RESEARCH_COUNTRIES, getResearchCountry } from "@monocoupon/validation";
+import { RESEARCH_CATEGORIES, RESEARCH_COUNTRIES, STORE_CHECK_STEPS, getResearchCountry } from "@monocoupon/validation";
 import { Select, Spinner } from "@/components/ui/client";
 import type { DiscoveredStore, DiscoveryHistoryItem, HiddenStore } from "@/lib/intelligence/discover";
-import { Pill, VerdictPill, fieldLabelClass, hostAndPath, inputClass, selectClass, timeAgo } from "./ui";
+import { Pill, VerdictPill, fieldLabelClass, formatMoney, hostAndPath, inputClass, selectClass, timeAgo } from "./ui";
 import { StoreLogo } from "./StoreLogo";
 
 
@@ -32,7 +32,25 @@ export interface DiscoverView {
  * "Find new stores": a search form, the history of every saved search (each
  * reopens for free), and the stores of the selected search.
  */
-export function DiscoverPanel({ history, view, totalFound }: { history: DiscoveryHistoryItem[]; view: DiscoverView | null; totalFound: number }) {
+const BAND_META = {
+  strong: { label: "Strong lead", cls: "bg-emerald-50 text-emerald-700 ring-emerald-600/20" },
+  promising: { label: "Promising", cls: "bg-sky-50 text-sky-700 ring-sky-600/20" },
+  weak: { label: "Weak lead", cls: "bg-slate-100 text-slate-600 ring-slate-500/15" },
+  avoid: { label: "Avoid", cls: "bg-red-50 text-red-700 ring-red-600/20" },
+} as const;
+const TIER_LABEL = { very_high: "Very popular", high: "Popular", medium: "Mid-size", low: "Small", unranked: "Not in top 1M" } as const;
+const SORT_OPTIONS = [
+  { value: "lead", label: "Best opportunity" },
+  { value: "commission", label: "Highest commission" },
+  { value: "popular", label: "Most popular" },
+  { value: "name", label: "Name A–Z" },
+] as const;
+type SortKey = (typeof SORT_OPTIONS)[number]["value"];
+
+type BatchItem = { key: string; name: string; status: "waiting" | "running" | "done" | "skipped" | "failed"; detail?: string };
+const MAX_BATCH = 10;
+
+export function DiscoverPanel({ history, view, totalFound, pendingEnrich }: { history: DiscoveryHistoryItem[]; view: DiscoverView | null; totalFound: number; pendingEnrich: number }) {
   const router = useRouter();
   const { confirm } = useDialogs();
   const [busy, setBusy] = useState(false);
@@ -42,6 +60,39 @@ export function DiscoverPanel({ history, view, totalFound }: { history: Discover
   const [query, setQuery] = useState("");
   const [deleting, setDeleting] = useState<string | null>(null);
   const [filtering, setFiltering] = useState(false);
+  const [sort, setSort] = useState<SortKey>("lead");
+  const [network, setNetwork] = useState("all");
+  const [hideBan, setHideBan] = useState(false);
+  const [picked, setPicked] = useState<string[]>([]);
+  const [batch, setBatch] = useState<{ items: BatchItem[]; running: boolean; note: string | null } | null>(null);
+  const stopBatch = useRef(false);
+  const [gathering, setGathering] = useState(pendingEnrich);
+
+  // Free early signals (network, commission, popularity, ad rules) are filled in the background for stores that don't have them yet.
+  useEffect(() => {
+    if (pendingEnrich <= 0) return;
+    let cancelled = false;
+    (async () => {
+      for (let i = 0; i < 12 && !cancelled; i++) {
+        try {
+          const res = await fetch("/api/intelligence/discover/enrich", { method: "POST" });
+          const json = (await res.json()) as { done?: number; remaining?: number };
+          if (!res.ok) break;
+          if (!cancelled) {
+            setGathering(json.remaining ?? 0);
+            router.refresh();
+          }
+          if (!json.remaining || !json.done) break;
+        } catch {
+          break;
+        }
+      }
+      if (!cancelled) setGathering(0);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [pendingEnrich, router]);
 
   async function filterLegacy(id: string) {
     setFiltering(true);
@@ -57,14 +108,14 @@ export function DiscoverPanel({ history, view, totalFound }: { history: Discover
     }
   }
 
-  async function search(params: { country: string; category: string; keyword: string | null }, force = false) {
+  async function search(params: { country: string; category: string; keyword: string | null }, force = false, more = false) {
     setBusy(true);
     setError(null);
     try {
       const res = await fetch("/api/intelligence/discover", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...params, force }),
+        body: JSON.stringify({ ...params, force, more }),
       });
       const json = (await res.json()) as { id?: string; error?: string };
       if (!res.ok || !json.id) throw new Error(json.error ?? "Search failed");
@@ -119,14 +170,81 @@ export function DiscoverPanel({ history, view, totalFound }: { history: Discover
     }
   }
 
+  async function runBatch(list: ShownStore[]) {
+    const country = view?.params?.country ?? "us";
+    const category = view?.params?.category ?? null;
+    const ok = await confirm({
+      title: `Check ${list.length} ${list.length === 1 ? "store" : "stores"}?`,
+      message: "They are checked one after another so the AI limits are respected. You can stop any time; finished reports are kept.",
+      note: `Uses about ${list.length * 8} web-search credits (≈8 per store) plus some AI tokens. Check the limits box (bottom right) first.`,
+      confirmLabel: `Check ${list.length}`,
+    });
+    if (!ok) return;
+    stopBatch.current = false;
+    const items: BatchItem[] = list.map((s) => ({ key: s.domain ?? s.name, name: s.name, status: "waiting" }));
+    const update = (i: number, patch: Partial<BatchItem>) => {
+      items[i] = { ...items[i]!, ...patch };
+      setBatch({ items: [...items], running: true, note: null });
+    };
+    setBatch({ items: [...items], running: true, note: null });
+    let note: string | null = null;
+    for (let i = 0; i < list.length; i++) {
+      if (stopBatch.current) break;
+      const store = list[i]!;
+      update(i, { status: "running" });
+      try {
+        const res = await fetch("/api/intelligence/check", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query: store.domain ?? store.name, country, category }),
+        });
+        const started = (await res.json()) as { id?: string; reused?: boolean; error?: string };
+        if (!res.ok || !started.id) throw new Error(started.error ?? "Could not start");
+        if (started.reused) {
+          update(i, { status: "skipped", detail: "Already checked" });
+          continue;
+        }
+        for (const step of STORE_CHECK_STEPS) {
+          if (stopBatch.current) break;
+          const r = await fetch(`/api/intelligence/check/${started.id}/${step}`, { method: "POST" });
+          const j = (await r.json().catch(() => ({}))) as { status?: string; error?: string | null };
+          if (!r.ok || j.status !== "done") {
+            const msg = j.error ?? `Request failed (${r.status})`;
+            if (/tokens per day|TPD|rate limit/i.test(msg)) note = "The AI daily limit was reached, so the batch stopped. Re-run the rest when it frees up (see the limits box).";
+            throw new Error(msg.slice(0, 140));
+          }
+        }
+        update(i, { status: "done" });
+      } catch (err) {
+        update(i, { status: "failed", detail: err instanceof Error ? err.message : "Failed" });
+        if (note) break;
+      }
+      refreshUsage();
+    }
+    setBatch({ items: [...items], running: false, note: note ?? (stopBatch.current ? "Stopped." : null) });
+    setPicked([]);
+    router.refresh();
+    refreshUsage();
+  }
+
+  const networks = useMemo(() => [...new Set((view?.stores ?? []).map((x) => x.network).filter((n): n is string => Boolean(n)))].sort(), [view]);
   const stores = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return (view?.stores ?? []).filter((s) => {
+    const list = (view?.stores ?? []).filter((s) => {
       if (filter === "checked" && !s.check) return false;
       if (filter === "unchecked" && s.check) return false;
+      if (network !== "all" && s.network !== network) return false;
+      if (hideBan && (s.warning?.level === "ban" || s.yours?.lostCents)) return false;
       return !q || s.name.toLowerCase().includes(q) || (s.domain ?? "").includes(q);
     });
-  }, [view, filter, query]);
+    const num = (v: number | null | undefined, missing: number) => (v == null ? missing : v);
+    return [...list].sort((a, b) => {
+      if (sort === "name") return a.name.localeCompare(b.name);
+      if (sort === "commission") return num(b.commission?.max, -1) - num(a.commission?.max, -1);
+      if (sort === "popular") return num(a.rank, Infinity) - num(b.rank, Infinity);
+      return (b.lead?.score ?? 0) - (a.lead?.score ?? 0);
+    });
+  }, [view, filter, query, network, hideBan, sort]);
   const checkedCount = (view?.stores ?? []).filter((s) => s.check).length;
 
   return (
@@ -248,6 +366,7 @@ export function DiscoverPanel({ history, view, totalFound }: { history: Discover
                     </p>
                   </div>
                   {view.params && (
+                    <div className="flex shrink-0 flex-wrap gap-2">
                     <button
                       type="button"
                       onClick={async () => {
@@ -264,6 +383,23 @@ export function DiscoverPanel({ history, view, totalFound }: { history: Discover
                     >
                       {busy ? <Spinner /> : "↻"} Search again
                     </button>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        const ok = await confirm({
+                          title: "Find more stores?",
+                          message: "Searches from other angles — network directories, coupon/PPC-friendly programs, programs that publish their rates — and adds only new brands. Nothing already saved is lost.",
+                          note: "Uses about 3 web-search credits.",
+                          confirmLabel: "Find more",
+                        });
+                        if (ok) void search(view.params as NonNullable<DiscoverView["params"]>, false, true);
+                      }}
+                      disabled={busy}
+                      className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-[10px] bg-brand-primary/10 px-3 text-sm font-semibold text-brand-primary hover:bg-brand-primary/15 disabled:opacity-60"
+                    >
+                      {busy ? <Spinner /> : "+"} Find more stores
+                    </button>
+                    </div>
                   )}
                 </div>
 
@@ -310,6 +446,101 @@ export function DiscoverPanel({ history, view, totalFound }: { history: Discover
                   />
                 </div>
 
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="w-44">
+                    <Select value={sort} onChange={(e) => setSort(e.target.value as SortKey)} aria-label="Sort stores" className={selectClass}>
+                      {SORT_OPTIONS.map((o) => (
+                        <option key={o.value} value={o.value}>
+                          {o.label}
+                        </option>
+                      ))}
+                    </Select>
+                  </div>
+                  {networks.length > 0 && (
+                    <div className="w-44">
+                      <Select value={network} onChange={(e) => setNetwork(e.target.value)} aria-label="Network" className={selectClass}>
+                        <option value="all">All networks</option>
+                        {networks.map((n) => (
+                          <option key={n} value={n}>
+                            {n}
+                          </option>
+                        ))}
+                      </Select>
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setHideBan((v) => !v)}
+                    aria-pressed={hideBan}
+                    className={`h-10 rounded-[10px] px-3 text-xs font-semibold ring-1 ring-inset transition-colors ${hideBan ? "bg-red-50 text-red-700 ring-red-200" : "bg-white text-text-muted ring-border hover:text-text"}`}
+                    title="Hide stores whose own affiliate page restricts coupon sites / paid search, and stores where you lost money"
+                  >
+                    {hideBan ? "✓ " : ""}Hide risky signals
+                  </button>
+                  {gathering > 0 && (
+                    <span className="inline-flex items-center gap-2 text-xs text-text-muted">
+                      <Spinner className="h-3.5 w-3.5" /> Gathering free signals… {gathering} left
+                    </span>
+                  )}
+                  <div className="ml-auto flex items-center gap-2">
+                    {picked.length > 0 ? (
+                      <>
+                        <button type="button" onClick={() => setPicked([])} className="text-xs font-semibold text-text-muted hover:text-text">
+                          Clear
+                        </button>
+                        <button
+                          type="button"
+                          disabled={Boolean(batch?.running)}
+                          onClick={() => void runBatch(stores.filter((x) => picked.includes(x.domain ?? x.name)))}
+                          className="inline-flex h-10 items-center rounded-[10px] bg-brand-primary px-4 text-sm font-semibold text-white hover:bg-brand-primary-hover disabled:opacity-60"
+                        >
+                          Check {picked.length} selected
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setPicked(stores.filter((x) => !x.check && x.warning?.level !== "ban" && !x.yours?.lostCents).slice(0, MAX_BATCH).map((x) => x.domain ?? x.name))}
+                        className="h-10 rounded-[10px] bg-white px-3 text-xs font-semibold text-text-muted ring-1 ring-inset ring-border hover:text-text"
+                        title={`Selects the top ${MAX_BATCH} unchecked stores without warnings`}
+                      >
+                        Select top {MAX_BATCH} unchecked
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {batch && (
+                  <div className="rounded-2xl border border-border bg-white p-4">
+                    <div className="mb-2 flex items-center justify-between gap-2">
+                      <p className="text-sm font-semibold text-text">
+                        {batch.running ? "Checking stores…" : "Batch finished"} · {batch.items.filter((i) => i.status === "done" || i.status === "skipped").length}/{batch.items.length}
+                      </p>
+                      {batch.running ? (
+                        <button type="button" onClick={() => (stopBatch.current = true)} className="text-xs font-semibold text-red-600 hover:underline">
+                          Stop after this store
+                        </button>
+                      ) : (
+                        <button type="button" onClick={() => setBatch(null)} className="text-xs font-semibold text-text-muted hover:text-text">
+                          Close
+                        </button>
+                      )}
+                    </div>
+                    <ul className="grid gap-1.5 sm:grid-cols-2">
+                      {batch.items.map((i) => (
+                        <li key={i.key} className="flex items-center gap-2 text-sm">
+                          <span className="w-4 text-center" aria-hidden="true">
+                            {i.status === "running" ? <Spinner className="h-3.5 w-3.5" /> : i.status === "done" ? "✓" : i.status === "skipped" ? "•" : i.status === "failed" ? "✕" : "○"}
+                          </span>
+                          <span className={`truncate ${i.status === "failed" ? "text-red-700" : i.status === "waiting" ? "text-text-muted" : "text-text"}`}>{i.name}</span>
+                          {i.detail && <span className="truncate text-xs text-text-muted">· {i.detail}</span>}
+                        </li>
+                      ))}
+                    </ul>
+                    {batch.note && <p className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">{batch.note}</p>}
+                  </div>
+                )}
+
                 {stores.length === 0 ? (
                   <p className="rounded-2xl border border-dashed border-border bg-white px-4 py-10 text-center text-sm text-text-muted">No stores match this filter.</p>
                 ) : (
@@ -318,6 +549,16 @@ export function DiscoverPanel({ history, view, totalFound }: { history: Discover
                       <li key={`${s.domain ?? s.name}`} className="flex flex-col justify-between gap-3 rounded-2xl border border-border bg-white p-4 transition-shadow hover:shadow-md">
                         <div className="min-w-0">
                           <div className="flex items-start gap-3">
+                            {!s.check && (
+                              <input
+                                type="checkbox"
+                                checked={picked.includes(s.domain ?? s.name)}
+                                disabled={!picked.includes(s.domain ?? s.name) && picked.length >= MAX_BATCH}
+                                onChange={(e) => setPicked((p) => (e.target.checked ? [...p, s.domain ?? s.name] : p.filter((k) => k !== (s.domain ?? s.name))))}
+                                aria-label={`Select ${s.name}`}
+                                className="mt-2 h-4 w-4 shrink-0 accent-[var(--color-brand-primary)]"
+                              />
+                            )}
                             <StoreLogo src={null} domain={s.domain ?? ""} name={s.name} size="xs" />
                             <div className="min-w-0 flex-1">
                               <div className="flex items-start justify-between gap-2">
@@ -327,6 +568,43 @@ export function DiscoverPanel({ history, view, totalFound }: { history: Discover
                               <p className="mt-0.5 truncate text-xs text-text-muted">{s.domain ?? "Website found when checked"}</p>
                             </div>
                           </div>
+                          <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+                            {s.lead && (
+                              <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ring-1 ring-inset ${BAND_META[s.lead.band].cls}`} title={`Opportunity score ${s.lead.score}/100 — from the program evidence, commission, network, popularity and rules found so far`}>
+                                {BAND_META[s.lead.band].label} · {s.lead.score}
+                              </span>
+                            )}
+                            {s.network && <Pill tone="info" dot={false}>{s.network}</Pill>}
+                            {s.commission && (
+                              <span className="inline-flex items-center rounded-full bg-surface px-2 py-0.5 text-[11px] font-semibold text-text ring-1 ring-inset ring-border">
+                                {s.commission.min === s.commission.max ? `${s.commission.max}%` : `${s.commission.min}–${s.commission.max}%`} commission
+                              </span>
+                            )}
+                            {s.tier && s.rank != null && (
+                              <span className="inline-flex items-center rounded-full bg-surface px-2 py-0.5 text-[11px] font-medium text-text-muted ring-1 ring-inset ring-border" title="Popularity rank among the top 1 million websites (lower = more popular)">
+                                {TIER_LABEL[s.tier]} · #{s.rank.toLocaleString()}
+                              </span>
+                            )}
+                            {s.tier === "unranked" && <span className="rounded-full bg-surface px-2 py-0.5 text-[11px] text-text-muted ring-1 ring-inset ring-border">{TIER_LABEL.unranked}</span>}
+                            {s.yours?.onSite && !s.yours.lostCents && <Pill tone="good" dot={false}>On your site</Pill>}
+                          </div>
+                          {s.yours && s.yours.lostCents > 0 && (
+                            <p className="mt-2 rounded-lg bg-red-50 px-2.5 py-1.5 text-xs text-red-800 ring-1 ring-inset ring-red-600/15">
+                              <span className="font-semibold">You lost {formatMoney(s.yours.lostCents / 100, "USD")} here before</span> (Accounting). Be careful.
+                            </p>
+                          )}
+                          {s.warning && (
+                            <a
+                              href={s.warning.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={`mt-2 block rounded-lg px-2.5 py-1.5 text-xs ring-1 ring-inset ${s.warning.level === "ban" ? "bg-red-50 text-red-800 ring-red-600/15 hover:bg-red-100" : s.warning.level === "friendly" ? "bg-emerald-50 text-emerald-800 ring-emerald-600/15 hover:bg-emerald-100" : "bg-amber-50 text-amber-900 ring-amber-600/20 hover:bg-amber-100"}`}
+                              title="From the store's own affiliate page — verify in the full check"
+                            >
+                              <span className="font-semibold">{s.warning.level === "ban" ? "⚠ Their page seems to restrict your ads" : s.warning.level === "friendly" ? "✓ Their page welcomes coupon / deal sites" : "Their page mentions coupon / ad rules"}</span>
+                              <span className="mt-0.5 line-clamp-2 block italic opacity-90">“{s.warning.text}”</span>
+                            </a>
+                          )}
                           {s.program ? (
                             <a
                               href={s.program.url}

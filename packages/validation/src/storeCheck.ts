@@ -40,6 +40,12 @@ export const RESEARCH_CATEGORIES = [
   "Food & Drink",
   "Jewelry & Accessories",
   "Outdoor & Travel",
+  "Mattresses & Sleep",
+  "Gaming",
+  "Automotive",
+  "Garden & Tools",
+  "Office & Stationery",
+  "Gifts & Flowers",
 ] as const;
 
 export function getResearchCountry(code?: string | null) {
@@ -93,6 +99,8 @@ export const discoverStoresSchema = z.object({
   category: z.string().trim().min(2).max(60),
   keyword: z.string().trim().max(80).optional().nullable(),
   force: z.boolean().optional(),
+  /** Add more stores to this saved search using different search angles (merges, keeps what is saved). */
+  more: z.boolean().optional(),
 });
 
 /* ---------- AI reply schemas ---------- */

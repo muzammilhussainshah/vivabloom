@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
       await connectToDatabase();
       await AuditLog.create({
         user: session.user.id,
-        action: "intelligence.discover",
+        action: parsed.data.more ? "intelligence.discover_more" : "intelligence.discover",
         promptSummary: `${parsed.data.country} · ${parsed.data.category}${parsed.data.keyword ? ` · ${parsed.data.keyword}` : ""}`,
       });
     }

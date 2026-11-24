@@ -477,3 +477,26 @@ describe("provider rate-limit parsing", () => {
     expect(parseRateLimit("on tokens per minute (TPM): Limit 8000, Used 7900. Please try again in 12.5s.")).toMatchObject({ kind: "minute", limit: 8000, waitMs: 12500 });
   });
 });
+
+describe("early lead signals", () => {
+  it("flags a ban on coupon sites / paid search on an affiliate page, and only mentions otherwise", async () => {
+    const { scanAdRules, parseCommission, leadScore } = await import("./leads");
+    const ban = scanAdRules("Welcome to our program. Coupon and deal sites are not permitted to join. We pay monthly.", "https://x.com/aff");
+    expect(ban?.level).toBe("ban");
+    expect(ban?.text).toContain("not permitted");
+    expect(scanAdRules("Our coupon policy is described in the program terms document below.", "https://x.com/aff")?.level).toBe("mention");
+    expect(scanAdRules("We work with all types of partners including Review Sites, Coupon Sites and Influencers.", "https://x.com/aff")?.level).toBe("friendly");
+    expect(scanAdRules("Commissions will not be paid on orders using unauthorized coupon codes or promo codes from coupon sites.", "https://x.com/aff")?.level).toBe("mention");
+    expect(scanAdRules("Content must not infringe on copyright, trademark, or any personal or property rights of others.", "u")).toBeNull();
+    expect(scanAdRules("Share your unique promo code with your followers to encourage them to purchase our products.", "u")).toBeNull();
+    expect(scanAdRules("Earn 10% on every sale with our creator program and fast payouts.", "https://x.com/aff")).toBeNull();
+    expect(parseCommission("5–12% commission, 30-day cookie")).toEqual({ min: 5, max: 12 });
+    expect(parseCommission("up to 8% per sale")).toEqual({ min: 8, max: 8 });
+    expect(parseCommission("flat $20 per sale")).toBeNull();
+    const good = leadScore({ hasSiteEvidence: true, commissionMax: 12, network: "Impact", tier: "high", warning: null, checkVerdict: null, lostMoneyBefore: false });
+    const bad = leadScore({ hasSiteEvidence: true, commissionMax: 12, network: "Impact", tier: "high", warning: ban, checkVerdict: null, lostMoneyBefore: false });
+    expect(good.band).toBe("strong");
+    expect(bad.band).toBe("avoid");
+    expect(bad.score).toBeLessThan(good.score);
+  });
+});

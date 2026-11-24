@@ -8,7 +8,7 @@ import { CheckForm } from "@/components/intelligence/CheckForm";
 import { DiscoverPanel, type DiscoverView } from "@/components/intelligence/DiscoverPanel";
 import { timeAgo } from "@/components/intelligence/ui";
 import { toView } from "@/lib/intelligence/runner";
-import { getAllDiscoveredStores, getDiscovery, listDiscoveryHistory } from "@/lib/intelligence/discover";
+import { countPendingEnrichment, getAllDiscoveredStores, getDiscovery, listDiscoveryHistory } from "@/lib/intelligence/discover";
 import type { StoreCheckView } from "@/lib/intelligence/types";
 import { isAvoidStore, sortChecks } from "@/lib/intelligence/sort";
 import { toRow } from "@/lib/intelligence/rows";
@@ -17,12 +17,13 @@ export const metadata: Metadata = { title: "Store Checker" };
 export const dynamic = "force-dynamic";
 
 /** The "Find new stores" tab: saved search history + the selected search (or every store found), all read from the database for free. */
-async function loadFindTab(searchId: string | undefined): Promise<{ history: Awaited<ReturnType<typeof listDiscoveryHistory>>; view: DiscoverView | null; totalFound: number }> {
-  const [history, all] = await Promise.all([listDiscoveryHistory(), getAllDiscoveredStores()]);
+async function loadFindTab(searchId: string | undefined): Promise<{ history: Awaited<ReturnType<typeof listDiscoveryHistory>>; view: DiscoverView | null; totalFound: number; pending: number }> {
+  const [history, all, pending] = await Promise.all([listDiscoveryHistory(), getAllDiscoveredStores(), countPendingEnrichment()]);
   const selectedId = searchId ?? history[0]?.id;
   if (selectedId === "all") {
     return {
       history,
+      pending,
       totalFound: all.length,
       view: { id: "all", title: "All found stores", subtitle: `${all.length} stores with affiliate programs from ${history.length} saved searches`, stores: all, hidden: [], legacy: false, params: null },
     };
@@ -39,7 +40,7 @@ async function loadFindTab(searchId: string | undefined): Promise<{ history: Awa
         params: { country: d.country, category: d.category, keyword: d.keyword },
       }
     : null;
-  return { history, view, totalFound: all.length };
+  return { history, view, totalFound: all.length, pending };
 }
 
 export default async function StoreCheckerPage({ searchParams }: { searchParams: Promise<{ tab?: string; search?: string }> }) {
@@ -117,7 +118,7 @@ export default async function StoreCheckerPage({ searchParams }: { searchParams:
       </nav>
 
       {tab === "find" ? (
-        <DiscoverPanel history={find?.history ?? []} view={find?.view ?? null} totalFound={find?.totalFound ?? 0} />
+        <DiscoverPanel history={find?.history ?? []} view={find?.view ?? null} totalFound={find?.totalFound ?? 0} pendingEnrich={find?.pending ?? 0} />
       ) : checks.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border bg-white px-6 py-14 text-center">
           <p className="text-base font-semibold text-text">
