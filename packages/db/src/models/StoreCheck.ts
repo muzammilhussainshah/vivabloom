@@ -66,5 +66,8 @@ StoreCheckSchema.index({ updatedAt: -1 });
 
 export type IStoreCheck = InferSchemaType<typeof StoreCheckSchema>;
 
+// In dev, hot reload keeps the previously compiled model; drop it when the schema has since gained fields (otherwise Mongoose silently ignores them).
+if (models.StoreCheck && !models.StoreCheck.schema.path("archived")) mongoose.deleteModel("StoreCheck");
+
 export const StoreCheck: Model<IStoreCheck> =
   (models.StoreCheck as Model<IStoreCheck>) ?? model<IStoreCheck>("StoreCheck", StoreCheckSchema);
