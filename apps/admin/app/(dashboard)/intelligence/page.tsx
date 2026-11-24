@@ -10,7 +10,7 @@ import { Pill, VerdictPill, formatMoney, scoreTone, timeAgo, toneClasses } from 
 import { toView } from "@/lib/intelligence/runner";
 import { getAllDiscoveredStores, getDiscovery, listDiscoveryHistory } from "@/lib/intelligence/discover";
 import type { StoreCheckView } from "@/lib/intelligence/types";
-import { CHECK_SORTS as SORTS, sortChecks, type CheckSortKey as SortKey } from "@/lib/intelligence/sort";
+import { CHECK_SORTS as SORTS, isAvoidStore, sortChecks, type CheckSortKey as SortKey } from "@/lib/intelligence/sort";
 
 export const metadata: Metadata = { title: "Store Checker" };
 export const dynamic = "force-dynamic";
@@ -47,17 +47,21 @@ const ROW_GRID = "md:grid-cols-[minmax(0,1.5fr)_150px_minmax(0,1.6fr)_minmax(0,1
 export default async function StoreCheckerPage({ searchParams }: { searchParams: Promise<{ tab?: string; search?: string; sort?: string }> }) {
   const { tab: rawTab, search, sort: rawSort } = await searchParams;
   const sort: SortKey = SORTS.some((x) => x.key === rawSort) ? (rawSort as SortKey) : "best";
-  const tab = rawTab === "find" ? "find" : "checked";
+  const tab = rawTab === "find" ? "find" : rawTab === "avoid" ? "avoid" : "checked";
   await connectToDatabase();
-  const [docs, checkCount, find] = await Promise.all([
-    tab === "checked" ? StoreCheck.find({}).sort({ updatedAt: -1 }).limit(300).lean() : Promise.resolve([]),
-    StoreCheck.estimatedDocumentCount(),
+  const [docs, find] = await Promise.all([
+    StoreCheck.find({}).sort({ updatedAt: -1 }).limit(300).lean(),
     tab === "find" ? loadFindTab(search) : Promise.resolve(null),
   ]);
-  const checks = sortChecks(
+  const all = sortChecks(
     docs.map((d) => toView(d as unknown as Record<string, unknown>)),
     sort
   );
+  // Risky stores live in their own tab so the main list is only stores worth considering.
+  const avoid = all.filter(isAvoidStore);
+  const promote = all.filter((c) => !isAvoidStore(c));
+  const checks = tab === "avoid" ? avoid : promote;
+  const tabBase = tab === "avoid" ? "/intelligence?tab=avoid" : "/intelligence";
 
   return (
     <PageShell>
@@ -77,10 +81,11 @@ export default async function StoreCheckerPage({ searchParams }: { searchParams:
         </div>
       </header>
 
-      <nav className="flex items-center gap-1 border-b border-border" aria-label="Store Checker sections">
+      <nav className="flex items-center gap-1 overflow-x-auto border-b border-border" aria-label="Store Checker sections">
         {(
           [
-            ["checked", "Checked stores", "/intelligence", checkCount],
+            ["checked", "Stores to promote", "/intelligence", promote.length],
+            ["avoid", "Risky / avoid", "/intelligence?tab=avoid", avoid.length],
             ["find", "Find new stores", "/intelligence?tab=find", null],
           ] as const
         ).map(([key, label, href, count]) => (
@@ -88,13 +93,24 @@ export default async function StoreCheckerPage({ searchParams }: { searchParams:
             key={key}
             href={href}
             aria-current={tab === key ? "page" : undefined}
-            className={`-mb-px inline-flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold transition-colors ${
-              tab === key ? "border-brand-primary text-brand-primary" : "border-transparent text-text-muted hover:text-text"
+            className={`-mb-px inline-flex items-center gap-2 whitespace-nowrap border-b-2 px-4 py-3 text-sm font-semibold transition-colors ${
+              tab === key
+                ? key === "avoid"
+                  ? "border-red-500 text-red-700"
+                  : "border-brand-primary text-brand-primary"
+                : "border-transparent text-text-muted hover:text-text"
             }`}
           >
+            {key === "avoid" && <span className="h-2 w-2 rounded-full bg-red-500" aria-hidden="true" />}
             {label}
             {count != null && count > 0 && (
-              <span className={`rounded-full px-2 py-0.5 text-xs tabular-nums ${tab === key ? "bg-brand-primary/10" : "bg-border/60 text-text-muted"}`}>{count}</span>
+              <span
+                className={`rounded-full px-2 py-0.5 text-xs tabular-nums ${
+                  key === "avoid" ? "bg-red-50 text-red-700" : tab === key ? "bg-brand-primary/10" : "bg-border/60 text-text-muted"
+                }`}
+              >
+                {count}
+              </span>
             )}
           </Link>
         ))}
@@ -102,9 +118,14 @@ export default async function StoreCheckerPage({ searchParams }: { searchParams:
 
       {tab === "find" ? (
         <DiscoverPanel history={find?.history ?? []} view={find?.view ?? null} totalFound={find?.totalFound ?? 0} />
+      ) : checks.length === 0 && tab === "avoid" ? (
+        <div className="rounded-2xl border border-dashed border-border bg-white px-6 py-14 text-center">
+          <p className="text-base font-semibold text-text">No risky stores</p>
+          <p className="mx-auto mt-1 max-w-md text-sm text-text-muted">Stores whose terms ban your ads, or that look high risk, will appear here.</p>
+        </div>
       ) : checks.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border bg-white px-6 py-14 text-center">
-          <p className="text-base font-semibold text-text">No stores checked yet</p>
+          <p className="text-base font-semibold text-text">{avoid.length ? "No stores to promote yet" : "No stores checked yet"}</p>
           <p className="mx-auto mt-1 max-w-md text-sm text-text-muted">
             Paste a store link above, or use{" "}
             <Link href="/intelligence?tab=find" className="font-semibold text-brand-primary hover:underline">
@@ -115,15 +136,32 @@ export default async function StoreCheckerPage({ searchParams }: { searchParams:
         </div>
       ) : (
         <div className="flex flex-col gap-3">
+        {tab === "avoid" && (
+          <div className="flex gap-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3.5">
+            <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-500 text-[11px] font-bold text-white" aria-hidden="true">
+              !
+            </span>
+            <p className="text-sm text-red-900">
+              Don&apos;t spend on ads for these stores: their own affiliate terms ban how you advertise (coupon sites, brand or brand + coupon keywords), or the store
+              looks high risk. They&apos;re kept here so you don&apos;t check them again by mistake.
+            </p>
+          </div>
+        )}
         <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="text-sm text-text-muted">
-            {sort === "best" ? "Stores you can promote first, stores to avoid last." : sort === "trust" ? "Sorted by trust score." : "Most recently checked first."}
+            {sort === "best"
+              ? tab === "avoid"
+                ? "Highest-risk stores last."
+                : "Best stores to promote first."
+              : sort === "trust"
+                ? "Sorted by trust score."
+                : "Most recently checked first."}
           </p>
           <div className="inline-flex rounded-full bg-white p-1 ring-1 ring-inset ring-border" role="group" aria-label="Sort stores">
             {SORTS.map((o) => (
               <Link
                 key={o.key}
-                href={o.key === "best" ? "/intelligence" : `/intelligence?sort=${o.key}`}
+                href={o.key === "best" ? tabBase : `${tabBase}${tabBase.includes("?") ? "&" : "?"}sort=${o.key}`}
                 aria-current={sort === o.key ? "true" : undefined}
                 className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${sort === o.key ? "bg-text text-white" : "text-text-muted hover:text-text"}`}
               >

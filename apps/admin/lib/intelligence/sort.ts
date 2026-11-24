@@ -29,3 +29,8 @@ export function sortChecks(checks: StoreCheckView[], sort: CheckSortKey): StoreC
     );
   });
 }
+
+/** "Risky / avoid": the bottom line says don't spend on ads (terms ban your ads, or the store is high risk). */
+export function isAvoidStore(c: StoreCheckView): boolean {
+  return c.score?.bottomLine?.tone === "bad";
+}

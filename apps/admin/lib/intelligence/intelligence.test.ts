@@ -9,7 +9,7 @@ import { buildPolicies, buildProgram } from "./program";
 import { commissionRange, popularityScore, priceFit, productFamily, productKey, ratingFromHtml } from "./products";
 import { recencyFactor, sourceTier } from "./reputation";
 import type { IdentityResult, PolicyItem, ProgramResult, ReputationResult, StoreCheckView } from "./types";
-import { sortChecks } from "./sort";
+import { isAvoidStore, sortChecks } from "./sort";
 import { guessDomain } from "./discover";
 
 describe("store input & link analysis", () => {
@@ -418,5 +418,14 @@ describe("finding a brand's own website", () => {
     expect(guessDomain("Legion Athletics")).toBe("legionathletics.com");
     expect(guessDomain("The Vitamin Shoppe")).toBe("vitaminshoppe.com");
     expect(isLikelyStoreDomain("tavily.com")).toBe(false);
+  });
+});
+
+describe("risky stores tab", () => {
+  it("puts stores whose bottom line says don't advertise into the avoid tab", () => {
+    const view = (tone: "good" | "warn" | "bad" | "muted" | null) => ({ score: tone ? { bottomLine: { tone } } : null }) as unknown as StoreCheckView;
+    expect(isAvoidStore(view("bad"))).toBe(true);
+    expect(isAvoidStore(view("warn"))).toBe(false);
+    expect(isAvoidStore(view(null))).toBe(false);
   });
 });
