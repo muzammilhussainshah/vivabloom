@@ -68,10 +68,18 @@ export default async function StoreCheckReportPage({ params }: { params: Promise
             </div>
           </div>
         </div>
-        <div className="flex shrink-0 items-start gap-2">
+        <div className="flex shrink-0 flex-wrap items-start gap-2">
           <a href={check.identity?.homepageUrl ?? `https://${check.domain}`} target="_blank" rel="noopener noreferrer" className={buttonStyles.secondary}>
             Visit store ↗
           </a>
+          {check.score && (
+            <a href={`/api/intelligence/check/${check.id}/pdf`} className={buttonStyles.secondary} download>
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden="true">
+                <path d="M10 3.5v9M6.5 9 10 12.5 13.5 9M4 15.5h12" />
+              </svg>
+              Download PDF
+            </a>
+          )}
           {allDone && <RecheckButton domain={check.domain} country={check.targetCountry} />}
         </div>
       </header>
