@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { connectToDatabase, StoreCheck } from "@monocoupon/db";
-import { STORE_CHECK_STEPS } from "@monocoupon/validation";
+import { STORE_CHECK_STEPS, getResearchCountry } from "@monocoupon/validation";
 import { PageShell } from "@/components/ui";
 import { StoreLogo } from "@/components/intelligence/StoreLogo";
 import { CheckForm } from "@/components/intelligence/CheckForm";
-import { DiscoverPanel } from "@/components/intelligence/DiscoverPanel";
+import { DiscoverPanel, type DiscoverView } from "@/components/intelligence/DiscoverPanel";
 import { FIT_META, Pill, VerdictPill, formatMoney, scoreTone, timeAgo, toneClasses } from "@/components/intelligence/ui";
 import { toView } from "@/lib/intelligence/runner";
+import { getAllDiscoveredStores, getDiscovery, listDiscoveryHistory } from "@/lib/intelligence/discover";
 
 export const metadata: Metadata = { title: "Store Checker" };
 export const dynamic = "force-dynamic";
@@ -17,12 +18,37 @@ const TABS = [
   { key: "find", label: "Find new stores" },
 ] as const;
 
-export default async function StoreCheckerPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
-  const { tab: rawTab } = await searchParams;
+/** The "Find new stores" tab: saved search history + the selected search (or every store found), all read from the database for free. */
+async function loadFindTab(searchId: string | undefined): Promise<{ history: Awaited<ReturnType<typeof listDiscoveryHistory>>; view: DiscoverView | null; totalFound: number }> {
+  const [history, all] = await Promise.all([listDiscoveryHistory(), getAllDiscoveredStores()]);
+  const selectedId = searchId ?? history[0]?.id;
+  if (selectedId === "all") {
+    return {
+      history,
+      totalFound: all.length,
+      view: { id: "all", title: "All found stores", subtitle: `${all.length} unique stores from ${history.length} saved searches`, stores: all, params: null },
+    };
+  }
+  const d = selectedId ? await getDiscovery(selectedId) : null;
+  const view: DiscoverView | null = d
+    ? {
+        id: d.id,
+        title: `${d.category}${d.keyword ? ` · ${d.keyword}` : ""}`,
+        subtitle: `${getResearchCountry(d.country)?.name ?? d.country.toUpperCase()} · saved ${timeAgo(d.createdAt)} · reopens free`,
+        stores: d.stores,
+        params: { country: d.country, category: d.category, keyword: d.keyword },
+      }
+    : null;
+  return { history, view, totalFound: all.length };
+}
+
+export default async function StoreCheckerPage({ searchParams }: { searchParams: Promise<{ tab?: string; search?: string }> }) {
+  const { tab: rawTab, search } = await searchParams;
   const tab = rawTab === "find" ? "find" : "checked";
   await connectToDatabase();
   const docs = tab === "checked" ? await StoreCheck.find({}).sort({ updatedAt: -1 }).limit(100).lean() : [];
   const checks = docs.map((d) => toView(d as unknown as Record<string, unknown>));
+  const find = tab === "find" ? await loadFindTab(search) : null;
 
   return (
     <PageShell>
@@ -67,7 +93,7 @@ export default async function StoreCheckerPage({ searchParams }: { searchParams:
       </nav>
 
       {tab === "find" ? (
-        <DiscoverPanel />
+        <DiscoverPanel history={find?.history ?? []} view={find?.view ?? null} totalFound={find?.totalFound ?? 0} />
       ) : checks.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border bg-white px-6 py-14 text-center">
           <p className="text-base font-semibold text-text">No stores checked yet</p>

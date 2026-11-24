@@ -10,7 +10,9 @@ import type { ScoreResult } from "./types";
 /**
  * "Find stores": web search for brands in a category + market that run
  * affiliate programs, then the AI lists only brands actually named in those
- * pages (each with a verified quote). Results are cached for a week.
+ * pages (each with a verified quote). Every search is saved as history and
+ * reused for free; web-search credits are only spent on a brand-new search or
+ * when the admin explicitly asks for a fresh one.
  */
 
 export interface DiscoveredStore {
@@ -23,7 +25,6 @@ export interface DiscoveredStore {
   check: { id: string; verdict: ScoreResult["verdict"]; trust: number } | null;
 }
 
-const CACHE_MS = 7 * 24 * 60 * 60 * 1000;
 const CHAR_BUDGET = 16_000;
 /**
  * Brand names in list articles sit in headings ("## 3. West Paw"), numbered
@@ -45,17 +46,28 @@ function focusListText(text: string, maxChars: number): string {
   return keep.sort((a, b) => a.i - b.i).map((x) => x.l).join("\n") || text.slice(0, maxChars);
 }
 
+/** Marks stores that already have a Store Check (matched by domain, else by name), so they open without spending credits. */
 async function attachChecks(stores: DiscoveredStore[]): Promise<DiscoveredStore[]> {
-  const domains = stores.map((s) => s.domain).filter((d): d is string => Boolean(d));
-  const checks = domains.length ? await StoreCheck.find({ domain: { $in: domains } }, "domain score").lean() : [];
+  const checks = await StoreCheck.find({}, "domain name score").lean();
   return stores.map((s) => {
-    const c = checks.find((x) => x.domain === s.domain);
+    const c = checks.find((x) => (s.domain && x.domain === s.domain) || (x.name && compact(x.name) === compact(s.name)));
     const score = c?.score as ScoreResult | null | undefined;
     return { ...s, check: c && score ? { id: String(c._id), verdict: score.verdict, trust: score.trust } : null };
   });
 }
 
+export interface DiscoveryResult {
+  id: string;
+  country: string;
+  category: string;
+  keyword: string | null;
+  stores: DiscoveredStore[];
+  cached: boolean;
+  createdAt: string;
+}
+
 export async function discoverStores(opts: { country: string; category: string; keyword?: string | null; force?: boolean }): Promise<{
+  id: string;
   stores: DiscoveredStore[];
   cached: boolean;
   createdAt: string;
@@ -66,8 +78,9 @@ export async function discoverStores(opts: { country: string; category: string; 
   const key = `${opts.country}|${opts.category}|${keyword ?? ""}`.toLowerCase();
 
   const cached = await StoreDiscovery.findOne({ key }).lean();
-  if (cached && !opts.force && Date.now() - new Date(cached.updatedAt).getTime() < CACHE_MS) {
-    return { stores: await attachChecks(cached.results as DiscoveredStore[]), cached: true, createdAt: new Date(cached.updatedAt).toISOString() };
+  // A saved search is always reused — only an explicit "search again" spends credits.
+  if (cached && !opts.force) {
+    return { id: String(cached._id), stores: await attachChecks(cached.results as DiscoveredStore[]), cached: true, createdAt: new Date(cached.updatedAt).toISOString() };
   }
 
   const topic = keyword ? `${keyword} (${opts.category})` : opts.category;
@@ -145,10 +158,92 @@ export async function discoverStores(opts: { country: string; category: string; 
     stores.push({ name, domain, note: null, sourceUrl: r.url, sourceTitle: r.title, check: null });
   }
 
-  await StoreDiscovery.updateOne(
+  const saved = await StoreDiscovery.findOneAndUpdate(
     { key },
     { $set: { country: opts.country, category: opts.category, keyword, results: stores }, $inc: { tavilyCredits: credits } },
-    { upsert: true }
+    { upsert: true, new: true }
   );
-  return { stores: await attachChecks(stores), cached: false, createdAt: new Date().toISOString() };
+  return { id: String(saved._id), stores: await attachChecks(stores), cached: false, createdAt: new Date().toISOString() };
+}
+
+/* ---------- History ---------- */
+
+export interface DiscoveryHistoryItem {
+  id: string;
+  country: string;
+  category: string;
+  keyword: string | null;
+  count: number;
+  checked: number;
+  credits: number;
+  updatedAt: string;
+}
+
+export async function listDiscoveryHistory(): Promise<DiscoveryHistoryItem[]> {
+  await connectToDatabase();
+  const [docs, checks] = await Promise.all([
+    StoreDiscovery.find({}).sort({ updatedAt: -1 }).limit(100).lean(),
+    StoreCheck.find({}, "domain name").lean(),
+  ]);
+  const checkedDomains = new Set(checks.map((c) => c.domain));
+  const checkedNames = new Set(checks.map((c) => (c.name ? compact(c.name) : "")).filter(Boolean));
+  return docs.map((d) => {
+    const results = (d.results ?? []) as DiscoveredStore[];
+    return {
+      id: String(d._id),
+      country: d.country,
+      category: d.category,
+      keyword: d.keyword ?? null,
+      count: results.length,
+      checked: results.filter((r) => (r.domain && checkedDomains.has(r.domain)) || checkedNames.has(compact(r.name))).length,
+      credits: d.tavilyCredits ?? 0,
+      updatedAt: new Date(d.updatedAt).toISOString(),
+    };
+  });
+}
+
+/** One saved search, re-opened for free. */
+export async function getDiscovery(id: string): Promise<DiscoveryResult | null> {
+  if (!/^[a-f0-9]{24}$/i.test(id)) return null;
+  await connectToDatabase();
+  const d = await StoreDiscovery.findById(id).lean();
+  if (!d) return null;
+  return {
+    id: String(d._id),
+    country: d.country,
+    category: d.category,
+    keyword: d.keyword ?? null,
+    stores: await attachChecks((d.results ?? []) as DiscoveredStore[]),
+    cached: true,
+    createdAt: new Date(d.updatedAt).toISOString(),
+  };
+}
+
+/** Every store found by any saved search, deduplicated, with where it was found. */
+export async function getAllDiscoveredStores(): Promise<(DiscoveredStore & { foundIn: string[] })[]> {
+  await connectToDatabase();
+  const docs = await StoreDiscovery.find({}).sort({ updatedAt: -1 }).lean();
+  const byKey = new Map<string, DiscoveredStore & { foundIn: string[] }>();
+  for (const d of docs) {
+    const label = `${d.category}${d.keyword ? ` · ${d.keyword}` : ""} · ${getResearchCountry(d.country)?.name ?? d.country.toUpperCase()}`;
+    for (const s of (d.results ?? []) as DiscoveredStore[]) {
+      const key = s.domain ?? compact(s.name);
+      const existing = byKey.get(key);
+      if (existing) {
+        if (!existing.foundIn.includes(label)) existing.foundIn.push(label);
+        if (!existing.note && s.note) existing.note = s.note;
+        if (!existing.domain && s.domain) existing.domain = s.domain;
+      } else {
+        byKey.set(key, { ...s, foundIn: [label] });
+      }
+    }
+  }
+  const stores = await attachChecks([...byKey.values()]);
+  return stores as (DiscoveredStore & { foundIn: string[] })[];
+}
+
+export async function deleteDiscovery(id: string): Promise<void> {
+  if (!/^[a-f0-9]{24}$/i.test(id)) return;
+  await connectToDatabase();
+  await StoreDiscovery.deleteOne({ _id: id });
 }

@@ -6,7 +6,7 @@ import { BackButton, buttonStyles } from "@/components/ui";
 import { CheckRunner } from "@/components/intelligence/CheckRunner";
 import { RecheckButton } from "@/components/intelligence/RecheckButton";
 import { StoreLogo } from "@/components/intelligence/StoreLogo";
-import { Pill, timeAgo } from "@/components/intelligence/ui";
+import { Pill, isOlderThanDays, timeAgo } from "@/components/intelligence/ui";
 import { toView } from "@/lib/intelligence/runner";
 import { getPersonalRecord } from "@/lib/intelligence/personal";
 import { AdsRulesSection, IdentitySection, ProductsSection, ProgramSection, ReputationSection, ScoreSection, SourcesSection, SummarySection } from "./sections";
@@ -60,6 +60,11 @@ export default async function StoreCheckReportPage({ params }: { params: Promise
               <span className="whitespace-nowrap">
                 {getResearchCountry(check.targetCountry)?.name ?? "United States"} prices · checked {timeAgo(check.lastCheckedAt)}
               </span>
+              {allDone && isOlderThanDays(check.lastCheckedAt, 30) ? (
+                <Pill tone="warn" dot={false}>Over a month old — re-check for fresh data</Pill>
+              ) : allDone ? (
+                <Pill tone="muted" dot={false}>Saved report · reopening is free</Pill>
+              ) : null}
             </div>
           </div>
         </div>

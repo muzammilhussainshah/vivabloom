@@ -15,8 +15,6 @@ import type { IdentityResult, LinkSignals, PolicyItem, ProductsResult, ProgramRe
  * limit, and a failing step leaves the others' saved results intact.
  */
 
-/** A finished report younger than this is reused instead of spending credits again (unless the admin forces a re-check). */
-const FRESH_MS = 14 * 24 * 60 * 60 * 1000;
 /** Each step must finish well inside the route's maxDuration (60s). */
 const STEP_BUDGET_MS = 55_000;
 
@@ -61,9 +59,9 @@ export async function startStoreCheck(opts: { query: string; country?: string | 
   await connectToDatabase();
   const existing = await StoreCheck.findOne({ domain }).lean();
   const allDone = existing && STORE_CHECK_STEPS.every((s) => existing.steps?.[s]?.status === "done");
-  const fresh = existing?.lastCheckedAt && Date.now() - new Date(existing.lastCheckedAt).getTime() < FRESH_MS;
 
-  if (existing && allDone && fresh && !opts.force) {
+  // A finished report is always reused (no credits); only "Re-check" runs the research again.
+  if (existing && allDone && !opts.force) {
     // Keep any newly pasted link's signals (e.g. a network parameter) without re-running anything.
     if (linkSignals?.networks.length) await StoreCheck.updateOne({ _id: existing._id }, { $set: { linkSignals, inputUrl } });
     return { id: String(existing._id), reused: true };

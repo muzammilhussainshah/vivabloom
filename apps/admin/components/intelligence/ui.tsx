@@ -205,3 +205,7 @@ export function timeAgo(iso: string | null | undefined): string {
   if (days < 30) return `${days} day${days === 1 ? "" : "s"} ago`;
   return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 }
+
+export function isOlderThanDays(iso: string | null | undefined, days: number): boolean {
+  return Boolean(iso) && Date.now() - new Date(iso as string).getTime() > days * 86_400_000;
+}
