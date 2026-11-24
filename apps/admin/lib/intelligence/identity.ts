@@ -1,4 +1,5 @@
 import { marketHeaders, safeFetch } from "./safeFetch";
+import { fetchTraffic } from "./traffic";
 import { tavilyExtract } from "./tavily";
 import {
   detectCurrency,
@@ -160,9 +161,10 @@ export async function runIdentityStep(args: { domain: string; startUrl: string |
   const now = new Date().toISOString();
   const candidates = [args.startUrl, `https://www.${domain}/`, `https://${domain}/`].filter((u): u is string => Boolean(u));
 
-  const [registration, firstSeen, page] = await Promise.all([
+  const [registration, firstSeen, traffic, page] = await Promise.all([
     rdap(domain),
     waybackFirstSeen(domain),
+    fetchTraffic(domain).catch(() => null),
     (async () => {
       for (const url of [...new Set(candidates)]) {
         const res = await safeFetch(url, { timeoutMs: 12_000, maxBytes: 2_500_000, headers: marketHeaders(args.targetCountry).headers });
@@ -273,6 +275,7 @@ export async function runIdentityStep(args: { domain: string; startUrl: string |
     domainCreatedAt: registration.createdAt,
     domainAgeYears: yearsSince(registration.createdAt),
     registrar: registration.registrar,
+    traffic,
     waybackFirstSeen: firstSeen,
     onlineYears: yearsSince(firstSeen),
     legalName: str(org?.legalName),

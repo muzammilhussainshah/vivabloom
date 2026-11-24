@@ -4,6 +4,8 @@ import type { PersonalRecord } from "@/lib/intelligence/personal";
 import { MY_TRAFFIC_MODEL } from "@/lib/intelligence/score";
 import type { EvidenceField, ProductItem, ReputationItem, StoreCheckView } from "@/lib/intelligence/types";
 import { PasteTerms } from "@/components/intelligence/PasteTerms";
+import { TrafficChart } from "@/components/intelligence/TrafficChart";
+import { TrafficAutoFetch } from "@/components/intelligence/TrafficAutoFetch";
 import {
   Bar,
   Card,
@@ -783,6 +785,75 @@ export function SourcesSection({ check }: { check: StoreCheckView }) {
           </li>
         ))}
       </ul>
+    </Card>
+  );
+}
+
+/* ---------------- Traffic & popularity ---------------- */
+
+const TIER_META: Record<string, { label: string; tone: Tone; hint: string }> = {
+  very_high: { label: "Very high", tone: "good", hint: "Top 10,000 websites worldwide" },
+  high: { label: "High", tone: "good", hint: "Top 100,000 websites worldwide" },
+  medium: { label: "Medium", tone: "info", hint: "Top 500,000 websites worldwide" },
+  low: { label: "Low", tone: "warn", hint: "Top 1 million, but towards the bottom" },
+  unranked: { label: "Small site", tone: "muted", hint: "Not in the top 1 million websites" },
+};
+
+export function TrafficSection({ check }: { check: StoreCheckView }) {
+  const id = check.identity;
+  const t = id?.traffic;
+  const done = check.steps.identity.status === "done";
+  return (
+    <Card id="traffic">
+      <SectionHeader
+        title="Traffic & popularity"
+        description="How popular the website is worldwide, from the free Tranco ranking (top 1 million sites). A lower rank number is more popular."
+        aside={t?.listed ? <Pill tone={TIER_META[t.tier]!.tone}>{TIER_META[t.tier]!.label} popularity</Pill> : undefined}
+      />
+      {!id ? (
+        <Pending label="Waiting for the store check…" />
+      ) : !t ? (
+        done ? <TrafficAutoFetch checkId={check.id} /> : <Pending label="Loading popularity history…" />
+      ) : !t.listed ? (
+        <div className="px-5 py-8 text-sm md:px-6">
+          <p className="font-semibold text-text">Not in the top 1 million websites</p>
+          <p className="mt-1 text-text-muted">This is a small or new site — fewer than roughly 30,000 visitors a month is typical at this level. Exact visit counts need a paid data source.</p>
+        </div>
+      ) : (
+        <>
+          <dl className="grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-4">
+            {(
+              [
+                ["Popularity rank", `#${(t.rank ?? 0).toLocaleString()}`, "of about 1,000,000 sites"],
+                [
+                  "30-day trend",
+                  t.changePct == null ? "—" : `${t.changePct > 0 ? "▲" : t.changePct < 0 ? "▼" : ""} ${Math.abs(t.changePct)}%`,
+                  t.changePct == null ? "" : t.changePct > 0 ? "more popular than 30 days ago" : t.changePct < 0 ? "less popular than 30 days ago" : "unchanged",
+                ],
+                ["Best in 30 days", `#${(t.best ?? 0).toLocaleString()}`, "highest position"],
+                ["Worst in 30 days", `#${(t.worst ?? 0).toLocaleString()}`, "lowest position"],
+              ] as [string, string, string][]
+            ).map(([label, value, sub], i) => (
+              <div key={label} className="bg-white px-5 py-4 md:px-6">
+                <dt className="text-xs text-text-muted">{label}</dt>
+                <dd className={`mt-1 text-2xl font-bold tabular-nums ${i === 1 && t.changePct != null ? (t.changePct > 0 ? "text-emerald-600" : t.changePct < 0 ? "text-red-600" : "text-text") : "text-text"}`}>{value}</dd>
+                <p className="mt-0.5 text-xs text-text-muted">{sub}</p>
+              </div>
+            ))}
+          </dl>
+          <div className="border-t border-border px-4 py-5 md:px-6">
+            <div className="mb-2 flex items-center justify-between">
+              <p className="text-sm font-semibold text-text">Popularity over the last 30 days</p>
+              <p className="text-xs text-text-muted">Line up = more popular · {TIER_META[t.tier]!.hint}</p>
+            </div>
+            <TrafficChart history={t.history} />
+          </div>
+          <p className="border-t border-border bg-surface/60 px-5 py-3 text-xs text-text-muted md:px-6">
+            This is a popularity <strong className="text-text">ranking</strong>, not a visit count. Exact monthly visits and country-wise traffic need a paid source (for example
+            Similarweb), which isn&apos;t connected.
+          </p>
+        </>
+      )}
     </Card>
   );
 }

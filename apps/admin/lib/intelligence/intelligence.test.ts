@@ -12,6 +12,7 @@ import type { IdentityResult, PolicyItem, ProgramResult, ReputationResult, Store
 import { isAvoidStore, sortChecks } from "./sort";
 import { guessDomain } from "./discover";
 import { cleanText } from "./text";
+import { trafficTier } from "./traffic";
 
 describe("store input & link analysis", () => {
   it("turns an ad/affiliate link into the store domain and detects the network", () => {
@@ -435,5 +436,14 @@ describe("display text", () => {
   it("removes markdown left in AI quotes", () => {
     expect(cleanText("You’ll earn **10% commission**on every sale")).toBe("You’ll earn 10% commission on every sale");
     expect(cleanText("[Become an Affiliate](https://x.com/a(b)c)")).toBe("Become an Affiliate");
+  });
+});
+
+describe("traffic tiers", () => {
+  it("maps a rank to a popularity tier", () => {
+    expect(trafficTier(5_000)).toBe("very_high");
+    expect(trafficTier(205_481)).toBe("medium");
+    expect(trafficTier(900_000)).toBe("low");
+    expect(trafficTier(null)).toBe("unranked");
   });
 });

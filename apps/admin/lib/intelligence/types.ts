@@ -39,7 +39,24 @@ export interface LinkSignals {
   fromGoogleAds: boolean;
 }
 
+export interface TrafficResult {
+  source: "tranco";
+  checkedAt: string;
+  /** In the top-1-million list. */
+  listed: boolean;
+  rank: number | null;
+  /** Up to 30 daily ranks, oldest first. */
+  history: { date: string; rank: number }[];
+  /** Positive = more popular than 30 days ago (rank number fell). */
+  changePct: number | null;
+  best: number | null;
+  worst: number | null;
+  tier: "very_high" | "high" | "medium" | "low" | "unranked";
+}
+
 export interface IdentityResult {
+  /** Popularity rank history (free source); absent on reports made before it existed. */
+  traffic?: TrafficResult | null;
   name: string;
   title: string | null;
   description: string | null;

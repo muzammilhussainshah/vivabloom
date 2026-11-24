@@ -10,7 +10,7 @@ import { StoreLogo } from "@/components/intelligence/StoreLogo";
 import { Pill, isOlderThanDays, timeAgo } from "@/components/intelligence/ui";
 import { toView } from "@/lib/intelligence/runner";
 import { getPersonalRecord } from "@/lib/intelligence/personal";
-import { AdsRulesSection, IdentitySection, ProductsSection, ProgramSection, ReputationSection, ScoreSection, SourcesSection, SummarySection } from "./sections";
+import { AdsRulesSection, IdentitySection, ProductsSection, ProgramSection, ReputationSection, ScoreSection, SourcesSection, SummarySection, TrafficSection } from "./sections";
 
 export const dynamic = "force-dynamic";
 
@@ -28,6 +28,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
 const NAV = [
   ["products", "Products"],
+  ["traffic", "Traffic"],
   ["ads", "Google Ads rules"],
   ["program", "Affiliate program"],
   ["reputation", "Reputation"],
@@ -99,6 +100,7 @@ export default async function StoreCheckReportPage({ params }: { params: Promise
       </nav>
 
       <ProductsSection check={check} />
+      <TrafficSection check={check} />
       <AdsRulesSection check={check} />
       <ProgramSection check={check} />
       <ReputationSection check={check} />
