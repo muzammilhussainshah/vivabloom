@@ -14,7 +14,12 @@ const StoreDiscoverySchema = new Schema(
     country: { type: String, required: true },
     category: { type: String, required: true },
     keyword: { type: String, default: null },
+    /** Only stores with evidence of an affiliate program. */
     results: { type: Schema.Types.Mixed, default: [] },
+    /** Brands the sources named but with no affiliate-program evidence — kept for transparency, not shown as results. */
+    hidden: { type: Schema.Types.Mixed, default: [] },
+    /** False for searches saved before results were filtered to affiliate programs. */
+    programFiltered: { type: Boolean, default: false },
     tavilyCredits: { type: Number, default: 0 },
   },
   { timestamps: true }

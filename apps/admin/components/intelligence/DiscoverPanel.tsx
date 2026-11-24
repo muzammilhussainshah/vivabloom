@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { RESEARCH_CATEGORIES, RESEARCH_COUNTRIES, getResearchCountry } from "@monocoupon/validation";
 import { Select, Spinner } from "@/components/ui/client";
-import type { DiscoveredStore, DiscoveryHistoryItem } from "@/lib/intelligence/discover";
+import type { DiscoveredStore, DiscoveryHistoryItem, HiddenStore } from "@/lib/intelligence/discover";
 import { Pill, VerdictPill, fieldLabelClass, hostAndPath, inputClass, selectClass, timeAgo } from "./ui";
 import { StoreLogo } from "./StoreLogo";
 
@@ -18,6 +18,10 @@ export interface DiscoverView {
   title: string;
   subtitle: string;
   stores: ShownStore[];
+  /** Brands named by the sources but without affiliate-program evidence. */
+  hidden: HiddenStore[];
+  /** Saved before results were filtered to affiliate programs. */
+  legacy: boolean;
   /** Only for a single saved search: lets "Search again" re-run it. */
   params: { country: string; category: string; keyword: string | null } | null;
 }
@@ -34,6 +38,21 @@ export function DiscoverPanel({ history, view, totalFound }: { history: Discover
   const [filter, setFilter] = useState<"all" | "unchecked" | "checked">("all");
   const [query, setQuery] = useState("");
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [filtering, setFiltering] = useState(false);
+
+  async function filterLegacy(id: string) {
+    setFiltering(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/intelligence/discover/${id}`, { method: "POST" });
+      if (!res.ok) throw new Error("Filtering failed — try again.");
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Filtering failed");
+    } finally {
+      setFiltering(false);
+    }
+  }
 
   async function search(params: { country: string; category: string; keyword: string | null }, force = false) {
     setBusy(true);
@@ -131,7 +150,9 @@ export function DiscoverPanel({ history, view, totalFound }: { history: Discover
             </Select>
           </label>
           <label className={fieldLabelClass}>
-            Focus <span className="font-normal">(optional)</span>
+            <span>
+              Focus <span className="font-normal">(optional)</span>
+            </span>
             <input name="keyword" maxLength={80} placeholder="e.g. cat water fountain, collagen" className={inputClass} />
           </label>
           <button
@@ -229,6 +250,21 @@ export function DiscoverPanel({ history, view, totalFound }: { history: Discover
                   )}
                 </div>
 
+                {view.legacy && (
+                  <div className="flex flex-col gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                    <p className="text-sm text-amber-900">This search was saved before results were limited to stores with an affiliate program.</p>
+                    <button
+                      type="button"
+                      onClick={() => void filterLegacy(view.id)}
+                      disabled={filtering}
+                      className="inline-flex h-9 shrink-0 items-center gap-2 rounded-[10px] bg-amber-600 px-3 text-sm font-semibold text-white hover:bg-amber-700 disabled:opacity-60"
+                    >
+                      {filtering && <Spinner />}
+                      {filtering ? "Checking their sites…" : "Keep only affiliate programs (free)"}
+                    </button>
+                  </div>
+                )}
+
                 <div className="flex flex-wrap items-center gap-2">
                   {(
                     [
@@ -274,7 +310,22 @@ export function DiscoverPanel({ history, view, totalFound }: { history: Discover
                               <p className="mt-0.5 truncate text-xs text-text-muted">{s.domain ?? "Website found when checked"}</p>
                             </div>
                           </div>
-                          {s.note && <p className="mt-2 line-clamp-2 text-xs text-text">{s.note}</p>}
+                          {s.program ? (
+                            <a
+                              href={s.program.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="mt-2.5 flex items-start gap-1.5 rounded-lg bg-emerald-50 px-2.5 py-1.5 text-xs text-emerald-800 ring-1 ring-inset ring-emerald-600/15 hover:bg-emerald-100"
+                              title={s.program.via === "site" ? "Found on the store's own website" : "Stated in the source article"}
+                            >
+                              <span className="font-bold" aria-hidden="true">✓</span>
+                              <span className="line-clamp-2">
+                                <span className="font-semibold">Affiliate program</span> · {s.program.label.replace(/\s*\(?source\s*\d+\)?/gi, "")}
+                              </span>
+                            </a>
+                          ) : (
+                            s.note && <p className="mt-2 line-clamp-2 text-xs text-text">{s.note}</p>
+                          )}
                           {s.foundIn && s.foundIn.length > 0 && (
                             <p className="mt-2 line-clamp-2 text-[11px] text-text-muted">Found in: {s.foundIn.join(" · ")}</p>
                           )}
@@ -299,6 +350,16 @@ export function DiscoverPanel({ history, view, totalFound }: { history: Discover
                       </li>
                     ))}
                   </ul>
+                )}
+                {view.hidden.length > 0 && (
+                  <details className="rounded-xl border border-border bg-white px-4 py-3 text-sm">
+                    <summary className="cursor-pointer text-text-muted">
+                      <span className="font-semibold text-text">{view.hidden.length} brands hidden</span> — no affiliate program found in the sources or on their website
+                    </summary>
+                    <p className="mt-2 text-xs leading-relaxed text-text-muted">
+                      {view.hidden.map((h) => (h.domain ? `${h.name} (${h.domain})` : h.name)).join(" · ")}
+                    </p>
+                  </details>
                 )}
               </>
             ) : (

@@ -60,11 +60,12 @@ export const AI_MODELS = {
      * Store Checker (AI Intelligence). Program/policy extraction and product
      * notes run on 120b; reputation + store discovery run on 20b so the two
      * don't share Groq's per-model tokens-per-minute budget within one check.
+     * Discovery runs on its own (not inside a check), so it uses the stronger 120b.
      */
     storeProgram: "groq/openai/gpt-oss-120b",
     storeReputation: "groq/openai/gpt-oss-20b",
     storeProducts: "groq/openai/gpt-oss-120b",
-    storeDiscovery: "groq/openai/gpt-oss-20b",
+    storeDiscovery: "groq/openai/gpt-oss-120b",
   },
   /** Models used for image generation (Cloudflare FLUX by default; Gemini ids also work). */
   image: {
@@ -2250,12 +2251,20 @@ export function storeDiscoveryPrompt(args: { country: string; category: string; 
   return `MARKET: ${args.country}
 CATEGORY: ${args.category}${args.keyword ? `\nFOCUS: ${args.keyword}` : ""}
 
-List up to 20 distinct brands from the SOURCES that fit the category and plausibly sell in this market.
+List EVERY distinct brand (up to 25) that the SOURCES name and that fits the category and plausibly sells in this market — list articles often name 10–20 brands; include them all. For each, add programQuote only when the source shows that brand has an affiliate program (null otherwise — that is fine, the brand is still listed).
 
 Return JSON:
 {
-  "brands": [ { "name": "brand name as written", "domain": "website address ONLY if it appears in the source text, else null", "source": 0, "quote": "exact words containing the brand name", "note": "affiliate program / commission detail if the source states one, else null" } ]
+  "brands": [ {
+    "name": "brand name as written",
+    "domain": "website address ONLY if it appears in the source text, else null",
+    "source": 0,
+    "quote": "exact words containing the brand name",
+    "programQuote": "exact words from the same source showing THIS brand has an affiliate / partner / ambassador program for publishers (e.g. its commission or sign-up), else null",
+    "note": "the program detail in a few words, e.g. '10% commission, 30-day cookie', else null"
+  } ]
 }
+Never put a programQuote that is about a different brand or about affiliate marketing in general.
 
 SOURCES:
 ${sources}`;

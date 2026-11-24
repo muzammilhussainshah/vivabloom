@@ -144,6 +144,9 @@ const NOT_A_STORE = new Set([
   "medium.com", "quora.com", "crunchbase.com", "glassdoor.com", "indeed.com", "google.com", "apple.com", "shopify.com",
   "knoji.com", "retailmenot.com", "groupon.com", "honey.com", "joinhoney.com", "capitaloneshopping.com", "dealspotr.com",
   "wired.com", "cnet.com", "techradar.com", "tomsguide.com", "goodhousekeeping.com", "healthline.com",
+  // search tools, affiliate directories and list publishers — never a brand's own store
+  "tavily.com", "revshare.so", "skimlinks.com", "empireflippers.com", "businessofapps.com", "afluencer.com", "builtin.com",
+  "mapquest.com", "yelp.com", "authorityhacker.com", "nichepursuits.com", "shopify.dev", "g2.com", "capterra.com", "similarweb.com",
 ]);
 
 export function isLikelyStoreDomain(domain: string): boolean {
@@ -201,4 +204,19 @@ export function escapeRegex(value: string): string {
 export function nameFromDomain(domain: string): string {
   const label = domain.split(".")[0] ?? domain;
   return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
+/**
+ * True when a domain plausibly IS this brand's website: its name (label)
+ * matches the brand ("vitaminshoppe.com" for "The Vitamin Shoppe"). A page
+ * merely mentioning the brand is not enough — that's how a search tool's own
+ * site once got picked as a store.
+ */
+export function domainMatchesBrand(domain: string, name: string): boolean {
+  const label = compact(domain.split(".")[0] ?? "");
+  const nameKey = compact(name.replace(NAME_NOISE, " ").replace(/[™®©]/g, ""));
+  if (label.length < 3 || nameKey.length < 3) return false;
+  if (label === nameKey || label.includes(nameKey) || (nameKey.includes(label) && label.length >= Math.min(5, nameKey.length))) return true;
+  const words = name.toLowerCase().split(/[^a-z0-9]+/).filter((w) => w.length >= 5);
+  return words.some((w) => label.includes(w));
 }

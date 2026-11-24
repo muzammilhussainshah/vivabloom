@@ -283,3 +283,24 @@ export async function runIdentityStep(args: { domain: string; startUrl: string |
   };
   return { identity, sources, usage };
 }
+
+/**
+ * Free probe of a store's homepage (no search credits): is the site there,
+ * what does it call itself, and does it point to an affiliate program (an
+ * on-site Affiliate / Partners / Ambassador page, or a network signup link)?
+ */
+export async function probeStoreSite(domain: string): Promise<{ ok: boolean; siteName: string | null; program: { url: string; label: string } | null }> {
+  for (const url of [`https://www.${domain}/`, `https://${domain}/`]) {
+    const res = await safeFetch(url, { timeoutMs: 7000, maxBytes: 2_000_000 });
+    if (!res.ok || !res.text || domainOfUrl(res.url) !== domain) continue;
+    const siteName = [getMeta(res.text, "og:site_name"), getTitle(res.text)].filter(Boolean).join(" | ") || null;
+    const found = classifyLinks(getLinks(res.text, res.url), domain);
+    const program = found.affiliateLinks[0]
+      ? { url: found.affiliateLinks[0].url, label: `${found.affiliateLinks[0].network} program linked on the site` }
+      : found.pages.affiliate[0]
+        ? { url: found.pages.affiliate[0], label: "Affiliate / partner page on the site" }
+        : null;
+    return { ok: true, siteName, program };
+  }
+  return { ok: false, siteName: null, program: null };
+}

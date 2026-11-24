@@ -201,6 +201,8 @@ export const discoveryExtractionSchema = z.object({
         domain: z.string().max(120).nullable().catch(null),
         source: sourceIndex,
         quote,
+        /** Exact words from the source showing THIS brand runs an affiliate/partner program. */
+        programQuote: quote,
         note: z.string().max(240).nullable().catch(null),
       })
     )

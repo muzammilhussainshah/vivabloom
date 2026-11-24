@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { ProgramExtraction } from "@monocoupon/validation";
-import { analyzeLink, brandMatchers, isLikelyStoreDomain, mentionsBrand, networkForUrl, parseStoreInput, registrableDomain } from "./domain";
+import { analyzeLink, brandMatchers, domainMatchesBrand, isLikelyStoreDomain, mentionsBrand, networkForUrl, parseStoreInput, registrableDomain } from "./domain";
 import { focusTermsText, quoteInText, toEvidenceField } from "./evidence";
 import { isAllowedByRobots, parseRobots } from "./robots";
 import { isPrivateAddress } from "./safeFetch";
@@ -10,6 +10,7 @@ import { commissionRange, popularityScore, priceFit, productFamily, productKey, 
 import { recencyFactor, sourceTier } from "./reputation";
 import type { IdentityResult, PolicyItem, ProgramResult, ReputationResult, StoreCheckView } from "./types";
 import { sortChecks } from "./sort";
+import { guessDomain } from "./discover";
 
 describe("store input & link analysis", () => {
   it("turns an ad/affiliate link into the store domain and detects the network", () => {
@@ -402,5 +403,20 @@ describe("checked stores ordering", () => {
     const list = [mk("ban", "bad", "caution", 69), mk("ok", "good", "good", 80), mk("confirm", "warn", "good", 74), mk("care", "warn", "caution", 60)];
     expect(sortChecks(list, "best").map((c) => c.id)).toEqual(["ok", "confirm", "care", "ban"]);
     expect(sortChecks(list, "trust").map((c) => c.id)).toEqual(["ok", "confirm", "ban", "care"]);
+  });
+});
+
+describe("finding a brand's own website", () => {
+  it("only accepts a domain whose name matches the brand", () => {
+    expect(domainMatchesBrand("vitaminshoppe.com", "The Vitamin Shoppe")).toBe(true);
+    expect(domainMatchesBrand("tavily.com", "The Vitamin Shoppe")).toBe(false);
+    expect(domainMatchesBrand("legionathletics.com", "Legion Athletics")).toBe(true);
+    expect(domainMatchesBrand("revshare.so", "Legion Athletics")).toBe(false);
+  });
+
+  it("guesses a .com from the brand name (confirmed later by the site itself)", () => {
+    expect(guessDomain("Legion Athletics")).toBe("legionathletics.com");
+    expect(guessDomain("The Vitamin Shoppe")).toBe("vitaminshoppe.com");
+    expect(isLikelyStoreDomain("tavily.com")).toBe(false);
   });
 });

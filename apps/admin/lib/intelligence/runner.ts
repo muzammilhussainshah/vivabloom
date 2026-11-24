@@ -1,6 +1,6 @@
 import { connectToDatabase, StoreCheck } from "@monocoupon/db";
 import { STORE_CHECK_STEPS, type StoreCheckStep } from "@monocoupon/validation";
-import { analyzeLink, brandMatchers, domainOfUrl, isLikelyStoreDomain, mentionsBrand, nameFromDomain, parseStoreInput } from "./domain";
+import { analyzeLink, domainMatchesBrand, domainOfUrl, isLikelyStoreDomain, nameFromDomain, parseStoreInput } from "./domain";
 import { tavilySearch } from "./tavily";
 import { runIdentityStep } from "./identity";
 import { analyzePastedTerms, mergePastedTerms, runProgramStep } from "./program";
@@ -22,17 +22,12 @@ export class UserFacingError extends Error {}
 
 async function resolveDomainFromName(name: string): Promise<{ domain: string; credits: number }> {
   const { results, credits } = await tavilySearch(`${name} official website online store`, { maxResults: 8 });
-  const matchers = brandMatchers(name, "");
-  const ranked = results
-    .map((r) => ({ r, domain: domainOfUrl(r.url) }))
-    .filter((x): x is { r: (typeof results)[number]; domain: string } => Boolean(x.domain) && isLikelyStoreDomain(x.domain as string));
-  // Prefer a domain that contains the brand name itself ("kittyspout.com" for "Kitty Spout").
-  const nameKey = name.toLowerCase().replace(/[^a-z0-9]/g, "");
-  const best =
-    ranked.find((x) => nameKey.includes(x.domain.split(".")[0] ?? "~") || (x.domain.split(".")[0] ?? "").includes(nameKey)) ??
-    ranked.find((x) => mentionsBrand(`${x.r.title} ${x.r.content}`, matchers));
+  // Only a domain whose own name matches the brand counts — never a page that merely mentions it.
+  const best = results
+    .map((r) => domainOfUrl(r.url))
+    .find((d): d is string => Boolean(d) && isLikelyStoreDomain(d as string) && domainMatchesBrand(d as string, name));
   if (!best) throw new UserFacingError(`Couldn't find an official website for "${name}". Paste the store's link instead.`);
-  return { domain: best.domain, credits };
+  return { domain: best, credits };
 }
 
 /** Creates (or reuses) the StoreCheck for whatever the admin pasted. */

@@ -23,7 +23,7 @@ async function loadFindTab(searchId: string | undefined): Promise<{ history: Awa
     return {
       history,
       totalFound: all.length,
-      view: { id: "all", title: "All found stores", subtitle: `${all.length} unique stores from ${history.length} saved searches`, stores: all, params: null },
+      view: { id: "all", title: "All found stores", subtitle: `${all.length} stores with affiliate programs from ${history.length} saved searches`, stores: all, hidden: [], legacy: false, params: null },
     };
   }
   const d = selectedId ? await getDiscovery(selectedId) : null;
@@ -33,6 +33,8 @@ async function loadFindTab(searchId: string | undefined): Promise<{ history: Awa
         title: `${d.category}${d.keyword ? ` · ${d.keyword}` : ""}`,
         subtitle: `${getResearchCountry(d.country)?.name ?? d.country.toUpperCase()} · saved ${timeAgo(d.createdAt)} · reopens free`,
         stores: d.stores,
+        hidden: d.hidden,
+        legacy: d.legacy,
         params: { country: d.country, category: d.category, keyword: d.keyword },
       }
     : null;
