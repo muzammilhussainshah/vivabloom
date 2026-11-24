@@ -4,6 +4,7 @@
  * status badges and the loading skeleton, so every list reads the same way.
  * Server-safe — the interactive pieces live in ./client.tsx.
  */
+import { ZoomImage } from "./ZoomImage";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
@@ -294,18 +295,7 @@ export function Thumb({
       </span>
     );
   }
-  return (
-    <span className={box}>
-      {/* eslint-disable-next-line @next/next/no-img-element -- remote admin uploads; next/image would need every host allow-listed */}
-      <img
-        src={src}
-        alt={alt}
-        loading="lazy"
-        decoding="async"
-        className={`h-full w-full ${fit === "contain" ? "bg-white object-contain p-1" : "object-cover"}`}
-      />
-    </span>
-  );
+  return <ZoomImage src={src} alt={alt} boxClass={box} imgClass={`h-full w-full ${fit === "contain" ? "bg-white object-contain p-1" : "object-cover"}`} />;
 }
 
 /* ---------- Badges ---------- */
