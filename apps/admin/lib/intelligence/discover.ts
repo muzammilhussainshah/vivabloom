@@ -1,4 +1,4 @@
-import { connectToDatabase, Store, StoreCheck, StoreDiscovery } from "@monocoupon/db";
+import { connectToDatabase, Store, StoreCheck, StoreDiscovery, StoreShortlist } from "@monocoupon/db";
 import { discoveryExtractionSchema, getResearchCountry } from "@monocoupon/validation";
 import { STORE_DISCOVERY_SYSTEM_PROMPT, storeDiscoveryPrompt } from "@/lib/ai/prompts";
 import { llmJson } from "./llm";
@@ -42,6 +42,9 @@ export interface DiscoveredStore {
   /** Read-time: your own history with this store (never saved on the search). */
   yours?: { onSite: boolean; lostCents: number; spentCents: number; netCents: number } | null;
   lead?: { score: number; band: LeadBand };
+  /** Read-time: starred by the admin; `memo` is their note. */
+  shortlisted?: boolean;
+  memo?: string;
 }
 
 export interface HiddenStore {
@@ -124,10 +127,11 @@ function focusListText(text: string, maxChars: number): string {
  * score that ranks it.
  */
 async function attachChecks(stores: DiscoveredStore[]): Promise<DiscoveredStore[]> {
-  const [checks, mine, money] = await Promise.all([
+  const [checks, mine, money, starred] = await Promise.all([
     StoreCheck.find({}, "domain name score").lean(),
     Store.find({}, "name websiteUrl").lean(),
     getStoreMoneySummaries().catch(() => []),
+    StoreShortlist.find({}).lean(),
   ]);
   const mineByDomain = new Map(mine.filter((m) => m.websiteUrl).map((m) => [domainOfUrl(m.websiteUrl as string) ?? "", m]));
   return stores.map((s) => {
@@ -147,7 +151,8 @@ async function attachChecks(stores: DiscoveredStore[]): Promise<DiscoveredStore[
       checkVerdict: check?.verdict ?? null,
       lostMoneyBefore: (yours?.lostCents ?? 0) > 0,
     });
-    return { ...s, domain, check, yours, lead };
+    const star = starred.find((x) => (domain && x.domain === domain) || x.nameKey === compact(s.name));
+    return { ...s, domain, check, yours, lead, shortlisted: Boolean(star), memo: star?.memo ?? "" };
   });
 }
 
@@ -319,6 +324,52 @@ export async function filterSavedDiscovery(id: string): Promise<void> {
   const kept = stores.filter((s) => s.program);
   const hidden: HiddenStore[] = stores.filter((s) => !s.program).map((s) => ({ name: s.name, domain: s.domain }));
   await StoreDiscovery.updateOne({ _id: d._id }, { $set: { results: kept, hidden, programFiltered: true } });
+}
+
+/* ---------- Shortlist ---------- */
+
+/**
+ * Every starred store with everything we know about it: the saved search entry
+ * (network, commission, popularity, ad-rule signal) when it came from "Find
+ * stores", or just its Store Check when it was checked directly.
+ */
+export async function getShortlistStores(): Promise<(DiscoveredStore & { foundIn?: string[]; addedAt: string })[]> {
+  await connectToDatabase();
+  const [starred, found] = await Promise.all([StoreShortlist.find({}).sort({ createdAt: -1 }).lean(), getAllDiscoveredStores()]);
+  const extra: DiscoveredStore[] = [];
+  const result: (DiscoveredStore & { foundIn?: string[]; addedAt: string })[] = [];
+  const pendingBlank: { star: (typeof starred)[number]; idx: number }[] = [];
+  for (const star of starred) {
+    const hit = found.find((f) => (star.domain && f.domain === star.domain) || compact(f.name) === star.nameKey);
+    if (hit) {
+      result.push({ ...hit, shortlisted: true, memo: star.memo ?? "", addedAt: new Date(star.createdAt).toISOString() });
+    } else {
+      pendingBlank.push({ star, idx: result.length });
+      result.push({ name: star.name, domain: star.domain ?? null, note: null, sourceUrl: star.domain ? `https://${star.domain}` : "", sourceTitle: star.name, check: null, program: null, addedAt: new Date(star.createdAt).toISOString() });
+      extra.push(result[result.length - 1]!);
+    }
+  }
+  if (extra.length) {
+    const decorated = await attachChecks(extra);
+    pendingBlank.forEach(({ star, idx }, i) => {
+      result[idx] = { ...decorated[i]!, shortlisted: true, memo: star.memo ?? "", addedAt: new Date(star.createdAt).toISOString() };
+    });
+  }
+  return result;
+}
+
+/** Is this store (by domain, else by name) on the shortlist? Loads the list once for many lookups. */
+export async function getShortlistMatcher(): Promise<(domain: string | null, name: string | null) => boolean> {
+  await connectToDatabase();
+  const docs = await StoreShortlist.find({}, "nameKey domain").lean();
+  const domains = new Set(docs.map((d) => d.domain).filter((x): x is string => Boolean(x)));
+  const names = new Set(docs.map((d) => d.nameKey));
+  return (domain, name) => Boolean((domain && domains.has(domain)) || (name && names.has(compact(name))));
+}
+
+export async function countShortlist(): Promise<number> {
+  await connectToDatabase();
+  return StoreShortlist.countDocuments({});
 }
 
 /* ---------- Free enrichment ---------- */

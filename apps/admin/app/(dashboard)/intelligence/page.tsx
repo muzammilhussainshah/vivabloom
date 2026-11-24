@@ -3,12 +3,13 @@ import Link from "next/link";
 import { connectToDatabase, StoreCheck } from "@monocoupon/db";
 import { STORE_CHECK_STEPS, getResearchCountry } from "@monocoupon/validation";
 import { PageShell } from "@/components/ui";
+import { ShortlistPanel } from "@/components/intelligence/ShortlistPanel";
 import { StoreList } from "@/components/intelligence/StoreList";
 import { CheckForm } from "@/components/intelligence/CheckForm";
 import { DiscoverPanel, type DiscoverView } from "@/components/intelligence/DiscoverPanel";
 import { timeAgo } from "@/components/intelligence/ui";
 import { toView } from "@/lib/intelligence/runner";
-import { countPendingEnrichment, getAllDiscoveredStores, getDiscovery, listDiscoveryHistory } from "@/lib/intelligence/discover";
+import { countPendingEnrichment, countShortlist, getAllDiscoveredStores, getShortlistMatcher, getShortlistStores, getDiscovery, listDiscoveryHistory } from "@/lib/intelligence/discover";
 import type { StoreCheckView } from "@/lib/intelligence/types";
 import { isAvoidStore, sortChecks } from "@/lib/intelligence/sort";
 import { toRow } from "@/lib/intelligence/rows";
@@ -45,8 +46,9 @@ async function loadFindTab(searchId: string | undefined): Promise<{ history: Awa
 
 export default async function StoreCheckerPage({ searchParams }: { searchParams: Promise<{ tab?: string; search?: string }> }) {
   const { tab: rawTab, search } = await searchParams;
-  const tab = rawTab === "find" ? "find" : rawTab === "avoid" ? "avoid" : rawTab === "archived" ? "archived" : "checked";
+  const tab = rawTab === "find" ? "find" : rawTab === "shortlist" ? "shortlist" : rawTab === "avoid" ? "avoid" : rawTab === "archived" ? "archived" : "checked";
   await connectToDatabase();
+  const [shortlistCount, shortlistStores] = await Promise.all([countShortlist(), tab === "shortlist" ? getShortlistStores() : Promise.resolve(null)]);
   const [docs, find] = await Promise.all([
     StoreCheck.find({}).sort({ updatedAt: -1 }).limit(300).lean(),
     tab === "find" ? loadFindTab(search) : Promise.resolve(null),
@@ -55,7 +57,8 @@ export default async function StoreCheckerPage({ searchParams }: { searchParams:
     docs.map((d) => toView(d as unknown as Record<string, unknown>)),
     "best"
   );
-  const rowOf = (c: StoreCheckView) => toRow(c, STORE_CHECK_STEPS.filter((s) => c.steps[s].status === "done").length);
+  const isStarred = await getShortlistMatcher();
+  const rowOf = (c: StoreCheckView) => toRow(c, STORE_CHECK_STEPS.filter((s) => c.steps[s].status === "done").length, isStarred(c.domain, c.name));
   // Archived stores are hidden from the main lists; risky stores live in their own tab so the main list is only stores worth considering.
   const archived = all.filter((c) => c.archived);
   const live = all.filter((c) => !c.archived);
@@ -85,6 +88,7 @@ export default async function StoreCheckerPage({ searchParams }: { searchParams:
         {(
           [
             ["find", "Find new stores", "/intelligence?tab=find", null],
+            ["shortlist", "Shortlist", "/intelligence?tab=shortlist", shortlistCount],
             ["checked", "Stores to promote", "/intelligence", promote.length],
             ["avoid", "Risky / avoid", "/intelligence?tab=avoid", avoid.length],
             ["archived", "Archived", "/intelligence?tab=archived", archived.length],
@@ -103,6 +107,7 @@ export default async function StoreCheckerPage({ searchParams }: { searchParams:
             }`}
           >
             {key === "avoid" && <span className="h-2 w-2 rounded-full bg-red-500" aria-hidden="true" />}
+            {key === "shortlist" && <span className="text-amber-500" aria-hidden="true">★</span>}
             {label}
             {count != null && count > 0 && (
               <span
@@ -117,7 +122,9 @@ export default async function StoreCheckerPage({ searchParams }: { searchParams:
         ))}
       </nav>
 
-      {tab === "find" ? (
+      {tab === "shortlist" ? (
+        <ShortlistPanel stores={shortlistStores ?? []} />
+      ) : tab === "find" ? (
         <DiscoverPanel history={find?.history ?? []} view={find?.view ?? null} totalFound={find?.totalFound ?? 0} pendingEnrich={find?.pending ?? 0} />
       ) : checks.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border bg-white px-6 py-14 text-center">

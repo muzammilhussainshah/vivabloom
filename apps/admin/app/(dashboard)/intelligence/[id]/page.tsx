@@ -4,6 +4,7 @@ import { connectToDatabase, StoreCheck } from "@monocoupon/db";
 import { STORE_CHECK_STEPS, getResearchCountry } from "@monocoupon/validation";
 import { BackButton, buttonStyles } from "@/components/ui";
 import { CheckRunner } from "@/components/intelligence/CheckRunner";
+import { ShortlistButton } from "@/components/intelligence/ShortlistButton";
 import { ArchiveButton } from "@/components/intelligence/ArchiveButton";
 import { RecheckButton } from "@/components/intelligence/RecheckButton";
 import { PrintReportButton } from "@/components/intelligence/PrintReportButton";
@@ -11,6 +12,7 @@ import { StoreLogo } from "@/components/intelligence/StoreLogo";
 import { Pill, isOlderThanDays, timeAgo } from "@/components/intelligence/ui";
 import { toView } from "@/lib/intelligence/runner";
 import { allNetworks } from "@/lib/intelligence/rows";
+import { getShortlistMatcher } from "@/lib/intelligence/discover";
 import { getPersonalRecord } from "@/lib/intelligence/personal";
 import { AdsRulesSection, IdentitySection, ProductsSection, ProgramSection, ReputationSection, ScoreSection, SourcesSection, SummarySection, TrafficSection } from "./sections";
 
@@ -45,6 +47,7 @@ export default async function StoreCheckReportPage({ params }: { params: Promise
   const personal = await getPersonalRecord(check.domain).catch(() => null);
   const name = check.name ?? check.domain;
   const networks = allNetworks(check);
+  const shortlisted = (await getShortlistMatcher())(check.domain, name);
   const allDone = STORE_CHECK_STEPS.every((s) => check.steps[s].status === "done");
 
   return (
@@ -85,6 +88,7 @@ export default async function StoreCheckReportPage({ params }: { params: Promise
             Visit store ↗
           </a>
           {check.score && <PrintReportButton fileName={`Store Check - ${name}${check.lastCheckedAt ? ` - ${check.lastCheckedAt.slice(0, 10)}` : ""}`} />}
+          <ShortlistButton name={name} domain={check.domain} shortlisted={shortlisted} variant="button" />
           <ArchiveButton id={check.id} archived={check.archived} variant="button" />
           {allDone && <RecheckButton domain={check.domain} country={check.targetCountry} />}
         </div>

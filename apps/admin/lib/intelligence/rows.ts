@@ -13,6 +13,7 @@ export interface StoreRow {
   checkedAt: string | null;
   category: string | null;
   archived: boolean;
+  shortlisted: boolean;
   avoid: boolean;
   trust: number | null;
   risk: number | null;
@@ -25,7 +26,7 @@ export interface StoreRow {
   top: { name: string; price: number | null; currency: string | null } | null;
 }
 
-export function toRow(c: StoreCheckView, doneSteps: number): StoreRow {
+export function toRow(c: StoreCheckView, doneSteps: number, shortlisted = false): StoreRow {
   const b = c.score?.bottomLine;
   const top = c.products?.top[0];
   return {
@@ -37,6 +38,7 @@ export function toRow(c: StoreCheckView, doneSteps: number): StoreRow {
     checkedAt: c.lastCheckedAt,
     category: categoryOf(c),
     archived: c.archived,
+    shortlisted,
     avoid: isAvoidStore(c),
     trust: c.score?.trust ?? null,
     risk: c.score?.risk ?? null,

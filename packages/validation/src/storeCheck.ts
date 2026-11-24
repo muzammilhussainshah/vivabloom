@@ -231,3 +231,11 @@ export type DiscoveryExtraction = z.infer<typeof discoveryExtractionSchema>;
 export const pastedTermsSchema = z.object({
   text: z.string().trim().min(200, "Paste the full terms (at least a few paragraphs).").max(80_000, "That's too long — paste just the program terms."),
 });
+
+/** Star / un-star a store, or edit the note on a shortlisted one. */
+export const shortlistSchema = z.object({
+  name: z.string().trim().min(1).max(120),
+  domain: z.string().trim().toLowerCase().max(120).nullable().optional(),
+  shortlisted: z.boolean().optional(),
+  memo: z.string().trim().max(1000).optional(),
+});

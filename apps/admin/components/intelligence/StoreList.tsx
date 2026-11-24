@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Select } from "@/components/ui/client";
 import { StoreLogo } from "./StoreLogo";
 import { ArchiveButton } from "./ArchiveButton";
+import { ShortlistButton } from "./ShortlistButton";
 import { Pill, VerdictPill, VERDICT_META, formatMoney, inputClass, scoreTone, selectClass, timeAgo, toneClasses } from "./ui";
 import type { StoreRow } from "@/lib/intelligence/rows";
 
@@ -18,7 +19,7 @@ const SORTS = [
 ] as const;
 type SortKey = (typeof SORTS)[number]["value"];
 
-const ROW_GRID = "md:grid-cols-[minmax(0,1.5fr)_150px_minmax(0,1.6fr)_minmax(0,1.2fr)_minmax(0,1.3fr)_88px]";
+const ROW_GRID = "md:grid-cols-[minmax(0,1.5fr)_150px_minmax(0,1.6fr)_minmax(0,1.2fr)_minmax(0,1.3fr)_120px]";
 const ALL = "all";
 
 function sortRows(rows: StoreRow[], sort: SortKey): StoreRow[] {
@@ -180,6 +181,7 @@ function Row({ r, tab }: { r: StoreRow; tab: string }) {
         <span className="hidden md:block" aria-hidden="true" />
       </Link>
       <div className="absolute right-4 top-3 flex items-center gap-1 md:right-5 md:top-1/2 md:-translate-y-1/2">
+        <ShortlistButton name={r.name} domain={r.domain} shortlisted={r.shortlisted} />
         <ArchiveButton id={r.id} archived={tab === "archived"} />
         <span className="hidden w-4 text-center text-text-muted md:block" aria-hidden="true">→</span>
       </div>

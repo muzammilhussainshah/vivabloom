@@ -25,3 +25,4 @@ export * from "./PaymentTerm";
 export * from "./StoreCheck";
 export * from "./StoreDiscovery";
 export * from "./AiUsage";
+export * from "./StoreShortlist";
