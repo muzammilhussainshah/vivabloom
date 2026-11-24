@@ -14,7 +14,7 @@ export interface EarlyWarning {
 }
 
 const TOPIC_RE = /\b(coupon sites?|coupon partners?|voucher sites?|deal sites?|discount sites?|cash ?back|loyalty sites?|coupons?|vouchers?|ppc|paid search|paid media|paid advertising|google ads|adwords|search engine marketing|brand bidding|bidding on|trademark(?:ed)? (?:terms?|keywords?|bidding)|brand (?:name|terms?|keywords?))\b/i;
-const NEGATIVE_RE = /\b(not (?:be )?(?:allowed|permitted|eligible|accepted|approved|used)|no\b|prohibit\w*|forbidden|may not|must not|cannot|can't|do not|don't|never|banned?|disallow\w*|restricted|exclud\w+|unauthori[sz]ed|violation)\b/i;
+const NEGATIVE_RE = /\b(not (?:be )?(?:allowed|permitted|eligible|accepted|approved|used)|no\b|prohibit\w*|forbidden|may not|must not|cannot|can't|do not|don't|never|won['’]t be (?:allowed|permitted)|will not be (?:allowed|permitted)|not allowed|banned?|disallow\w*|restricted|exclud\w+|unauthori[sz]ed|violation)\b/i;
 
 /** Sentences about WHEN commissions are paid, or about stacking codes, are rules about orders — not a ban on promoting. */
 const ORDER_RULE_RE = /commissions?\b[^.]{0,60}\b(?:not|never)\b[^.]{0,30}\b(?:paid|earned|awarded|payable)|no commissions?|stack|same post|combined with|reorders?/i;

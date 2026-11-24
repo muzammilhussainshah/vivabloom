@@ -489,6 +489,7 @@ describe("early lead signals", () => {
     expect(scanAdRules("Commissions will not be paid on orders using unauthorized coupon codes or promo codes from coupon sites.", "https://x.com/aff")?.level).toBe("mention");
     expect(scanAdRules("Content must not infringe on copyright, trademark, or any personal or property rights of others.", "u")).toBeNull();
     expect(scanAdRules("Share your unique promo code with your followers to encourage them to purchase our products.", "u")).toBeNull();
+    expect(scanAdRules("As a partner, you won’t be allowed to: use paid advertising to promote your program, including Google Ads.", "u")?.level).toBe("ban");
     expect(scanAdRules("Earn 10% on every sale with our creator program and fast payouts.", "https://x.com/aff")).toBeNull();
     expect(parseCommission("5–12% commission, 30-day cookie")).toEqual({ min: 5, max: 12 });
     expect(parseCommission("up to 8% per sale")).toEqual({ min: 8, max: 8 });
