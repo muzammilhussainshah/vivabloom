@@ -49,6 +49,9 @@ type SortKey = (typeof SORT_OPTIONS)[number]["value"];
 
 type BatchItem = { key: string; name: string; status: "waiting" | "running" | "done" | "skipped" | "failed"; detail?: string };
 const MAX_BATCH = 10;
+/** One column template shared by the header and every row so columns line up. */
+const FIND_GRID = "md:grid-cols-[24px_minmax(0,1.7fr)_150px_minmax(0,1.1fr)_minmax(0,0.9fr)_minmax(0,1.7fr)_130px] grid-cols-[minmax(0,1fr)_auto_auto]";
+const BAND_TEXT = { strong: "text-emerald-600", promising: "text-sky-600", weak: "text-slate-500", avoid: "text-red-600" } as const;
 
 export function DiscoverPanel({ history, view, totalFound, pendingEnrich }: { history: DiscoveryHistoryItem[]; view: DiscoverView | null; totalFound: number; pendingEnrich: number }) {
   const router = useRouter();
@@ -64,6 +67,7 @@ export function DiscoverPanel({ history, view, totalFound, pendingEnrich }: { hi
   const [network, setNetwork] = useState("all");
   const [hideBan, setHideBan] = useState(false);
   const [picked, setPicked] = useState<string[]>([]);
+  const [expanded, setExpanded] = useState<string[]>([]);
   const [batch, setBatch] = useState<{ items: BatchItem[]; running: boolean; note: string | null } | null>(null);
   const stopBatch = useRef(false);
   const [gathering, setGathering] = useState(pendingEnrich);
@@ -307,37 +311,38 @@ export function DiscoverPanel({ history, view, totalFound, pendingEnrich }: { hi
           Pick a market and category above to find brands with affiliate programs. Every search is saved here so you never pay for it twice.
         </p>
       ) : (
-        <div className="grid gap-5 lg:grid-cols-[280px_minmax(0,1fr)]">
-          <aside className="flex flex-col gap-2 lg:sticky lg:top-4 lg:self-start">
-            <p className="px-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-text-muted">Search history</p>
-            <Link
-              href="/intelligence?tab=find&search=all"
-              className={`flex items-center justify-between rounded-xl border px-3 py-2.5 text-sm transition-colors ${
-                view?.id === "all" ? "border-brand-primary/40 bg-brand-primary/10 font-semibold text-brand-primary" : "border-border bg-white text-text hover:border-brand-primary/30"
-              }`}
-            >
-              <span>All found stores</span>
-              <span className="rounded-full bg-white/80 px-2 py-0.5 text-xs font-semibold tabular-nums ring-1 ring-inset ring-border">{totalFound}</span>
-            </Link>
-            <ul className="flex max-h-[60vh] flex-col gap-1.5 overflow-y-auto pr-1">
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-2">
+            <p className="px-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-text-muted">Saved searches · reopen free</p>
+            <ul className="flex gap-2 overflow-x-auto pb-1">
+              <li className="shrink-0">
+                <Link
+                  href="/intelligence?tab=find&search=all"
+                  className={`flex items-center gap-2 rounded-full border px-3.5 py-2 text-sm transition-colors ${
+                    view?.id === "all" ? "border-brand-primary bg-brand-primary/10 font-semibold text-brand-primary" : "border-border bg-white text-text hover:border-brand-primary/40"
+                  }`}
+                >
+                  All found stores
+                  <span className="rounded-full bg-white/80 px-2 py-0.5 text-xs font-semibold tabular-nums ring-1 ring-inset ring-border">{totalFound}</span>
+                </Link>
+              </li>
               {history.map((h) => {
                 const active = view?.id === h.id;
                 return (
-                  <li key={h.id} className="group relative">
+                  <li key={h.id} className="group relative shrink-0">
                     <Link
                       href={`/intelligence?tab=find&search=${h.id}`}
-                      className={`block rounded-xl border px-3 py-2.5 pr-9 transition-colors ${
-                        active ? "border-brand-primary/40 bg-brand-primary/10" : "border-border bg-white hover:border-brand-primary/30"
+                      className={`flex flex-col rounded-2xl border py-1.5 pl-3.5 pr-8 transition-colors ${
+                        active ? "border-brand-primary bg-brand-primary/10" : "border-border bg-white hover:border-brand-primary/40"
                       }`}
                     >
-                      <p className={`truncate text-sm font-semibold ${active ? "text-brand-primary" : "text-text"}`}>
+                      <span className={`text-sm font-semibold ${active ? "text-brand-primary" : "text-text"}`}>
                         {h.category}
                         {h.keyword ? ` · ${h.keyword}` : ""}
-                      </p>
-                      <p className="mt-0.5 truncate text-xs text-text-muted">
-                        {getResearchCountry(h.country)?.name ?? h.country.toUpperCase()} · {h.count} stores · {h.checked} checked
-                      </p>
-                      <p className="text-[11px] text-text-muted">{timeAgo(h.updatedAt)}</p>
+                      </span>
+                      <span className="text-[11px] text-text-muted">
+                        {getResearchCountry(h.country)?.name ?? h.country.toUpperCase()} · {h.count} stores · {h.checked} checked · {timeAgo(h.updatedAt)}
+                      </span>
                     </Link>
                     <button
                       type="button"
@@ -345,7 +350,7 @@ export function DiscoverPanel({ history, view, totalFound, pendingEnrich }: { hi
                       disabled={deleting === h.id}
                       title="Delete this saved search"
                       aria-label={`Delete saved search ${h.category}`}
-                      className="absolute right-2 top-2.5 flex h-6 w-6 items-center justify-center rounded-md text-text-muted opacity-0 transition-opacity hover:bg-red-50 hover:text-red-600 focus:opacity-100 group-hover:opacity-100"
+                      className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-md text-text-muted opacity-0 transition-opacity hover:bg-red-50 hover:text-red-600 focus:opacity-100 group-hover:opacity-100"
                     >
                       {deleting === h.id ? <Spinner className="h-3.5 w-3.5" /> : "×"}
                     </button>
@@ -353,7 +358,8 @@ export function DiscoverPanel({ history, view, totalFound, pendingEnrich }: { hi
                 );
               })}
             </ul>
-          </aside>
+          </div>
+
 
           <section className="flex min-w-0 flex-col gap-3">
             {view ? (
@@ -544,107 +550,172 @@ export function DiscoverPanel({ history, view, totalFound, pendingEnrich }: { hi
                 {stores.length === 0 ? (
                   <p className="rounded-2xl border border-dashed border-border bg-white px-4 py-10 text-center text-sm text-text-muted">No stores match this filter.</p>
                 ) : (
-                  <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                    {stores.map((s) => (
-                      <li key={`${s.domain ?? s.name}`} className="flex flex-col justify-between gap-3 rounded-2xl border border-border bg-white p-4 transition-shadow hover:shadow-md">
-                        <div className="min-w-0">
-                          <div className="flex items-start gap-3">
-                            {!s.check && (
-                              <input
-                                type="checkbox"
-                                checked={picked.includes(s.domain ?? s.name)}
-                                disabled={!picked.includes(s.domain ?? s.name) && picked.length >= MAX_BATCH}
-                                onChange={(e) => setPicked((p) => (e.target.checked ? [...p, s.domain ?? s.name] : p.filter((k) => k !== (s.domain ?? s.name))))}
-                                aria-label={`Select ${s.name}`}
-                                className="mt-2 h-4 w-4 shrink-0 accent-[var(--color-brand-primary)]"
-                              />
-                            )}
-                            <StoreLogo src={null} domain={s.domain ?? ""} name={s.name} size="xs" />
-                            <div className="min-w-0 flex-1">
-                              <div className="flex items-start justify-between gap-2">
-                                <p className="truncate font-semibold leading-tight text-text">{s.name}</p>
-                                {s.check ? <VerdictPill verdict={s.check.verdict} /> : <Pill tone="muted" dot={false}>Not checked</Pill>}
+                  <div className="overflow-hidden rounded-2xl border border-border bg-white shadow-[0_1px_2px_rgba(16,24,20,0.04),0_8px_24px_-12px_rgba(16,24,20,0.08)]">
+                    <div className={`hidden gap-4 border-b border-border bg-surface/70 px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-text-muted md:grid ${FIND_GRID}`}>
+                      <span />
+                      <span>Store</span>
+                      <span>Opportunity</span>
+                      <span>Network · Commission</span>
+                      <span>Popularity</span>
+                      <span>Their ad rules</span>
+                      <span />
+                    </div>
+                    <ul className="divide-y divide-border">
+                      {stores.map((s) => {
+                        const key = s.domain ?? s.name;
+                        const isOpen = expanded.includes(key);
+                        const w = s.warning;
+                        const lost = s.yours && s.yours.lostCents > 0;
+                        return (
+                          <li key={key} className={isOpen ? "bg-surface/40" : undefined}>
+                            <div className={`grid items-center gap-x-4 gap-y-2 px-4 py-3.5 ${FIND_GRID}`}>
+                              <div className="hidden md:block">
+                                {!s.check && (
+                                  <input
+                                    type="checkbox"
+                                    checked={picked.includes(key)}
+                                    disabled={!picked.includes(key) && picked.length >= MAX_BATCH}
+                                    onChange={(e) => setPicked((p) => (e.target.checked ? [...p, key] : p.filter((k) => k !== key)))}
+                                    aria-label={`Select ${s.name}`}
+                                    className="h-4 w-4 accent-[var(--color-brand-primary)]"
+                                  />
+                                )}
                               </div>
-                              <p className="mt-0.5 truncate text-xs text-text-muted">{s.domain ?? "Website found when checked"}</p>
+
+                              <div className="flex min-w-0 items-center gap-3">
+                                <StoreLogo src={null} domain={s.domain ?? ""} name={s.name} size="sm" />
+                                <div className="min-w-0">
+                                  <p className="truncate font-semibold text-text">{s.name}</p>
+                                  <p className="truncate text-xs text-text-muted">{s.domain ?? "Website found when checked"}</p>
+                                  <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                                    {s.check && <VerdictPill verdict={s.check.verdict} />}
+                                    {s.yours?.onSite && !lost && <Pill tone="good" dot={false}>On your site</Pill>}
+                                    {lost && <Pill tone="bad" dot={false}>You lost money here</Pill>}
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-2.5">
+                                {s.lead ? (
+                                  <>
+                                    <span className={`w-9 text-xl font-bold tabular-nums ${BAND_TEXT[s.lead.band]}`}>{s.lead.score}</span>
+                                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ring-1 ring-inset ${BAND_META[s.lead.band].cls}`}>{BAND_META[s.lead.band].label}</span>
+                                  </>
+                                ) : (
+                                  <span className="text-sm text-text-muted">—</span>
+                                )}
+                              </div>
+
+                              <div className="hidden min-w-0 md:block">
+                                <p className="truncate text-sm font-medium text-text">{s.network ?? <span className="text-text-muted">Network unknown</span>}</p>
+                                <p className="truncate text-xs text-text-muted">
+                                  {s.commission ? `${s.commission.min === s.commission.max ? s.commission.max : `${s.commission.min}–${s.commission.max}`}% commission` : "Rate not stated"}
+                                </p>
+                              </div>
+
+                              <div className="hidden min-w-0 md:block">
+                                {s.rank != null && s.tier ? (
+                                  <>
+                                    <p className="text-sm font-medium tabular-nums text-text">#{s.rank.toLocaleString()}</p>
+                                    <p className="text-xs text-text-muted">{TIER_LABEL[s.tier]}</p>
+                                  </>
+                                ) : s.tier === "unranked" ? (
+                                  <p className="text-xs text-text-muted">{TIER_LABEL.unranked}</p>
+                                ) : (
+                                  <span className="text-sm text-text-muted">—</span>
+                                )}
+                              </div>
+
+                              <div className="hidden min-w-0 md:block">
+                                {w ? (
+                                  <div title={w.text}>
+                                    <p className={`text-sm font-semibold ${w.level === "ban" ? "text-red-700" : w.level === "friendly" ? "text-emerald-700" : "text-amber-700"}`}>
+                                      {w.level === "ban" ? "⚠ Restricts your ads" : w.level === "friendly" ? "✓ Welcomes coupon sites" : "Mentions ad rules"}
+                                    </p>
+                                    <p className="line-clamp-1 text-xs italic text-text-muted">“{w.text}”</p>
+                                  </div>
+                                ) : (
+                                  <p className="text-xs text-text-muted">Nothing on their page — confirm in the full check</p>
+                                )}
+                              </div>
+
+                              <div className="flex items-center justify-end gap-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() => void check(s)}
+                                  disabled={Boolean(starting)}
+                                  title={s.check ? "Opens the saved report — no credits" : "Runs a full check — about 8 web-search credits"}
+                                  className={`inline-flex h-9 items-center gap-1.5 whitespace-nowrap rounded-[10px] px-3 text-xs font-semibold disabled:opacity-60 ${
+                                    s.check ? "bg-white text-text ring-1 ring-inset ring-border hover:bg-surface" : "bg-brand-primary text-white hover:bg-brand-primary-hover"
+                                  }`}
+                                >
+                                  {starting === s.name && <Spinner className="h-3.5 w-3.5" />}
+                                  {s.check ? `Report · ${s.check.trust}` : "Check store"}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setExpanded((e) => (e.includes(key) ? e.filter((k) => k !== key) : [...e, key]))}
+                                  aria-expanded={isOpen}
+                                  aria-label={isOpen ? "Hide details" : "Show details"}
+                                  title="Details"
+                                  className="flex h-9 w-8 items-center justify-center rounded-lg text-text-muted hover:bg-surface hover:text-text"
+                                >
+                                  <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`} aria-hidden="true">
+                                    <path d="m5 8 5 5 5-5" />
+                                  </svg>
+                                </button>
+                              </div>
                             </div>
-                          </div>
-                          <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
-                            {s.lead && (
-                              <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ring-1 ring-inset ${BAND_META[s.lead.band].cls}`} title={`Opportunity score ${s.lead.score}/100 — from the program evidence, commission, network, popularity and rules found so far`}>
-                                {BAND_META[s.lead.band].label} · {s.lead.score}
-                              </span>
+
+                            {isOpen && (
+                              <div className="grid gap-4 border-t border-border/70 px-4 py-4 text-sm md:grid-cols-3 md:pl-[3.25rem]">
+                                <div className="md:hidden">
+                                  <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">At a glance</p>
+                                  <p className="mt-1 text-text">
+                                    {s.network ?? "Network unknown"} · {s.commission ? `${s.commission.max}%` : "rate not stated"}
+                                    {s.rank != null ? ` · #${s.rank.toLocaleString()}` : ""}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">Affiliate program</p>
+                                  {s.program ? (
+                                    <a href={s.program.url} target="_blank" rel="noopener noreferrer" className="mt-1 block text-text hover:text-brand-primary" title={s.program.via === "site" ? "Found on the store's own website" : "Stated in the source article"}>
+                                      {s.program.label.replace(/\s*\(?source\s*\d+\)?/gi, "")} ↗
+                                    </a>
+                                  ) : (
+                                    <p className="mt-1 text-text-muted">{s.note ?? "—"}</p>
+                                  )}
+                                  <p className="mt-1 text-xs text-text-muted">{s.program?.via === "site" ? "Found on the store's own website" : "Named in the source article"}</p>
+                                </div>
+                                <div>
+                                  <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">What their page says about your ads</p>
+                                  {w ? (
+                                    <a href={w.url} target="_blank" rel="noopener noreferrer" className="mt-1 block italic text-text hover:text-brand-primary">
+                                      “{w.text}” ↗
+                                    </a>
+                                  ) : (
+                                    <p className="mt-1 text-text-muted">Nothing found about coupon sites, paid search or brand keywords. Many programs only show rules after you log in — the full check reads the terms.</p>
+                                  )}
+                                  {lost && s.yours && (
+                                    <p className="mt-2 rounded-lg bg-red-50 px-2.5 py-1.5 text-xs text-red-800">
+                                      You lost {formatMoney(s.yours.lostCents / 100, "USD")} with this store before (Accounting).
+                                    </p>
+                                  )}
+                                </div>
+                                <div>
+                                  <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">Where it was found</p>
+                                  <a href={s.sourceUrl} target="_blank" rel="noopener noreferrer" className="mt-1 block truncate text-text hover:text-brand-primary" title={s.sourceTitle}>
+                                    {s.sourceTitle || hostAndPath(s.sourceUrl)} ↗
+                                  </a>
+                                  {s.foundIn && s.foundIn.length > 0 && <p className="mt-1 text-xs text-text-muted">Searches: {s.foundIn.join(" · ")}</p>}
+                                </div>
+                              </div>
                             )}
-                            {s.network && <Pill tone="info" dot={false}>{s.network}</Pill>}
-                            {s.commission && (
-                              <span className="inline-flex items-center rounded-full bg-surface px-2 py-0.5 text-[11px] font-semibold text-text ring-1 ring-inset ring-border">
-                                {s.commission.min === s.commission.max ? `${s.commission.max}%` : `${s.commission.min}–${s.commission.max}%`} commission
-                              </span>
-                            )}
-                            {s.tier && s.rank != null && (
-                              <span className="inline-flex items-center rounded-full bg-surface px-2 py-0.5 text-[11px] font-medium text-text-muted ring-1 ring-inset ring-border" title="Popularity rank among the top 1 million websites (lower = more popular)">
-                                {TIER_LABEL[s.tier]} · #{s.rank.toLocaleString()}
-                              </span>
-                            )}
-                            {s.tier === "unranked" && <span className="rounded-full bg-surface px-2 py-0.5 text-[11px] text-text-muted ring-1 ring-inset ring-border">{TIER_LABEL.unranked}</span>}
-                            {s.yours?.onSite && !s.yours.lostCents && <Pill tone="good" dot={false}>On your site</Pill>}
-                          </div>
-                          {s.yours && s.yours.lostCents > 0 && (
-                            <p className="mt-2 rounded-lg bg-red-50 px-2.5 py-1.5 text-xs text-red-800 ring-1 ring-inset ring-red-600/15">
-                              <span className="font-semibold">You lost {formatMoney(s.yours.lostCents / 100, "USD")} here before</span> (Accounting). Be careful.
-                            </p>
-                          )}
-                          {s.warning && (
-                            <a
-                              href={s.warning.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className={`mt-2 block rounded-lg px-2.5 py-1.5 text-xs ring-1 ring-inset ${s.warning.level === "ban" ? "bg-red-50 text-red-800 ring-red-600/15 hover:bg-red-100" : s.warning.level === "friendly" ? "bg-emerald-50 text-emerald-800 ring-emerald-600/15 hover:bg-emerald-100" : "bg-amber-50 text-amber-900 ring-amber-600/20 hover:bg-amber-100"}`}
-                              title="From the store's own affiliate page — verify in the full check"
-                            >
-                              <span className="font-semibold">{s.warning.level === "ban" ? "⚠ Their page seems to restrict your ads" : s.warning.level === "friendly" ? "✓ Their page welcomes coupon / deal sites" : "Their page mentions coupon / ad rules"}</span>
-                              <span className="mt-0.5 line-clamp-2 block italic opacity-90">“{s.warning.text}”</span>
-                            </a>
-                          )}
-                          {s.program ? (
-                            <a
-                              href={s.program.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="mt-2.5 flex items-start gap-1.5 rounded-lg bg-emerald-50 px-2.5 py-1.5 text-xs text-emerald-800 ring-1 ring-inset ring-emerald-600/15 hover:bg-emerald-100"
-                              title={s.program.via === "site" ? "Found on the store's own website" : "Stated in the source article"}
-                            >
-                              <span className="font-bold" aria-hidden="true">✓</span>
-                              <span className="line-clamp-2">
-                                <span className="font-semibold">Affiliate program</span> · {s.program.label.replace(/\s*\(?source\s*\d+\)?/gi, "")}
-                              </span>
-                            </a>
-                          ) : (
-                            s.note && <p className="mt-2 line-clamp-2 text-xs text-text">{s.note}</p>
-                          )}
-                          {s.foundIn && s.foundIn.length > 0 && (
-                            <p className="mt-2 line-clamp-2 text-[11px] text-text-muted">Found in: {s.foundIn.join(" · ")}</p>
-                          )}
-                        </div>
-                        <div className="flex items-center justify-between gap-2">
-                          <a href={s.sourceUrl} target="_blank" rel="noopener noreferrer" className="truncate text-xs text-text-muted hover:text-brand-primary" title={s.sourceTitle}>
-                            Source: {hostAndPath(s.sourceUrl).split("/")[0]} ↗
-                          </a>
-                          <button
-                            type="button"
-                            onClick={() => void check(s)}
-                            disabled={Boolean(starting)}
-                            title={s.check ? "Opens the saved report — no credits" : "Runs a full check — about 7 web-search credits"}
-                            className={`inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold disabled:opacity-60 ${
-                              s.check ? "bg-surface text-text ring-1 ring-inset ring-border hover:bg-white" : "bg-brand-primary/10 text-brand-primary hover:bg-brand-primary/15"
-                            }`}
-                          >
-                            {starting === s.name && <Spinner className="h-3.5 w-3.5" />}
-                            {s.check ? `View report · ${s.check.trust}` : "Check store"}
-                          </button>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
                 )}
                 {view.hidden.length > 0 && (
                   <details className="rounded-xl border border-border bg-white px-4 py-3 text-sm">
@@ -658,7 +729,7 @@ export function DiscoverPanel({ history, view, totalFound, pendingEnrich }: { hi
                 )}
               </>
             ) : (
-              <p className="rounded-2xl border border-dashed border-border bg-white px-4 py-10 text-center text-sm text-text-muted">Pick a saved search on the left.</p>
+              <p className="rounded-2xl border border-dashed border-border bg-white px-4 py-10 text-center text-sm text-text-muted">Pick a saved search above.</p>
             )}
           </section>
         </div>
