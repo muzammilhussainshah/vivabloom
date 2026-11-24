@@ -35,6 +35,7 @@ import {
   type GeneratedSiteLinkCopy,
   type SiteLinkPageKey,
 } from "./prompts";
+import { trackedFetch } from "./usage";
 
 export type {
   GeneratedAdCopy,
@@ -79,7 +80,7 @@ export function getClient(model: string): OpenAI {
       throw new Error("GROQ_API_KEY is not set. Add it to apps/admin/.env.local.");
     }
     if (!groqClient) {
-      groqClient = new OpenAI({ apiKey, baseURL: "https://api.groq.com/openai/v1", timeout: 60_000, maxRetries: 1 });
+      groqClient = new OpenAI({ apiKey, baseURL: "https://api.groq.com/openai/v1", timeout: 60_000, maxRetries: 1, fetch: trackedFetch("groq") });
     }
     return groqClient;
   }
@@ -88,7 +89,7 @@ export function getClient(model: string): OpenAI {
     throw new Error("OPENAI_API_KEY is not set. Add it to apps/admin/.env.local.");
   }
   if (!client) {
-    client = new OpenAI({ apiKey, timeout: 60_000, maxRetries: 1 });
+    client = new OpenAI({ apiKey, timeout: 60_000, maxRetries: 1, fetch: trackedFetch("openai") });
   }
   return client;
 }

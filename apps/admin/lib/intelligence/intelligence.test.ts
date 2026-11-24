@@ -468,3 +468,12 @@ describe("network detection", () => {
     expect(networksNearBrand(`Emmafy affiliate program runs on Social Snowball. ${filler} Other brand is on Awin.`, m)).toEqual(["Social Snowball"]);
   });
 });
+
+describe("provider rate-limit parsing", () => {
+  it("reads limit, used and wait time from Groq's 429 message", async () => {
+    const { parseRateLimit } = await import("../ai/usage");
+    const msg = "429 Rate limit reached for model `openai/gpt-oss-120b` in organization `org_x` service tier `on_demand` on tokens per day (TPD): Limit 200000, Used 198684, Requested 5703. Please try again in 31m35.184s. Need more tokens?";
+    expect(parseRateLimit(msg)).toEqual({ kind: "day", limit: 200000, used: 198684, waitMs: (31 * 60 + 35.184) * 1000 });
+    expect(parseRateLimit("on tokens per minute (TPM): Limit 8000, Used 7900. Please try again in 12.5s.")).toMatchObject({ kind: "minute", limit: 8000, waitMs: 12500 });
+  });
+});

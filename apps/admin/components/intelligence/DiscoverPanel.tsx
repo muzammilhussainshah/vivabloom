@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import { refreshUsage } from "@/components/UsageDock";
 import { useDialogs } from "@/components/ui/Dialogs";
 import { RESEARCH_CATEGORIES, RESEARCH_COUNTRIES, getResearchCountry } from "@monocoupon/validation";
 import { Select, Spinner } from "@/components/ui/client";
@@ -73,6 +74,7 @@ export function DiscoverPanel({ history, view, totalFound }: { history: Discover
       setError(err instanceof Error ? err.message : "Search failed");
     } finally {
       setBusy(false);
+      refreshUsage();
     }
   }
 

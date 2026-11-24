@@ -83,9 +83,9 @@ export default async function StoreCheckerPage({ searchParams }: { searchParams:
       <nav className="flex items-center gap-1 overflow-x-auto border-b border-border" aria-label="Store Checker sections">
         {(
           [
+            ["find", "Find new stores", "/intelligence?tab=find", null],
             ["checked", "Stores to promote", "/intelligence", promote.length],
             ["avoid", "Risky / avoid", "/intelligence?tab=avoid", avoid.length],
-            ["find", "Find new stores", "/intelligence?tab=find", null],
             ["archived", "Archived", "/intelligence?tab=archived", archived.length],
           ] as const
         ).map(([key, label, href, count]) => (

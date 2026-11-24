@@ -1,5 +1,6 @@
 "use client";
 
+import { refreshUsage } from "@/components/UsageDock";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { StoreCheckStep } from "@monocoupon/validation";
@@ -47,6 +48,7 @@ export function CheckRunner({ checkId, steps }: { checkId: string; steps: Record
       } finally {
         setRunning(null);
         router.refresh();
+        refreshUsage();
       }
     },
     [checkId, router]

@@ -2,6 +2,7 @@ import { connectToDatabase, getSiteSettings } from "@monocoupon/db";
 import { auth, signOut } from "@/auth";
 import { AdminSidebar } from "@/components/AdminSidebar";
 import { siteUrl } from "@/components/ui";
+import { UsageDock } from "@/components/UsageDock";
 import { DialogProvider } from "@/components/ui/Dialogs";
 
 export default async function DashboardLayout({
@@ -33,6 +34,7 @@ export default async function DashboardLayout({
         <main className="flex-1 bg-surface">{children}</main>
       </div>
       {modal}
+      <UsageDock />
     </div>
     </DialogProvider>
   );
