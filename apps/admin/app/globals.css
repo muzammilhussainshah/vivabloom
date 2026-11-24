@@ -51,16 +51,20 @@ body {
 /*
  * Store Checker "Download PDF" prints the report page itself, so the PDF
  * looks like the web report. Scoped to pages that contain [data-print-report]
- * — printing any other admin page is unaffected. The page box is wider than
- * A4 so the desktop (lg) layout is used; PDF viewers scale it to fit.
+ * — printing any other admin page is unaffected. Desktop column layouts are
+ * forced for print with Tailwind print: utilities in the report components.
  */
 [data-print-only] {
   display: none;
 }
 @media print {
   @page {
-    size: 300mm 424mm;
-    margin: 12mm;
+    size: A4;
+    margin: 10mm;
+  }
+  /* Slightly smaller rem so the desktop columns (forced with print: utilities) fit A4. */
+  html:has([data-print-report]) {
+    font-size: 13px;
   }
   body:has([data-print-report]) {
     background: #fff !important;

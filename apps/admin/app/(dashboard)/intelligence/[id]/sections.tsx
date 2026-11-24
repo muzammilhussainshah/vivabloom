@@ -58,7 +58,7 @@ export function SummarySection({ check, personal }: { check: StoreCheckView; per
 
   return (
     <div className="flex flex-col gap-4">
-      <Card className={`overflow-hidden border-2 ${tone.soft}`}>
+      <Card className={`overflow-hidden border-2 print:break-inside-avoid ${tone.soft}`}>
         <div className="flex gap-4 p-5 md:gap-5 md:p-7">
           <span
             className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-xl font-bold text-white shadow-sm md:h-14 md:w-14 md:text-2xl"
@@ -74,7 +74,7 @@ export function SummarySection({ check, personal }: { check: StoreCheckView; per
           </div>
         </div>
 
-        <div className="grid border-t border-black/5 bg-white/70 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid border-t border-black/5 bg-white/70 sm:grid-cols-2 lg:grid-cols-4 print:grid-cols-4">
           <Fact label="Store trust">
             <div className="flex items-center gap-3">
               <ScoreRing value={score.trust} tone={verdict.tone} size={56} />
@@ -108,10 +108,10 @@ export function SummarySection({ check, personal }: { check: StoreCheckView; per
 
       {personal && <PersonalBanner record={personal} />}
 
-      <Card>
-        <div className="grid md:grid-cols-2">
+      <Card className="print:break-inside-avoid">
+        <div className="grid md:grid-cols-2 print:grid-cols-2">
           <ReasonList title="What looks good" items={score.positives} tone="good" empty="Nothing stands out positively yet." />
-          <ReasonList title="Watch out for" items={score.negatives} tone="bad" empty="No red flags found." className="border-t border-border md:border-l md:border-t-0" />
+          <ReasonList title="Watch out for" items={score.negatives} tone="bad" empty="No red flags found." className="border-t border-border md:border-l md:border-t-0 print:border-l print:border-t-0" />
         </div>
       </Card>
     </div>
@@ -120,7 +120,7 @@ export function SummarySection({ check, personal }: { check: StoreCheckView; per
 
 function Fact({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="border-black/5 p-4 sm:border-r sm:[&:nth-child(2n)]:border-r-0 lg:[&:nth-child(2n)]:border-r lg:last:border-r-0 md:p-5">
+    <div className="border-black/5 p-4 sm:border-r sm:[&:nth-child(2n)]:border-r-0 md:p-5 lg:[&:nth-child(2n)]:border-r lg:last:border-r-0 print:border-r print:[&:nth-child(2n)]:border-r print:last:border-r-0">
       <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-text-muted">{label}</p>
       {children}
     </div>
@@ -156,8 +156,8 @@ function PersonalBanner({ record }: { record: PersonalRecord }) {
   const cents = (n: number) => formatMoney(n / 100, "USD");
   const bad = record.lostCents > 0;
   return (
-    <Card className={`border-2 ${bad ? toneClasses.bad.soft : toneClasses.info.soft}`}>
-      <div className="flex flex-col gap-4 p-5 md:flex-row md:items-center md:justify-between md:p-6">
+    <Card className={`border-2 print:break-inside-avoid ${bad ? toneClasses.bad.soft : toneClasses.info.soft}`}>
+      <div className="flex flex-col gap-4 p-5 md:flex-row md:items-center md:justify-between md:p-6 print:flex-row print:items-center print:justify-between">
         <div>
           <p className={`text-xs font-semibold uppercase tracking-[0.14em] ${bad ? toneClasses.bad.text : toneClasses.info.text}`}>Your own history with this store</p>
           <p className="mt-1 text-sm text-text">
@@ -242,7 +242,7 @@ export function ProductsSection({ check }: { check: StoreCheckView }) {
           {products.note && <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">{products.note}</p>}
           <TopPick product={top} commissionKnown={check.program?.commission.status === "verified"} />
           {rest.length > 0 && (
-            <ol className="grid gap-4 md:grid-cols-2">
+            <ol className="grid gap-4 md:grid-cols-2 print:grid-cols-2">
               {rest.map((p, i) => (
                 <ProductCard key={p.id} product={p} rank={i + 2} />
               ))}
@@ -379,9 +379,9 @@ function ScoreBlock({ p, compact = false }: { p: ProductItem; compact?: boolean 
 
 function TopPick({ product: p, commissionKnown }: { product: ProductItem; commissionKnown: boolean }) {
   return (
-    <div className="relative grid gap-5 rounded-2xl border-2 border-brand-primary/25 bg-gradient-to-br from-brand-primary/[0.05] to-white p-4 md:grid-cols-[180px_minmax(0,1fr)_260px] md:p-5">
+    <div className="relative grid gap-5 rounded-2xl border-2 border-brand-primary/25 bg-gradient-to-br from-brand-primary/[0.05] to-white p-4 md:grid-cols-[180px_minmax(0,1fr)_260px] md:p-5 print:break-inside-avoid print:grid-cols-[140px_minmax(0,1fr)_200px]">
       <span className="absolute -top-3 left-4 rounded-full bg-brand-primary px-3 py-1 text-xs font-bold text-white shadow-sm">#1 Top pick</span>
-      <ProductImage src={p.image} alt={p.name} className="mx-auto h-40 w-40 md:h-44 md:w-44" />
+      <ProductImage src={p.image} alt={p.name} className="mx-auto h-40 w-40 md:h-44 md:w-44 print:h-32 print:w-32" />
       <div className="flex min-w-0 flex-col gap-2.5">
         <a href={p.url} target="_blank" rel="noopener noreferrer" className="text-lg font-semibold leading-snug text-text hover:text-brand-primary">
           {p.name} <span className="text-text-muted">↗</span>
@@ -401,7 +401,7 @@ function TopPick({ product: p, commissionKnown }: { product: ProductItem; commis
 
 function ProductCard({ product: p, rank }: { product: ProductItem; rank: number }) {
   return (
-    <li className="flex flex-col gap-3 rounded-2xl border border-border bg-white p-4 transition-shadow hover:shadow-md">
+    <li className="flex flex-col gap-3 rounded-2xl border border-border bg-white p-4 transition-shadow hover:shadow-md print:break-inside-avoid">
       <div className="flex gap-3">
         <div className="relative shrink-0">
           <span className="absolute -left-1.5 -top-1.5 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-text text-[11px] font-bold text-white">{rank}</span>
@@ -451,7 +451,7 @@ export function AdsRulesSection({ check }: { check: StoreCheckView }) {
                 const status = p?.status ?? "unknown";
                 const meta = POLICY_STATUS_META[status];
                 return (
-                  <li key={key} className="grid gap-2 px-5 py-4 md:grid-cols-[250px_140px_minmax(0,1fr)] md:items-start md:px-6">
+                  <li key={key} className="grid gap-2 px-5 py-4 md:grid-cols-[250px_140px_minmax(0,1fr)] md:items-start md:px-6 print:grid-cols-[190px_120px_minmax(0,1fr)] print:items-start">
                     <div>
                       <p className="text-sm font-semibold text-text">{POLICY_LABELS[key].label}</p>
                       <p className="text-xs text-text-muted">
@@ -499,7 +499,7 @@ export function AdsRulesSection({ check }: { check: StoreCheckView }) {
 
 function FieldRow<T>({ label, field, render }: { label: string; field: EvidenceField<T>; render?: (v: T) => ReactNode }) {
   return (
-    <div className="grid gap-1 px-5 py-3.5 sm:grid-cols-[200px_minmax(0,1fr)_auto] sm:items-start md:px-6">
+    <div className="grid gap-1 px-5 py-3.5 sm:grid-cols-[200px_minmax(0,1fr)_auto] sm:items-start md:px-6 print:grid-cols-[170px_minmax(0,1fr)_auto]">
       <dt className="text-sm text-text-muted">{label}</dt>
       <dd className="min-w-0 text-sm font-medium text-text">
         {field.value == null ? <span className="font-normal text-text-muted">Unknown</span> : render ? render(field.value) : String(field.value)}
@@ -617,13 +617,13 @@ export function ReputationSection({ check }: { check: StoreCheckView }) {
       {!rep ? (
         step.status === "failed" ? <Failed error={step.error} /> : <Pending label="Searching for payment reports and reviews…" />
       ) : (
-        <div className="grid md:grid-cols-2">
+        <div className="grid md:grid-cols-2 print:grid-cols-2">
           <ReputationList
             title="From affiliates"
             items={affiliate}
             empty={rep.coverage < 6 ? "Very little public discussion found — this is not the same as “no problems”." : "No affiliate payment or termination reports found."}
           />
-          <ReputationList title="From customers" items={customer} empty="No notable customer feedback found." className="border-t border-border md:border-l md:border-t-0" />
+          <ReputationList title="From customers" items={customer} empty="No notable customer feedback found." className="border-t border-border md:border-l md:border-t-0 print:border-l print:border-t-0" />
         </div>
       )}
     </Card>
@@ -675,7 +675,7 @@ export function IdentitySection({ check }: { check: StoreCheckView }) {
       {!id ? (
         step.status === "failed" ? <Failed error={step.error} /> : <Pending label="Visiting the store…" />
       ) : (
-        <dl className="grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-3">
+        <dl className="grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-3 print:grid-cols-3">
           {(
             [
               ["Domain registered", id.domainCreatedAt ? `${new Date(id.domainCreatedAt).getFullYear()} · ${id.domainAgeYears} yrs` : "Unknown"],
@@ -716,9 +716,9 @@ export function ScoreSection({ check }: { check: StoreCheckView }) {
   return (
     <Card id="score">
       <SectionHeader title="How the trust score is calculated" description="Points are only given for evidence that was found. Missing evidence scores 0 and lowers the confidence." />
-      <div className="grid gap-px bg-border md:grid-cols-2">
+      <div className="grid gap-px bg-border md:grid-cols-2 print:grid-cols-2">
         {score.categories.map((cat) => (
-          <div key={cat.key} className="bg-white p-5 md:p-6">
+          <div key={cat.key} className="bg-white p-5 md:p-6 print:break-inside-avoid">
             <div className="flex items-baseline justify-between">
               <h3 className="text-sm font-semibold text-text">{cat.label}</h3>
               <span className="text-sm font-bold tabular-nums text-text">
@@ -766,7 +766,7 @@ export function SourcesSection({ check }: { check: StoreCheckView }) {
         title="Sources"
         description={`Everything this report relies on. Used ${check.usage.tavilyCredits} web-search credits · checked ${timeAgo(check.lastCheckedAt)}.`}
       />
-      <ul className="grid gap-x-6 gap-y-2 px-5 py-4 text-sm md:grid-cols-2 md:px-6">
+      <ul className="grid gap-x-6 gap-y-2 px-5 py-4 text-sm md:grid-cols-2 md:px-6 print:grid-cols-2">
         {check.sources.map((s) => (
           <li key={s.url} className="flex min-w-0 items-center gap-2">
             <span className="w-28 shrink-0 text-xs text-text-muted">{SOURCE_KIND[s.kind] ?? s.kind}</span>

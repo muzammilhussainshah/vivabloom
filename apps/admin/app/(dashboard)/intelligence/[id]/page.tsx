@@ -51,7 +51,7 @@ export default async function StoreCheckReportPage({ params }: { params: Promise
       </div>
       <p data-print-only className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-primary">AI Store Checker · Report</p>
 
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between print:flex-row">
         <div className="flex min-w-0 items-center gap-4">
           <StoreLogo src={check.identity?.logo} domain={check.domain} name={name} size="lg" />
           <div className="min-w-0">
