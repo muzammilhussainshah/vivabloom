@@ -301,11 +301,11 @@ export function DiscoverPanel({ history, view, totalFound, pendingEnrich }: { hi
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
             <p className="px-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-text-muted">Saved searches · reopen free</p>
-            <ul className="flex gap-2 overflow-x-auto pb-1">
-              <li className="shrink-0">
+            <ul className="flex items-stretch gap-2 overflow-x-auto pb-1">
+              <li className="flex shrink-0">
                 <Link
                   href="/intelligence?tab=find&search=all"
-                  className={`flex items-center gap-2 rounded-full border px-3.5 py-2 text-sm transition-colors ${
+                  className={`flex h-full items-center gap-2 rounded-xl border px-3.5 py-2 text-sm transition-colors ${
                     view?.id === "all" ? "border-brand-primary bg-brand-primary/10 font-semibold text-brand-primary" : "border-border bg-white text-text hover:border-brand-primary/40"
                   }`}
                 >
@@ -316,10 +316,10 @@ export function DiscoverPanel({ history, view, totalFound, pendingEnrich }: { hi
               {history.map((h) => {
                 const active = view?.id === h.id;
                 return (
-                  <li key={h.id} className="group relative shrink-0">
+                  <li key={h.id} className="group relative flex shrink-0">
                     <Link
                       href={`/intelligence?tab=find&search=${h.id}`}
-                      className={`flex flex-col rounded-2xl border py-1.5 pl-3.5 pr-8 transition-colors ${
+                      className={`flex flex-col justify-center rounded-xl border py-2 pl-3.5 pr-8 transition-colors ${
                         active ? "border-brand-primary bg-brand-primary/10" : "border-border bg-white hover:border-brand-primary/40"
                       }`}
                     >
@@ -411,95 +411,113 @@ export function DiscoverPanel({ history, view, totalFound, pendingEnrich }: { hi
                   </div>
                 )}
 
-                <div className="flex flex-wrap items-center gap-2">
-                  {(
-                    [
-                      ["all", `All (${view.stores.length})`],
-                      ["unchecked", `Not checked (${view.stores.length - checkedCount})`],
-                      ["checked", `Checked (${checkedCount})`],
-                    ] as const
-                  ).map(([key, label]) => (
-                    <button
-                      key={key}
-                      type="button"
-                      onClick={() => setFilter(key)}
-                      className={`h-8 rounded-full px-3 text-xs font-semibold transition-colors ${
-                        filter === key ? "bg-text text-white" : "bg-white text-text-muted ring-1 ring-inset ring-border hover:text-text"
-                      }`}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                  <input
-                    type="search"
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Filter by name…"
-                    className="ml-auto h-8 w-full rounded-full border border-border bg-white px-3 text-xs text-text focus:border-brand-primary focus:outline-none sm:w-48"
-                  />
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2">
-                  <div className="w-44">
-                    <Select value={sort} onChange={(e) => setSort(e.target.value as SortKey)} aria-label="Sort stores" className={selectClass}>
-                      {SORT_OPTIONS.map((o) => (
-                        <option key={o.value} value={o.value}>
-                          {o.label}
-                        </option>
+                <div className="flex flex-col gap-3 rounded-2xl border border-border bg-white p-3 shadow-[0_1px_2px_rgba(16,24,20,0.04)]">
+                  <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                    <div className="inline-flex h-10 w-full items-center gap-1 rounded-[10px] bg-surface p-1 ring-1 ring-inset ring-border lg:w-auto" role="group" aria-label="Show stores">
+                      {(
+                        [
+                          ["all", "All", view.stores.length],
+                          ["unchecked", "Not checked", view.stores.length - checkedCount],
+                          ["checked", "Checked", checkedCount],
+                        ] as const
+                      ).map(([key, label, count]) => (
+                        <button
+                          key={key}
+                          type="button"
+                          onClick={() => setFilter(key)}
+                          aria-pressed={filter === key}
+                          className={`inline-flex h-8 flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 text-sm font-semibold transition-colors lg:flex-none ${
+                            filter === key ? "bg-white text-text shadow-sm ring-1 ring-border" : "text-text-muted hover:text-text"
+                          }`}
+                        >
+                          {label}
+                          <span className={`rounded-md px-1.5 text-xs tabular-nums ${filter === key ? "bg-surface" : "bg-border/50"}`}>{count}</span>
+                        </button>
                       ))}
-                    </Select>
+                    </div>
+                    <div className="relative w-full lg:w-80">
+                      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" aria-hidden="true">
+                        <circle cx="9" cy="9" r="5.5" />
+                        <path d="m13.5 13.5 3 3" />
+                      </svg>
+                      <input
+                        type="text"
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                        placeholder="Search by store name or domain…"
+                        aria-label="Search stores"
+                        className={`${inputClass} pl-9`}
+                      />
+                    </div>
                   </div>
-                  {networks.length > 0 && (
-                    <div className="w-44">
-                      <Select value={network} onChange={(e) => setNetwork(e.target.value)} aria-label="Network" className={selectClass}>
-                        <option value="all">All networks</option>
-                        {networks.map((n) => (
-                          <option key={n} value={n}>
-                            {n}
+
+                  <div className="flex flex-wrap items-center gap-2 border-t border-border/70 pt-3">
+                    <div className="w-full sm:w-48">
+                      <Select value={sort} onChange={(e) => setSort(e.target.value as SortKey)} aria-label="Sort stores" className={selectClass}>
+                        {SORT_OPTIONS.map((o) => (
+                          <option key={o.value} value={o.value}>
+                            {o.label}
                           </option>
                         ))}
                       </Select>
                     </div>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => setHideBan((v) => !v)}
-                    aria-pressed={hideBan}
-                    className={`h-10 rounded-[10px] px-3 text-xs font-semibold ring-1 ring-inset transition-colors ${hideBan ? "bg-red-50 text-red-700 ring-red-200" : "bg-white text-text-muted ring-border hover:text-text"}`}
-                    title="Hide stores whose own affiliate page restricts coupon sites / paid search, and stores where you lost money"
-                  >
-                    {hideBan ? "✓ " : ""}Hide risky signals
-                  </button>
-                  {gathering > 0 && (
-                    <span className="inline-flex items-center gap-2 text-xs text-text-muted">
-                      <Spinner className="h-3.5 w-3.5" /> Gathering free signals… {gathering} left
-                    </span>
-                  )}
-                  <div className="ml-auto flex items-center gap-2">
-                    {picked.length > 0 ? (
-                      <>
-                        <button type="button" onClick={() => setPicked([])} className="text-xs font-semibold text-text-muted hover:text-text">
-                          Clear
-                        </button>
+                    {networks.length > 0 && (
+                      <div className="w-full sm:w-48">
+                        <Select value={network} onChange={(e) => setNetwork(e.target.value)} aria-label="Network" className={selectClass}>
+                          <option value="all">All networks</option>
+                          {networks.map((n) => (
+                            <option key={n} value={n}>
+                              {n}
+                            </option>
+                          ))}
+                        </Select>
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setHideBan((v) => !v)}
+                      aria-pressed={hideBan}
+                      className={`inline-flex h-10 items-center gap-2 rounded-[10px] border px-3 text-sm font-medium transition-colors ${
+                        hideBan ? "border-red-200 bg-red-50 text-red-700" : "border-border bg-white text-text hover:border-text-muted/40"
+                      }`}
+                      title="Hide stores whose own affiliate page restricts coupon sites / paid search, and stores where you lost money"
+                    >
+                      <span className={`flex h-4 w-4 items-center justify-center rounded border text-[10px] ${hideBan ? "border-red-500 bg-red-500 text-white" : "border-border bg-white text-transparent"}`} aria-hidden="true">
+                        ✓
+                      </span>
+                      Hide risky stores
+                    </button>
+                    {gathering > 0 && (
+                      <span className="inline-flex items-center gap-2 text-xs text-text-muted">
+                        <Spinner className="h-3.5 w-3.5" /> Gathering free signals… {gathering} left
+                      </span>
+                    )}
+                    <div className="flex w-full items-center gap-2 sm:ml-auto sm:w-auto">
+                      {picked.length > 0 ? (
+                        <>
+                          <button type="button" onClick={() => setPicked([])} className="h-10 rounded-[10px] px-3 text-sm font-medium text-text-muted hover:text-text">
+                            Clear
+                          </button>
+                          <button
+                            type="button"
+                            disabled={Boolean(batch?.running)}
+                            onClick={() => void runBatch(stores.filter((x) => picked.includes(x.domain ?? x.name)))}
+                            className="inline-flex h-10 items-center rounded-[10px] bg-brand-primary px-4 text-sm font-semibold text-white shadow-sm shadow-brand-primary/25 hover:bg-brand-primary-hover disabled:opacity-60"
+                          >
+                            Check {picked.length} selected
+                          </button>
+                        </>
+                      ) : (
                         <button
                           type="button"
-                          disabled={Boolean(batch?.running)}
-                          onClick={() => void runBatch(stores.filter((x) => picked.includes(x.domain ?? x.name)))}
-                          className="inline-flex h-10 items-center rounded-[10px] bg-brand-primary px-4 text-sm font-semibold text-white hover:bg-brand-primary-hover disabled:opacity-60"
+                          onClick={() => setPicked(stores.filter((x) => !x.check && x.warning?.level !== "ban" && !x.yours?.lostCents).slice(0, MAX_BATCH).map((x) => x.domain ?? x.name))}
+                          className="inline-flex h-10 items-center rounded-[10px] border border-border bg-white px-3 text-sm font-medium text-text hover:border-text-muted/40"
+                          title={`Selects the top ${MAX_BATCH} unchecked stores without warnings`}
                         >
-                          Check {picked.length} selected
+                          Select top {MAX_BATCH} unchecked
                         </button>
-                      </>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => setPicked(stores.filter((x) => !x.check && x.warning?.level !== "ban" && !x.yours?.lostCents).slice(0, MAX_BATCH).map((x) => x.domain ?? x.name))}
-                        className="h-10 rounded-[10px] bg-white px-3 text-xs font-semibold text-text-muted ring-1 ring-inset ring-border hover:text-text"
-                        title={`Selects the top ${MAX_BATCH} unchecked stores without warnings`}
-                      >
-                        Select top {MAX_BATCH} unchecked
-                      </button>
-                    )}
+                      )}
+                    </div>
                   </div>
                 </div>
 
