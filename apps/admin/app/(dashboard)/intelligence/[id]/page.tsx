@@ -5,6 +5,7 @@ import { STORE_CHECK_STEPS, getResearchCountry } from "@monocoupon/validation";
 import { BackButton, buttonStyles } from "@/components/ui";
 import { CheckRunner } from "@/components/intelligence/CheckRunner";
 import { RecheckButton } from "@/components/intelligence/RecheckButton";
+import { PrintReportButton } from "@/components/intelligence/PrintReportButton";
 import { StoreLogo } from "@/components/intelligence/StoreLogo";
 import { Pill, isOlderThanDays, timeAgo } from "@/components/intelligence/ui";
 import { toView } from "@/lib/intelligence/runner";
@@ -44,8 +45,11 @@ export default async function StoreCheckReportPage({ params }: { params: Promise
   const allDone = STORE_CHECK_STEPS.every((s) => check.steps[s].status === "done");
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-5 px-4 py-8 md:px-8 md:py-10">
-      <BackButton href="/intelligence" label="Store Checker" />
+    <div data-print-report className="mx-auto flex w-full max-w-6xl flex-col gap-5 px-4 py-8 md:px-8 md:py-10">
+      <div data-print-hide>
+        <BackButton href="/intelligence" label="Store Checker" />
+      </div>
+      <p data-print-only className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-primary">AI Store Checker · Report</p>
 
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-center gap-4">
@@ -63,33 +67,30 @@ export default async function StoreCheckReportPage({ params }: { params: Promise
               {allDone && isOlderThanDays(check.lastCheckedAt, 30) ? (
                 <Pill tone="warn" dot={false}>Over a month old — re-check for fresh data</Pill>
               ) : allDone ? (
-                <Pill tone="muted" dot={false}>Saved report · reopening is free</Pill>
+                <span data-print-hide>
+                  <Pill tone="muted" dot={false}>Saved report · reopening is free</Pill>
+                </span>
               ) : null}
             </div>
           </div>
         </div>
-        <div className="flex shrink-0 flex-wrap items-start gap-2">
+        <div data-print-hide className="flex shrink-0 flex-wrap items-start gap-2">
           <a href={check.identity?.homepageUrl ?? `https://${check.domain}`} target="_blank" rel="noopener noreferrer" className={buttonStyles.secondary}>
             Visit store ↗
           </a>
-          {check.score && (
-            <a href={`/api/intelligence/check/${check.id}/pdf`} className={buttonStyles.secondary} download>
-              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden="true">
-                <path d="M10 3.5v9M6.5 9 10 12.5 13.5 9M4 15.5h12" />
-              </svg>
-              Download PDF
-            </a>
-          )}
+          {check.score && <PrintReportButton fileName={`Store Check - ${name}${check.lastCheckedAt ? ` - ${check.lastCheckedAt.slice(0, 10)}` : ""}`} />}
           {allDone && <RecheckButton domain={check.domain} country={check.targetCountry} />}
         </div>
       </header>
 
       {/* Keyed by id only: it must stay mounted while router.refresh() streams in each step's results (a re-check does a full navigation). */}
-      <CheckRunner key={check.id} checkId={check.id} steps={check.steps} />
+      <div data-print-hide>
+        <CheckRunner key={check.id} checkId={check.id} steps={check.steps} />
+      </div>
 
       <SummarySection check={check} personal={personal} />
 
-      <nav className="sticky top-14 z-20 -mx-1 flex gap-1 overflow-x-auto rounded-xl border border-border bg-white/90 p-1 backdrop-blur md:top-2" aria-label="Report sections">
+      <nav data-print-hide className="sticky top-14 z-20 -mx-1 flex gap-1 overflow-x-auto rounded-xl border border-border bg-white/90 p-1 backdrop-blur md:top-2" aria-label="Report sections">
         {NAV.map(([href, label]) => (
           <a key={href} href={`#${href}`} className="whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium text-text-muted transition-colors hover:bg-surface hover:text-text">
             {label}

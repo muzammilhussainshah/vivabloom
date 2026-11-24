@@ -47,3 +47,59 @@ body {
     color: var(--text);
   }
 }
+
+/*
+ * Store Checker "Download PDF" prints the report page itself, so the PDF
+ * looks like the web report. Scoped to pages that contain [data-print-report]
+ * — printing any other admin page is unaffected. The page box is wider than
+ * A4 so the desktop (lg) layout is used; PDF viewers scale it to fit.
+ */
+[data-print-only] {
+  display: none;
+}
+@media print {
+  @page {
+    size: 300mm 424mm;
+    margin: 12mm;
+  }
+  body:has([data-print-report]) {
+    background: #fff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  body:has([data-print-report]) aside,
+  body:has([data-print-report]) header.sticky,
+  [data-print-report] [data-print-hide] {
+    display: none !important;
+  }
+  body:has([data-print-report]) .md\:pl-64 {
+    padding-left: 0 !important;
+  }
+  body:has([data-print-report]) main {
+    background: #fff !important;
+  }
+  [data-print-report] {
+    max-width: none !important;
+    padding: 0 !important;
+  }
+  [data-print-report] [data-print-only] {
+    display: block;
+  }
+  [data-print-report] li,
+  [data-print-report] figure,
+  [data-print-report] dl > div {
+    break-inside: avoid;
+  }
+  [data-print-report] h2,
+  [data-print-report] h3 {
+    break-after: avoid;
+  }
+  [data-print-report] details > summary {
+    display: none;
+  }
+  [data-print-report] *,
+  [data-print-report] *::before,
+  [data-print-report] *::after {
+    box-shadow: none !important;
+  }
+}

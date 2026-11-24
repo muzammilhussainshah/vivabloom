@@ -480,7 +480,7 @@ export function AdsRulesSection({ check }: { check: StoreCheckView }) {
                 );
               })}
           </ul>
-          <div className={`border-t border-border px-5 py-4 md:px-6 ${missingMine > 0 ? "bg-amber-50/60" : ""}`}>
+          <div data-print-hide className={`border-t border-border px-5 py-4 md:px-6 ${missingMine > 0 ? "bg-amber-50/60" : ""}`}>
             {missingMine > 0 && (
               <p className="mb-2 text-xs text-amber-800">
                 {missingMine} rule{missingMine > 1 ? "s" : ""} that matter for your ads {missingMine > 1 ? "aren't" : "isn't"} public. Network terms usually sit behind a login — paste them
