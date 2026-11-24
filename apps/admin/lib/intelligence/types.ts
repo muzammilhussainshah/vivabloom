@@ -258,6 +258,9 @@ export interface StoreCheckView {
   sources: SourceRef[];
   usage: { tavilyCredits: number; llmInputTokens: number; llmOutputTokens: number };
   lastCheckedAt: string | null;
+  /** Saved category, or inferred from the store's text when none was set. */
+  category: string | null;
+  archived: boolean;
   /** When the admin last pasted program terms for this store. */
   pastedTermsAt: string | null;
 }

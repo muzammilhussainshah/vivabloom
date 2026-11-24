@@ -4,6 +4,7 @@ import { connectToDatabase, StoreCheck } from "@monocoupon/db";
 import { STORE_CHECK_STEPS, getResearchCountry } from "@monocoupon/validation";
 import { BackButton, buttonStyles } from "@/components/ui";
 import { CheckRunner } from "@/components/intelligence/CheckRunner";
+import { ArchiveButton } from "@/components/intelligence/ArchiveButton";
 import { RecheckButton } from "@/components/intelligence/RecheckButton";
 import { PrintReportButton } from "@/components/intelligence/PrintReportButton";
 import { StoreLogo } from "@/components/intelligence/StoreLogo";
@@ -62,6 +63,7 @@ export default async function StoreCheckReportPage({ params }: { params: Promise
                 {check.domain} ↗
               </a>
               {network && <Pill tone="info" dot={false}>{network}</Pill>}
+              {check.archived && <Pill tone="muted" dot={false}>Archived</Pill>}
               <span className="whitespace-nowrap">
                 {getResearchCountry(check.targetCountry)?.name ?? "United States"} prices · checked {timeAgo(check.lastCheckedAt)}
               </span>
@@ -80,6 +82,7 @@ export default async function StoreCheckReportPage({ params }: { params: Promise
             Visit store ↗
           </a>
           {check.score && <PrintReportButton fileName={`Store Check - ${name}${check.lastCheckedAt ? ` - ${check.lastCheckedAt.slice(0, 10)}` : ""}`} />}
+          <ArchiveButton id={check.id} archived={check.archived} variant="button" />
           {allDone && <RecheckButton domain={check.domain} country={check.targetCountry} />}
         </div>
       </header>

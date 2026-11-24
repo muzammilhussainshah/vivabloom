@@ -31,7 +31,7 @@ async function resolveDomainFromName(name: string): Promise<{ domain: string; cr
 }
 
 /** Creates (or reuses) the StoreCheck for whatever the admin pasted. */
-export async function startStoreCheck(opts: { query: string; country?: string | null; force?: boolean; userId?: string | null }): Promise<{ id: string; reused: boolean }> {
+export async function startStoreCheck(opts: { query: string; country?: string | null; category?: string | null; force?: boolean; userId?: string | null }): Promise<{ id: string; reused: boolean }> {
   const input = parseStoreInput(opts.query);
   let domain: string;
   let inputUrl: string | null = null;
@@ -71,6 +71,7 @@ export async function startStoreCheck(opts: { query: string; country?: string | 
         ...(inputUrl ? { inputUrl, linkSignals } : {}),
         ...(name && !existing?.name ? { name } : {}),
         ...(opts.country ? { targetCountry: opts.country } : {}),
+        ...(opts.category && !existing?.category ? { category: opts.category } : {}),
       },
       $setOnInsert: { domain, createdBy: opts.userId ?? null },
       $inc: { "usage.tavilyCredits": credits },
@@ -219,6 +220,8 @@ export function toView(doc: Record<string, unknown>): StoreCheckView {
     sources: (plain.sources as SourceRef[] | null) ?? [],
     usage: (plain.usage as StoreCheckView["usage"]) ?? { tavilyCredits: 0, llmInputTokens: 0, llmOutputTokens: 0 },
     lastCheckedAt: (plain.lastCheckedAt as string | null) ?? null,
+    category: (plain.category as string | null) ?? null,
+    archived: Boolean(plain.archived),
     pastedTermsAt: ((plain.pastedTerms as { addedAt?: string } | null)?.addedAt as string | undefined) ?? null,
   };
 }

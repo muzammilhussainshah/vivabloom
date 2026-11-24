@@ -447,3 +447,13 @@ describe("traffic tiers", () => {
     expect(trafficTier(null)).toBe("unranked");
   });
 });
+
+describe("categoryOf", () => {
+  it("prefers the saved category, else guesses from the store's text, else null", async () => {
+    const { categoryOf } = await import("./category");
+    const base = { name: "X", domain: "x.com", identity: null, products: null };
+    expect(categoryOf({ ...base, category: "Fashion" })).toBe("Fashion");
+    expect(categoryOf({ ...base, category: null, name: "Whey Protein Co", domain: "wheyprotein.com" })).toBe("Supplements");
+    expect(categoryOf({ ...base, category: null })).toBeNull();
+  });
+});

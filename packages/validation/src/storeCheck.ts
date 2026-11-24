@@ -76,8 +76,17 @@ const countryCode = z
 export const startStoreCheckSchema = z.object({
   query: z.string().trim().min(2, "Enter a store link or brand name").max(2000),
   country: countryCode.nullable().optional(),
+  category: z.string().trim().min(2).max(60).nullable().optional(),
   force: z.boolean().optional(),
 });
+
+/** Archive/restore a store and/or change its category. */
+export const updateStoreCheckSchema = z
+  .object({
+    archived: z.boolean().optional(),
+    category: z.string().trim().max(60).nullable().optional(),
+  })
+  .refine((v) => v.archived !== undefined || v.category !== undefined, "Nothing to update");
 
 export const discoverStoresSchema = z.object({
   country: countryCode,

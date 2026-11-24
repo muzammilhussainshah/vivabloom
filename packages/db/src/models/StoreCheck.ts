@@ -52,6 +52,11 @@ const StoreCheckSchema = new Schema(
       llmOutputTokens: { type: Number, default: 0 },
     },
     lastCheckedAt: { type: Date, default: null },
+    /** Shelf the admin (or the discovery search) filed the store under, one of RESEARCH_CATEGORIES; null = inferred when listing. */
+    category: { type: String, default: null },
+    /** Archived stores are hidden from the main lists (never deleted) and can be restored. */
+    archived: { type: Boolean, default: false },
+    archivedAt: { type: Date, default: null },
     createdBy: { type: Schema.Types.ObjectId, ref: "User", default: null },
   },
   { timestamps: true }

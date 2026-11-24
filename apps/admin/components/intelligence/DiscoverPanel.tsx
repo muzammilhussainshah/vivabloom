@@ -85,7 +85,7 @@ export function DiscoverPanel({ history, view, totalFound }: { history: Discover
       const res = await fetch("/api/intelligence/check", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: store.domain ?? store.name, country: view?.params?.country ?? "us" }),
+        body: JSON.stringify({ query: store.domain ?? store.name, country: view?.params?.country ?? "us", category: view?.params?.category ?? null }),
       });
       const json = (await res.json()) as { id?: string; error?: string };
       if (!res.ok || !json.id) throw new Error(json.error ?? "Could not start the check");
