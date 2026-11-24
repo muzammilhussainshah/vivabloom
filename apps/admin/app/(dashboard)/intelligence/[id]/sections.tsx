@@ -210,6 +210,8 @@ export function ProductsSection({ check }: { check: StoreCheckView }) {
   const [top, ...rest] = products?.top ?? [];
   return (
     <Card id="products">
+      {/* Heading and the #1 pick move to the next page together when printing, so no heading is left alone. */}
+      <div className="print:break-inside-avoid">
       <SectionHeader
         title="Best products to promote"
         description="Ranked by real popularity evidence first (the store's best-sellers, homepage, reviews, web), then commission and price. Estimates — not guaranteed sales."
@@ -233,14 +235,19 @@ export function ProductsSection({ check }: { check: StoreCheckView }) {
           ) : undefined
         }
       />
+      {top && (
+        <div className="flex flex-col gap-4 px-4 pt-4 md:px-6 md:pt-6">
+          {products?.note && <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">{products.note}</p>}
+          <TopPick product={top} commissionKnown={check.program?.commission.status === "verified"} />
+        </div>
+      )}
+      </div>
       {!products ? (
         step.status === "failed" ? <Failed error={step.error} /> : <Pending label="Finding the most popular products…" />
       ) : !top ? (
         <p className="px-5 py-8 text-sm text-text-muted md:px-6">{products.note ?? "No products found."}</p>
       ) : (
         <div className="flex flex-col gap-4 p-4 md:p-6">
-          {products.note && <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">{products.note}</p>}
-          <TopPick product={top} commissionKnown={check.program?.commission.status === "verified"} />
           {rest.length > 0 && (
             <ol className="grid gap-4 md:grid-cols-2 print:grid-cols-2">
               {rest.map((p, i) => (

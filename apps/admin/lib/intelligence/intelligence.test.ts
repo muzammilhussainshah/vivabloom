@@ -11,6 +11,7 @@ import { recencyFactor, sourceTier } from "./reputation";
 import type { IdentityResult, PolicyItem, ProgramResult, ReputationResult, StoreCheckView } from "./types";
 import { isAvoidStore, sortChecks } from "./sort";
 import { guessDomain } from "./discover";
+import { cleanText } from "./text";
 
 describe("store input & link analysis", () => {
   it("turns an ad/affiliate link into the store domain and detects the network", () => {
@@ -427,5 +428,12 @@ describe("risky stores tab", () => {
     expect(isAvoidStore(view("bad"))).toBe(true);
     expect(isAvoidStore(view("warn"))).toBe(false);
     expect(isAvoidStore(view(null))).toBe(false);
+  });
+});
+
+describe("display text", () => {
+  it("removes markdown left in AI quotes", () => {
+    expect(cleanText("You’ll earn **10% commission**on every sale")).toBe("You’ll earn 10% commission on every sale");
+    expect(cleanText("[Become an Affiliate](https://x.com/a(b)c)")).toBe("Become an Affiliate");
   });
 });

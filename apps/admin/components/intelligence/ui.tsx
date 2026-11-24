@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import type { PolicyKey, PolicyStatus } from "@monocoupon/validation";
 import type { FieldStatus, ModelFit, RiskLevel, Verdict } from "@/lib/intelligence/types";
+import { cleanText } from "@/lib/intelligence/text";
 
 /* Shared, server-safe building blocks for the Store Checker pages. */
 
@@ -158,10 +159,13 @@ export function SectionHeader({ title, description, aside }: { title: string; de
 
 /** A verbatim quote from a source, with a link to it. */
 export function Quote({ text, url, pasted = false }: { text: string | null; url: string | null; pasted?: boolean }) {
-  if (!text) return null;
+  const clean = text ? cleanText(text) : "";
+  if (!clean) return null;
   return (
     <figure className="mt-2 rounded-lg border-l-2 border-brand-primary/40 bg-surface px-3 py-2">
-      <blockquote className="text-[13px] italic leading-relaxed text-text">“{text.length > 320 ? `${text.slice(0, 320)}…` : text}”</blockquote>
+      <blockquote className="text-[13px] italic leading-relaxed text-text [overflow-wrap:anywhere]">
+        “{clean.length > 320 ? `${clean.slice(0, 320)}…` : clean}”
+      </blockquote>
       {pasted && !url && <figcaption className="mt-1 text-xs font-medium text-brand-primary">From the terms you pasted</figcaption>}
       {url && (
         <figcaption className="mt-1 truncate text-xs">
