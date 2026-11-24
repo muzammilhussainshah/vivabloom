@@ -22,3 +22,5 @@ export * from "./AccountingSettlement";
 export * from "./AccountingWriteOff";
 export * from "./AccountingReturn";
 export * from "./PaymentTerm";
+export * from "./StoreCheck";
+export * from "./StoreDiscovery";

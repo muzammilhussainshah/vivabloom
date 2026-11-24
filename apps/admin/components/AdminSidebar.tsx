@@ -22,6 +22,7 @@ const I = {
   audit: <path d="M10 3.5a6.5 6.5 0 1 1-6.1 4.3M10 6.5V10l2.5 1.5M3.5 4v3.5H7" />,
   settings: <path d="M10 7.3a2.7 2.7 0 1 0 0 5.4 2.7 2.7 0 0 0 0-5.4ZM15.6 11.4l1.3 1-1.5 2.6-1.6-.6a5.6 5.6 0 0 1-1.6.9l-.3 1.7H8.1l-.3-1.7a5.6 5.6 0 0 1-1.6-.9l-1.6.6-1.5-2.6 1.3-1a5.6 5.6 0 0 1 0-1.8l-1.3-1 1.5-2.6 1.6.6a5.6 5.6 0 0 1 1.6-.9l.3-1.7h3l.3 1.7c.6.2 1.1.5 1.6.9l1.6-.6 1.5 2.6-1.3 1a5.6 5.6 0 0 1 0 1.8Z" />,
   ai: <path d="M10 3v2.5M10 14.5V17M3 10h2.5M14.5 10H17M5 5l1.8 1.8M13.2 13.2 15 15M15 5l-1.8 1.8M6.8 13.2 5 15M10 7.5l.9 1.6 1.6.9-1.6.9-.9 1.6-.9-1.6-1.6-.9 1.6-.9z" />,
+  checker: <path d="M10 2.8 4 5.2v4.3c0 3.7 2.6 6.6 6 7.7 3.4-1.1 6-4 6-7.7V5.2zM7.3 10l1.9 1.9 3.6-3.8" />,
   external: <path d="M11 4h5v5M16 4l-7 7M14 11.5V15a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h3.5" />,
   signOut: <path d="M8 4H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3M12.5 13.5 16 10l-3.5-3.5M16 10H8" />,
 };
@@ -59,6 +60,10 @@ const NAV: { label: string; items: { href: string; label: string; icon: keyof ty
       { href: "/ad-keywords", label: "Ad Keywords", icon: "keywords" },
       { href: "/country-customization", label: "Countries", icon: "globe" },
     ],
+  },
+  {
+    label: "AI Intelligence",
+    items: [{ href: "/intelligence", label: "Store Checker", icon: "checker" }],
   },
   {
     label: "Audience",

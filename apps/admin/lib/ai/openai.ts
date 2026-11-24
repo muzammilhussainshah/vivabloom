@@ -52,7 +52,7 @@ let groqClient: OpenAI | null = null;
 const GROQ_PREFIX = "groq/";
 
 /** The model id to send to the provider (drops the "groq/" routing prefix). */
-function apiModel(model: string): string {
+export function apiModel(model: string): string {
   return model.startsWith(GROQ_PREFIX) ? model.slice(GROQ_PREFIX.length) : model;
 }
 
@@ -65,11 +65,11 @@ function tokenCap(model: string, tokens: number): number {
   return model.startsWith(GROQ_PREFIX) ? Math.max(tokens * 4, 2000) : tokens;
 }
 
-function groqParams(model: string): { reasoning_effort?: "low" } {
+export function groqParams(model: string): { reasoning_effort?: "low" } {
   return model.startsWith(GROQ_PREFIX) && model.includes("gpt-oss") ? { reasoning_effort: "low" } : {};
 }
 
-function getClient(model: string): OpenAI {
+export function getClient(model: string): OpenAI {
   // The SDK defaults to a 10-minute timeout and 2 automatic retries, so a
   // slow call can hold a request open for half an hour with the UI stuck on
   // "Generating…". Fail fast enough to show the user an error instead.
