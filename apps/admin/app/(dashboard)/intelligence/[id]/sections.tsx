@@ -546,6 +546,35 @@ export function ProgramSection({ check }: { check: StoreCheckView }) {
       ) : (
         <>
           <dl className="divide-y divide-border">
+            <div className="flex flex-col gap-1.5 px-5 py-3.5 md:flex-row md:gap-6 md:px-6">
+              <dt className="w-44 shrink-0 text-sm font-medium text-text-muted">Available on</dt>
+              <dd className="min-w-0 flex-1">
+                {(pg.networkSources?.length ?? 0) > 0 ? (
+                  <ul className="flex flex-col gap-1.5">
+                    {pg.networkSources!.map((n) => (
+                      <li key={n.network} className="flex flex-wrap items-center gap-2 text-sm">
+                        <Pill tone="info" dot={false}>{n.network}</Pill>
+                        <span className="text-xs text-text-muted">
+                          {n.how}
+                          {n.url && (
+                            <>
+                              {" · "}
+                              <a href={n.url} target="_blank" rel="noopener noreferrer" className="hover:text-brand-primary">
+                                source ↗
+                              </a>
+                            </>
+                          )}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : pg.detectedNetworks.length > 0 ? (
+                  <span className="text-sm text-text">{pg.detectedNetworks.join(", ")}</span>
+                ) : (
+                  <span className="text-sm text-text-muted">No network found in public pages. Some programs are only visible after logging in to the network.</span>
+                )}
+              </dd>
+            </div>
             <FieldRow
               label="Network / platform"
               field={pg.network.value == null && pg.detectedNetworks[0] ? { value: pg.detectedNetworks[0], status: "unverified", quote: null, sourceUrl: null } : pg.network}

@@ -2,7 +2,7 @@ import { POLICY_KEYS, programExtractionSchema, type PolicyKey, type ProgramExtra
 import { STORE_PROGRAM_SYSTEM_PROMPT, storeProgramPrompt } from "@/lib/ai/prompts";
 import { llmJson } from "./llm";
 import { tavilyExtract, tavilySearchAll, type TavilyResult } from "./tavily";
-import { brandMatchers, compact, domainOfUrl, mentionsBrand, networkForUrl } from "./domain";
+import { brandMatchers, compact, domainOfUrl, findNetworks, mentionsBrand, networkForUrl, networksNearBrand } from "./domain";
 import { focusTermsText, locateQuote, toEvidenceField, type SourceText } from "./evidence";
 import type { EvidenceField, IdentityResult, LinkSignals, PolicyItem, ProgramResult, SourceRef, StepUsage } from "./types";
 
@@ -31,7 +31,11 @@ export async function runProgramStep(args: {
   const now = new Date().toISOString();
 
   // 1. Search the web for the program and its PPC rules.
-  const queries = [`"${name}" affiliate program`, `${domain} affiliate program terms PPC paid search brand keywords coupon sites`];
+  const queries = [
+    `"${name}" affiliate program`,
+    `${domain} affiliate program terms PPC paid search brand keywords coupon sites`,
+    `"${name}" affiliate Impact OR Awin OR ShareASale OR "CJ Affiliate" OR "Social Snowball" OR Rakuten OR FlexOffers OR Partnerize OR Pepperjam`,
+  ];
   const searched = await tavilySearchAll(queries, { maxResults: 8 });
   usage.tavilyCredits += searched.credits;
 
@@ -93,13 +97,23 @@ export async function runProgramStep(args: {
     ...(identity?.affiliateLinks.map((l) => `Store site links to ${l.network}: ${l.url}`) ?? []),
     ...(identity?.pages.affiliate.map((u) => `Store site has an affiliate/partner page: ${u}`) ?? []),
   ];
-  const detectedNetworks = [
-    ...new Set([
-      ...(linkSignals?.networks.map((n) => n.network) ?? []),
-      ...(identity?.affiliateLinks.map((l) => l.network) ?? []),
-      ...[...relevant.values()].map((r) => networkForUrl(r.url)).filter((n): n is string => Boolean(n)),
-    ]),
-  ];
+  // Every network the store is on, found without the AI: link parameters, links on the store's site, network pages about the store, and network names in the store's own pages or next to its name elsewhere.
+  const networkSources: { network: string; url: string | null; how: string }[] = [];
+  const seenNet = new Set<string>();
+  const addNet = (network: string | null, url: string | null, how: string) => {
+    if (!network || seenNet.has(network)) return;
+    seenNet.add(network);
+    networkSources.push({ network, url, how });
+  };
+  linkSignals?.networks.forEach((n) => addNet(n.network, null, `Link you pasted (${n.evidence})`));
+  identity?.affiliateLinks.forEach((l) => addNet(l.network, l.url, "Linked from the store's website"));
+  for (const r of relevant.values()) addNet(networkForUrl(r.url), r.url, "Network page about this store");
+  for (const page of [...extracted, ...[...relevant.values()].map((r) => ({ url: r.url, text: `${r.title}\n${r.content}` }))]) {
+    const own = domainOfUrl(page.url) === domain;
+    const names = own ? findNetworks(page.text) : networksNearBrand(page.text, matchers);
+    for (const n of names) addNet(n, page.url, own ? "Named on the store's own page" : "Named next to the store in search results");
+  }
+  const detectedNetworks = networkSources.map((n) => n.network);
 
   const sourceRefs: SourceRef[] = sources.map((s) => ({
     url: s.url,
@@ -109,7 +123,7 @@ export async function runProgramStep(args: {
   }));
 
   if (sources.length === 0) {
-    return { program: emptyProgram(detectedNetworks, toRead), policies: unknownPolicies(), sources: sourceRefs, usage };
+    return { program: emptyProgram(detectedNetworks, toRead, networkSources), policies: unknownPolicies(), sources: sourceRefs, usage };
   }
 
   // 4. Extract with the AI, then verify every quote against the full source text.
@@ -127,20 +141,21 @@ export async function runProgramStep(args: {
   // Quotes are checked against the full page (the AI saw a trimmed window of it, so a true quote is always inside).
   const verifyAgainst: SourceText[] = sources.map((s) => fullTexts.find((f) => f.url === s.url) ?? s);
   return {
-    program: buildProgram(llm.data, verifyAgainst, detectedNetworks, toRead),
+    program: buildProgram(llm.data, verifyAgainst, detectedNetworks, toRead, networkSources),
     policies: buildPolicies(llm.data, verifyAgainst),
     sources: sourceRefs,
     usage,
   };
 }
 
-function emptyProgram(detectedNetworks: string[], checkedUrls: string[]): ProgramResult {
+function emptyProgram(detectedNetworks: string[], checkedUrls: string[], networkSources: { network: string; url: string | null; how: string }[] = []): ProgramResult {
   const unknown = { value: null, status: "unknown" as const, quote: null, sourceUrl: null };
   return {
     found: detectedNetworks.length ? "unclear" : "no",
     active: "unclear",
     network: detectedNetworks[0] ? { value: detectedNetworks[0], status: "unverified", quote: null, sourceUrl: null } : unknown,
     detectedNetworks,
+    networkSources,
     applicationUrl: null,
     commission: { ...unknown, type: "unknown", rateMin: null, rateMax: null, fixedAmount: null },
     cookieDays: unknown,
@@ -154,7 +169,7 @@ function emptyProgram(detectedNetworks: string[], checkedUrls: string[]): Progra
   };
 }
 
-export function buildProgram(data: ProgramExtraction, sources: SourceText[], detectedNetworks: string[], checkedUrls: string[]): ProgramResult {
+export function buildProgram(data: ProgramExtraction, sources: SourceText[], detectedNetworks: string[], checkedUrls: string[], networkSources: { network: string; url: string | null; how: string }[] = []): ProgramResult {
   const field = (f: { value: string | null; quote: string | null; source: number | null } | null) =>
     toEvidenceField(f?.value ?? null, f?.quote, f?.source, sources);
 
@@ -186,6 +201,7 @@ export function buildProgram(data: ProgramExtraction, sources: SourceText[], det
     active: data.programActive,
     network: networkField,
     detectedNetworks,
+    networkSources,
     applicationUrl,
     commission: {
       ...commissionField,

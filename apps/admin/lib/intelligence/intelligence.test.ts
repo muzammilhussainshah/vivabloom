@@ -457,3 +457,14 @@ describe("categoryOf", () => {
     expect(categoryOf({ ...base, category: null })).toBeNull();
   });
 });
+
+describe("network detection", () => {
+  it("finds every network named in text and only those next to the brand on third-party pages", async () => {
+    const { findNetworks, networksNearBrand, brandMatchers } = await import("./domain");
+    expect(findNetworks("Join via Social Snowball or apply on https://app.impact.com/x and ShareASale").sort()).toEqual(["Impact", "ShareASale (now Awin)", "Social Snowball"]);
+    expect(findNetworks("We have an impact on the world")).toEqual([]);
+    const m = brandMatchers("Emmafy", "emmafy.com");
+    const filler = "x ".repeat(2000);
+    expect(networksNearBrand(`Emmafy affiliate program runs on Social Snowball. ${filler} Other brand is on Awin.`, m)).toEqual(["Social Snowball"]);
+  });
+});

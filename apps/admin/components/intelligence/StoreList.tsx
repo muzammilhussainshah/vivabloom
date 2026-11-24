@@ -45,15 +45,15 @@ export function StoreList({ rows, tab }: { rows: StoreRow[]; tab: "checked" | "a
   const [sort, setSort] = useState<SortKey>("best");
 
   const categories = useMemo(() => [...new Set(rows.map((r) => r.category ?? "Uncategorised"))].sort(), [rows]);
-  const networks = useMemo(() => [...new Set(rows.map((r) => r.network).filter((n): n is string => Boolean(n)))].sort(), [rows]);
+  const networks = useMemo(() => [...new Set(rows.flatMap((r) => r.networks))].sort(), [rows]);
 
   const shown = useMemo(() => {
     const needle = q.trim().toLowerCase();
     const filtered = rows.filter((r) => {
-      if (needle && !`${r.name} ${r.domain} ${r.top?.name ?? ""} ${r.network ?? ""}`.toLowerCase().includes(needle)) return false;
+      if (needle && !`${r.name} ${r.domain} ${r.top?.name ?? ""} ${r.networks.join(" ")}`.toLowerCase().includes(needle)) return false;
       if (category !== ALL && (r.category ?? "Uncategorised") !== category) return false;
       if (verdict !== ALL && (r.verdict ?? "pending") !== verdict) return false;
-      if (network !== ALL && r.network !== network) return false;
+      if (network !== ALL && !r.networks.includes(network)) return false;
       return true;
     });
     return sortRows(filtered, sort);
@@ -164,7 +164,7 @@ function Row({ r, tab }: { r: StoreRow; tab: string }) {
 
         <div className="min-w-0">
           <p className="truncate text-sm font-medium text-text">{r.commission ?? <span className="text-text-muted">Unknown</span>}</p>
-          <p className="truncate text-xs text-text-muted">{r.network ?? "Network unknown"}</p>
+          <p className="truncate text-xs text-text-muted">{r.networks.length ? r.networks.join(" · ") : "Network unknown"}</p>
         </div>
 
         <div className="min-w-0 pr-2">

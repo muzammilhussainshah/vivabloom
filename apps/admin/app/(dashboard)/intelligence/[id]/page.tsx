@@ -10,6 +10,7 @@ import { PrintReportButton } from "@/components/intelligence/PrintReportButton";
 import { StoreLogo } from "@/components/intelligence/StoreLogo";
 import { Pill, isOlderThanDays, timeAgo } from "@/components/intelligence/ui";
 import { toView } from "@/lib/intelligence/runner";
+import { allNetworks } from "@/lib/intelligence/rows";
 import { getPersonalRecord } from "@/lib/intelligence/personal";
 import { AdsRulesSection, IdentitySection, ProductsSection, ProgramSection, ReputationSection, ScoreSection, SourcesSection, SummarySection, TrafficSection } from "./sections";
 
@@ -43,7 +44,7 @@ export default async function StoreCheckReportPage({ params }: { params: Promise
   if (!check) notFound();
   const personal = await getPersonalRecord(check.domain).catch(() => null);
   const name = check.name ?? check.domain;
-  const network = check.program?.network.value ?? check.program?.detectedNetworks[0] ?? check.linkSignals?.networks[0]?.network ?? null;
+  const networks = allNetworks(check);
   const allDone = STORE_CHECK_STEPS.every((s) => check.steps[s].status === "done");
 
   return (
@@ -62,7 +63,9 @@ export default async function StoreCheckReportPage({ params }: { params: Promise
               <a href={check.identity?.homepageUrl ?? `https://${check.domain}`} target="_blank" rel="noopener noreferrer" className="hover:text-brand-primary">
                 {check.domain} ↗
               </a>
-              {network && <Pill tone="info" dot={false}>{network}</Pill>}
+              {networks.map((n) => (
+                <Pill key={n} tone="info" dot={false}>{n}</Pill>
+              ))}
               {check.archived && <Pill tone="muted" dot={false}>Archived</Pill>}
               <span className="whitespace-nowrap">
                 {getResearchCountry(check.targetCountry)?.name ?? "United States"} prices · checked {timeAgo(check.lastCheckedAt)}

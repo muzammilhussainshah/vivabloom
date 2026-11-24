@@ -95,6 +95,8 @@ export interface ProgramResult {
   network: EvidenceField<string>;
   /** Networks seen in link parameters or site links, independent of the AI. */
   detectedNetworks: string[];
+  /** Where each detected network was seen (a link on the store's site, a network page about the store, or text next to the store's name). */
+  networkSources?: { network: string; url: string | null; how: string }[];
   applicationUrl: string | null;
   commission: EvidenceField<string> & {
     type: "percentage" | "fixed" | "tiered" | "unknown";

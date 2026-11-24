@@ -108,6 +108,8 @@ const NETWORK_DOMAINS: { domain: string; network: string }[] = [
   { domain: "partnerize.com", network: "Partnerize" },
   { domain: "prf.hn", network: "Partnerize" },
   { domain: "flexoffers.com", network: "FlexOffers" },
+  { domain: "pepperjam.com", network: "Pepperjam" },
+  { domain: "gopjn.com", network: "Pepperjam" },
   { domain: "avantlink.com", network: "AvantLink" },
   { domain: "tapfiliate.com", network: "Tapfiliate" },
   { domain: "leaddyno.com", network: "LeadDyno" },
@@ -130,6 +132,52 @@ export function networkForUrl(url: string): string | null {
   if (host === "collabs.shopify.com") return "Shopify Collabs";
   const hit = NETWORK_DOMAINS.find((n) => host === n.domain || host.endsWith(`.${n.domain}`));
   return hit?.network ?? null;
+}
+
+/** Names that identify a network in running text (domains are matched separately). Ambiguous words like "impact" alone are excluded. */
+const NETWORK_NAME_RES: { re: RegExp; network: string }[] = [
+  { re: /social\s?snowball|snowball\.io/i, network: "Social Snowball" },
+  { re: /impact\.com|impact\s+radius|\bsjv\.io|\bpxf\.io|(?:on|via|through|using|powered by)\s+impact\b/i, network: "Impact" },
+  { re: /share\s?a\s?sale/i, network: "ShareASale (now Awin)" },
+  { re: /\bawin(?:1)?\b/i, network: "Awin" },
+  { re: /rakuten\s+(?:advertising|affiliate)|linksynergy/i, network: "Rakuten Advertising" },
+  { re: /\bcj\s+affiliate\b|commission\s+junction|cj\.com/i, network: "CJ Affiliate" },
+  { re: /flex\s?offers/i, network: "FlexOffers" },
+  { re: /pepperjam|gopjn/i, network: "Pepperjam" },
+  { re: /partnerize|prf\.hn/i, network: "Partnerize" },
+  { re: /refersion/i, network: "Refersion" },
+  { re: /uppromote/i, network: "UpPromote" },
+  { re: /goaffpro/i, network: "GoAffPro" },
+  { re: /shopify\s+collabs/i, network: "Shopify Collabs" },
+  { re: /avantlink/i, network: "AvantLink" },
+  { re: /webgains/i, network: "Webgains" },
+  { re: /tradedoubler/i, network: "Tradedoubler" },
+  { re: /partnerstack/i, network: "PartnerStack" },
+  { re: /tapfiliate/i, network: "Tapfiliate" },
+  { re: /leaddyno/i, network: "LeadDyno" },
+  { re: /rewardful/i, network: "Rewardful" },
+];
+
+/** Every network named (or linked by domain) anywhere in this text. */
+export function findNetworks(text: string): string[] {
+  const found = new Set<string>();
+  for (const { re, network } of NETWORK_NAME_RES) if (re.test(text)) found.add(network);
+  for (const m of text.matchAll(/https?:\/\/([a-z0-9.-]+)/gi)) {
+    const n = networkForUrl(`https://${m[1]}`);
+    if (n) found.add(n);
+  }
+  return [...found];
+}
+
+/** Networks named close to a mention of the brand (third-party pages mention many networks; only count the ones next to this store). */
+export function networksNearBrand(text: string, matchers: ReturnType<typeof brandMatchers>, window = 500): string[] {
+  const found = new Set<string>();
+  const step = window;
+  for (let i = 0; i < text.length; i += step) {
+    const chunk = text.slice(Math.max(0, i - window / 2), i + step + window / 2);
+    if (mentionsBrand(chunk, matchers)) findNetworks(chunk).forEach((n) => found.add(n));
+  }
+  return [...found];
 }
 
 /**

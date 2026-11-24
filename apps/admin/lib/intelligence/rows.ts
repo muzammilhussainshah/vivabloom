@@ -20,6 +20,8 @@ export interface StoreRow {
   bottom: { title: string; detail: string; tone: "good" | "warn" | "bad" | "muted" } | null;
   commission: string | null;
   network: string | null;
+  /** Every network the store was found on (Impact, Social Snowball, …). */
+  networks: string[];
   top: { name: string; price: number | null; currency: string | null } | null;
 }
 
@@ -41,7 +43,14 @@ export function toRow(c: StoreCheckView, doneSteps: number): StoreRow {
     verdict: c.score?.verdict ?? null,
     bottom: b ? { title: b.title, detail: b.detail, tone: b.tone } : null,
     commission: c.program?.commission.value ?? null,
-    network: c.program?.network.value ?? c.program?.detectedNetworks[0] ?? null,
+    network: allNetworks(c)[0] ?? null,
+    networks: allNetworks(c),
     top: top ? { name: top.name, price: top.price ?? null, currency: top.currency ?? null } : null,
   };
+}
+
+/** All networks a store is on: the one the terms name first, then every other one detected. */
+export function allNetworks(c: Pick<StoreCheckView, "program" | "linkSignals">): string[] {
+  const list = [c.program?.network.value, ...(c.program?.detectedNetworks ?? []), ...(c.linkSignals?.networks.map((n) => n.network) ?? [])].filter((n): n is string => Boolean(n));
+  return [...new Set(list)];
 }
