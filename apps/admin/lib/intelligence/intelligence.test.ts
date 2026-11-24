@@ -8,7 +8,8 @@ import { bottomLine, computeScore, evaluateModelFit } from "./score";
 import { buildPolicies, buildProgram } from "./program";
 import { commissionRange, popularityScore, priceFit, productFamily, productKey, ratingFromHtml } from "./products";
 import { recencyFactor, sourceTier } from "./reputation";
-import type { IdentityResult, PolicyItem, ProgramResult, ReputationResult } from "./types";
+import type { IdentityResult, PolicyItem, ProgramResult, ReputationResult, StoreCheckView } from "./types";
+import { sortChecks } from "./sort";
 
 describe("store input & link analysis", () => {
   it("turns an ad/affiliate link into the store domain and detects the network", () => {
@@ -390,5 +391,16 @@ describe("bottom line", () => {
   it("gives the go-ahead only when the store is trustworthy and the rules allow your ads", () => {
     const s = computeScore({ identity: identity(), program, policies: allowedPolicies, reputation: cleanRep, products: null });
     expect(s.bottomLine?.tone).toBe("good");
+  });
+});
+
+describe("checked stores ordering", () => {
+  const mk = (id: string, tone: "good" | "warn" | "bad" | "muted", verdict: "good" | "caution" | "risky" | "insufficient", trust: number) =>
+    ({ id, lastCheckedAt: `2026-11-2${id.length}T00:00:00Z`, score: { trust, risk: 10, verdict, bottomLine: { tone, title: "", detail: "" } } }) as unknown as StoreCheckView;
+
+  it("puts promotable stores first and stores to avoid last", () => {
+    const list = [mk("ban", "bad", "caution", 69), mk("ok", "good", "good", 80), mk("confirm", "warn", "good", 74), mk("care", "warn", "caution", 60)];
+    expect(sortChecks(list, "best").map((c) => c.id)).toEqual(["ok", "confirm", "care", "ban"]);
+    expect(sortChecks(list, "trust").map((c) => c.id)).toEqual(["ok", "confirm", "ban", "care"]);
   });
 });

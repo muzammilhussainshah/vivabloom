@@ -10,6 +10,7 @@ import { Pill, VerdictPill, formatMoney, scoreTone, timeAgo, toneClasses } from 
 import { toView } from "@/lib/intelligence/runner";
 import { getAllDiscoveredStores, getDiscovery, listDiscoveryHistory } from "@/lib/intelligence/discover";
 import type { StoreCheckView } from "@/lib/intelligence/types";
+import { CHECK_SORTS as SORTS, sortChecks, type CheckSortKey as SortKey } from "@/lib/intelligence/sort";
 
 export const metadata: Metadata = { title: "Store Checker" };
 export const dynamic = "force-dynamic";
@@ -41,16 +42,20 @@ async function loadFindTab(searchId: string | undefined): Promise<{ history: Awa
 /** One column template shared by the header and every row, so columns line up exactly. */
 const ROW_GRID = "md:grid-cols-[minmax(0,1.5fr)_150px_minmax(0,1.6fr)_minmax(0,1.2fr)_minmax(0,1.3fr)_20px]";
 
-export default async function StoreCheckerPage({ searchParams }: { searchParams: Promise<{ tab?: string; search?: string }> }) {
-  const { tab: rawTab, search } = await searchParams;
+export default async function StoreCheckerPage({ searchParams }: { searchParams: Promise<{ tab?: string; search?: string; sort?: string }> }) {
+  const { tab: rawTab, search, sort: rawSort } = await searchParams;
+  const sort: SortKey = SORTS.some((x) => x.key === rawSort) ? (rawSort as SortKey) : "best";
   const tab = rawTab === "find" ? "find" : "checked";
   await connectToDatabase();
   const [docs, checkCount, find] = await Promise.all([
-    tab === "checked" ? StoreCheck.find({}).sort({ updatedAt: -1 }).limit(100).lean() : Promise.resolve([]),
+    tab === "checked" ? StoreCheck.find({}).sort({ updatedAt: -1 }).limit(300).lean() : Promise.resolve([]),
     StoreCheck.estimatedDocumentCount(),
     tab === "find" ? loadFindTab(search) : Promise.resolve(null),
   ]);
-  const checks = docs.map((d) => toView(d as unknown as Record<string, unknown>));
+  const checks = sortChecks(
+    docs.map((d) => toView(d as unknown as Record<string, unknown>)),
+    sort
+  );
 
   return (
     <PageShell>
@@ -107,6 +112,24 @@ export default async function StoreCheckerPage({ searchParams }: { searchParams:
           </p>
         </div>
       ) : (
+        <div className="flex flex-col gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-sm text-text-muted">
+            {sort === "best" ? "Stores you can promote first, stores to avoid last." : sort === "trust" ? "Sorted by trust score." : "Most recently checked first."}
+          </p>
+          <div className="inline-flex rounded-full bg-white p-1 ring-1 ring-inset ring-border" role="group" aria-label="Sort stores">
+            {SORTS.map((o) => (
+              <Link
+                key={o.key}
+                href={o.key === "best" ? "/intelligence" : `/intelligence?sort=${o.key}`}
+                aria-current={sort === o.key ? "true" : undefined}
+                className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${sort === o.key ? "bg-text text-white" : "text-text-muted hover:text-text"}`}
+              >
+                {o.label}
+              </Link>
+            ))}
+          </div>
+        </div>
         <div className="overflow-hidden rounded-2xl border border-border bg-white shadow-[0_1px_2px_rgba(16,24,20,0.04),0_8px_24px_-12px_rgba(16,24,20,0.08)]">
           <div className={`hidden gap-5 border-b border-border bg-surface/70 px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-text-muted md:grid ${ROW_GRID}`}>
             <span>Store</span>
@@ -121,6 +144,7 @@ export default async function StoreCheckerPage({ searchParams }: { searchParams:
               <CheckRow key={c.id} c={c} />
             ))}
           </ul>
+        </div>
         </div>
       )}
     </PageShell>
