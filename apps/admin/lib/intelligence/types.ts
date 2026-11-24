@@ -101,6 +101,8 @@ export interface PolicyItem {
   quote: string | null;
   sourceUrl: string | null;
   explanation: string;
+  /** Came from program terms the admin pasted (no public URL). */
+  fromPastedTerms?: boolean;
   /** The AI claimed a status but its quote wasn't found in the source, so it was downgraded to unknown. */
   unverifiedClaim: PolicyStatus | null;
 }
@@ -134,7 +136,7 @@ export interface ReputationResult {
 }
 
 export interface ProductComponent {
-  key: "commission" | "reviews" | "bestseller" | "priceFit" | "discount" | "pageQuality";
+  key: "popularity" | "commission" | "reviews" | "bestseller" | "priceFit" | "discount" | "pageQuality";
   label: string;
   /** 0–1, or null when there's no data for it (excluded from the score, lowers confidence). */
   value: number | null;
@@ -152,7 +154,12 @@ export interface ProductItem {
   available: boolean;
   rating: number | null;
   reviewCount: number | null;
+  /** Position in the store's own Best Sellers list. */
   bestsellerRank: number | null;
+  /** Position among products featured on the homepage. */
+  featuredRank?: number | null;
+  /** How many "best selling <brand> products" search results name it. */
+  webMentions?: number;
   productType: string | null;
   estCommissionMin: number | null;
   estCommissionMax: number | null;
@@ -172,6 +179,8 @@ export interface ProductsResult {
   totalFound: number;
   top: ProductItem[];
   note: string | null;
+  /** Which popularity evidence the store offered (shown so a thin ranking is explained). */
+  signals?: { bestsellerList: string | null; homepageFeatured: number; webResults: number };
 }
 
 export interface ScoreCriterion {
@@ -205,6 +214,8 @@ export interface ScoreResult {
   positives: string[];
   negatives: string[];
   modelFit: { status: ModelFit; reasons: string[] };
+  /** The plain-language answer shown first ("Don't run your coupon ads for this store"). */
+  bottomLine?: { tone: "good" | "warn" | "bad" | "muted"; title: string; detail: string };
 }
 
 export interface StepState {
@@ -230,6 +241,8 @@ export interface StoreCheckView {
   sources: SourceRef[];
   usage: { tavilyCredits: number; llmInputTokens: number; llmOutputTokens: number };
   lastCheckedAt: string | null;
+  /** When the admin last pasted program terms for this store. */
+  pastedTermsAt: string | null;
 }
 
 /** Usage counters a step reports back so the runner can $inc them on the StoreCheck. */

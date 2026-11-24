@@ -42,6 +42,8 @@ const StoreCheckSchema = new Schema(
     reputation: { type: Schema.Types.Mixed, default: null },
     products: { type: Schema.Types.Mixed, default: null },
     score: { type: Schema.Types.Mixed, default: null },
+    /** Program terms the admin pasted (network dashboards need a login): { text, addedAt }. */
+    pastedTerms: { type: Schema.Types.Mixed, default: null },
     /** Every page/search result the report relies on: [{ url, title, kind, fetchedAt }]. */
     sources: { type: Schema.Types.Mixed, default: [] },
     usage: {

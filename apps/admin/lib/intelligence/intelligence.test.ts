@@ -4,9 +4,9 @@ import { analyzeLink, brandMatchers, isLikelyStoreDomain, mentionsBrand, network
 import { focusTermsText, quoteInText, toEvidenceField } from "./evidence";
 import { isAllowedByRobots, parseRobots } from "./robots";
 import { isPrivateAddress } from "./safeFetch";
-import { computeScore, evaluateModelFit } from "./score";
+import { bottomLine, computeScore, evaluateModelFit } from "./score";
 import { buildPolicies, buildProgram } from "./program";
-import { commissionRange, priceFit, productFamily, ratingFromHtml } from "./products";
+import { commissionRange, popularityScore, priceFit, productFamily, productKey, ratingFromHtml } from "./products";
 import { recencyFactor, sourceTier } from "./reputation";
 import type { IdentityResult, PolicyItem, ProgramResult, ReputationResult } from "./types";
 
@@ -340,5 +340,55 @@ describe("reputation weighting", () => {
     const now = Date.parse("2026-11-24");
     expect(recencyFactor("2026-11", now)).toBeGreaterThan(recencyFactor("2023-01", now));
     expect(recencyFactor(null, now)).toBe(0.5);
+  });
+});
+
+describe("popularity", () => {
+  const base = { key: "k", id: "1", name: "X", url: "u", image: null, price: 50, compareAtPrice: null, currency: "USD", available: true, productType: null, descriptionLength: 0, imageCount: 0, bestsellerRank: null, featuredRank: null, webMentions: 0, rating: null, reviewCount: null };
+  const present = { bestseller: true, featured: true, reviews: true, mentions: true };
+
+  it("ranks the store's #1 best-seller above a product missing from every list", () => {
+    const top = popularityScore({ ...base, bestsellerRank: 1, featuredRank: 2, reviewCount: 800, webMentions: 3 }, present) ?? 0;
+    const unknownProduct = popularityScore(base, present) ?? 0;
+    expect(top).toBeGreaterThan(0.85);
+    expect(unknownProduct).toBe(0);
+  });
+
+  it("is unknown when the store offers no popularity signals at all", () => {
+    expect(popularityScore(base, { bestseller: false, featured: false, reviews: false, mentions: false })).toBeNull();
+  });
+
+  it("treats the same product linked differently as one", () => {
+    expect(productKey("https://www.ekster.com/en-int/products/grid-backpack?variant=1")).toBe(productKey("https://www.ekster.com/products/grid-backpack"));
+    expect(productKey("https://www.myprotein.com/p/sports-nutrition/impact-whey-protein-powder/10530943/#reviews")).toBe(
+      productKey("https://www.myprotein.com/p/sports-nutrition/impact-whey-protein-powder/10530943")
+    );
+  });
+
+  it("reads ProductGroup structured data (variants)", () => {
+    const html = `<script type="application/ld+json">{"@type":"ProductGroup","name":"Impact Whey","aggregateRating":{"ratingValue":4.6,"reviewCount":51234},"hasVariant":[{"@type":"Product","offers":{"price":"24.99","priceCurrency":"GBP"}},{"@type":"Product","offers":{"price":"18.49","priceCurrency":"GBP"}}]}</script>`;
+    expect(ratingFromHtml(html)).toEqual({ rating: 4.6, reviewCount: 51234, currency: "GBP" });
+  });
+
+  it("groups 'Name: subtitle' variants", () => {
+    expect(productFamily("Daily Ultimate Longevity: Healthy Aging", "IM8 Health")).toBe(productFamily("Daily Ultimate Longevity - Quarterly Refills", "IM8 Health"));
+  });
+});
+
+describe("bottom line", () => {
+  it("says don't advertise when the terms ban your ads, even for a trustworthy store", () => {
+    const s = computeScore({ identity: identity(), program, policies: allowedPolicies.map((p) => (p.key === "coupon_sites" ? { ...p, status: "prohibited" as const } : p)), reputation: cleanRep, products: null });
+    expect(bottomLine(s, program).title).toMatch(/Don't run your coupon ads/);
+  });
+
+  it("asks for written approval when a trustworthy store's ad rules are unknown", () => {
+    const s = computeScore({ identity: identity(), program, policies: allowedPolicies.map((p) => ({ ...p, status: "unknown" as const })), reputation: cleanRep, products: null });
+    expect(s.bottomLine?.tone).toBe("warn");
+    expect(s.bottomLine?.title).toMatch(/confirm the ad rules/);
+  });
+
+  it("gives the go-ahead only when the store is trustworthy and the rules allow your ads", () => {
+    const s = computeScore({ identity: identity(), program, policies: allowedPolicies, reputation: cleanRep, products: null });
+    expect(s.bottomLine?.tone).toBe("good");
   });
 });

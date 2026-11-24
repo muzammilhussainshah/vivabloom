@@ -207,3 +207,8 @@ export const discoveryExtractionSchema = z.object({
     .catch([]),
 });
 export type DiscoveryExtraction = z.infer<typeof discoveryExtractionSchema>;
+
+/** Program terms the admin pasted (e.g. copied from a network dashboard that needs a login). */
+export const pastedTermsSchema = z.object({
+  text: z.string().trim().min(200, "Paste the full terms (at least a few paragraphs).").max(80_000, "That's too long — paste just the program terms."),
+});

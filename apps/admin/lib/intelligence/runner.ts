@@ -3,7 +3,7 @@ import { STORE_CHECK_STEPS, type StoreCheckStep } from "@monocoupon/validation";
 import { analyzeLink, brandMatchers, domainOfUrl, isLikelyStoreDomain, mentionsBrand, nameFromDomain, parseStoreInput } from "./domain";
 import { tavilySearch } from "./tavily";
 import { runIdentityStep } from "./identity";
-import { runProgramStep } from "./program";
+import { analyzePastedTerms, mergePastedTerms, runProgramStep } from "./program";
 import { runReputationStep } from "./reputation";
 import { runProductsStep } from "./products";
 import { computeScore } from "./score";
@@ -115,7 +115,9 @@ export async function runStoreCheckStep(id: string, step: StoreCheckStep): Promi
       sources = r.sources;
     } else if (step === "program") {
       const r = await runProgramStep({ domain: doc.domain, name, identity, linkSignals: doc.linkSignals as LinkSignals | null, deadline });
-      set = { program: r.program, policies: r.policies };
+      const pasted = doc.pastedTerms as PastedTerms | null;
+      // Terms the admin pasted earlier stay applied when the public research is refreshed.
+      set = pasted?.program ? mergePastedTerms(r.program, r.policies, pasted) : { program: r.program, policies: r.policies };
       usage = r.usage;
       sources = r.sources;
     } else if (step === "reputation") {
@@ -169,6 +171,39 @@ export async function runStoreCheckStep(id: string, step: StoreCheckStep): Promi
   }
 }
 
+interface PastedTerms {
+  text: string;
+  addedAt: string;
+  program: ProgramResult;
+  policies: PolicyItem[];
+}
+
+/** Analyses pasted program terms, stores them, merges them into the report and re-scores. */
+export async function applyPastedTerms(id: string, text: string): Promise<void> {
+  await connectToDatabase();
+  const doc = await StoreCheck.findById(id).lean();
+  if (!doc) throw new UserFacingError("Store check not found.");
+  const identity = doc.identity as IdentityResult | null;
+  const name = identity?.name ?? doc.name ?? nameFromDomain(doc.domain);
+  const analysed = await analyzePastedTerms({ domain: doc.domain, name, text, deadline: Date.now() + STEP_BUDGET_MS });
+  const pasted: PastedTerms = { text: text.slice(0, 80_000), addedAt: new Date().toISOString(), program: analysed.program, policies: analysed.policies };
+  const merged = mergePastedTerms(doc.program as ProgramResult | null, doc.policies as PolicyItem[] | null, pasted);
+  const score = computeScore({
+    identity,
+    program: merged.program,
+    policies: merged.policies,
+    reputation: doc.reputation as ReputationResult | null,
+    products: doc.products as ProductsResult | null,
+  });
+  await StoreCheck.updateOne(
+    { _id: doc._id },
+    {
+      $set: { pastedTerms: pasted, program: merged.program, policies: merged.policies, score },
+      $inc: { "usage.llmInputTokens": analysed.usage.llmInputTokens, "usage.llmOutputTokens": analysed.usage.llmOutputTokens },
+    }
+  );
+}
+
 /** Plain, serialisable view of a StoreCheck for server/client components. */
 export function toView(doc: Record<string, unknown>): StoreCheckView {
   const plain = JSON.parse(JSON.stringify(doc)) as Record<string, unknown>;
@@ -191,5 +226,6 @@ export function toView(doc: Record<string, unknown>): StoreCheckView {
     sources: (plain.sources as SourceRef[] | null) ?? [],
     usage: (plain.usage as StoreCheckView["usage"]) ?? { tavilyCredits: 0, llmInputTokens: 0, llmOutputTokens: 0 },
     lastCheckedAt: (plain.lastCheckedAt as string | null) ?? null,
+    pastedTermsAt: ((plain.pastedTerms as { addedAt?: string } | null)?.addedAt as string | undefined) ?? null,
   };
 }

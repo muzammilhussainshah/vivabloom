@@ -2,13 +2,14 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { connectToDatabase, StoreCheck } from "@monocoupon/db";
 import { STORE_CHECK_STEPS, getResearchCountry } from "@monocoupon/validation";
-import { BackButton, Thumb, buttonStyles } from "@/components/ui";
+import { BackButton, buttonStyles } from "@/components/ui";
 import { CheckRunner } from "@/components/intelligence/CheckRunner";
 import { RecheckButton } from "@/components/intelligence/RecheckButton";
+import { StoreLogo } from "@/components/intelligence/StoreLogo";
 import { Pill, timeAgo } from "@/components/intelligence/ui";
 import { toView } from "@/lib/intelligence/runner";
 import { getPersonalRecord } from "@/lib/intelligence/personal";
-import { AdsRulesSection, IdentitySection, ProductsSection, ProgramSection, ReputationSection, ScoreSection, SourcesSection, VerdictSection } from "./sections";
+import { AdsRulesSection, IdentitySection, ProductsSection, ProgramSection, ReputationSection, ScoreSection, SourcesSection, SummarySection } from "./sections";
 
 export const dynamic = "force-dynamic";
 
@@ -48,7 +49,7 @@ export default async function StoreCheckReportPage({ params }: { params: Promise
 
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-center gap-4">
-          <Thumb src={check.identity?.logo} alt={name} size="lg" fit="contain" fallback={name} />
+          <StoreLogo src={check.identity?.logo} domain={check.domain} name={name} size="lg" />
           <div className="min-w-0">
             <h1 className="truncate text-2xl font-semibold tracking-tight text-text md:text-[28px]">{name}</h1>
             <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-text-muted">
@@ -56,9 +57,8 @@ export default async function StoreCheckReportPage({ params }: { params: Promise
                 {check.domain} ↗
               </a>
               {network && <Pill tone="info" dot={false}>{network}</Pill>}
-              {check.linkSignals?.fromGoogleAds && <Pill tone="muted" dot={false}>Pasted link came from a Google Ad</Pill>}
-              <span>
-                · {getResearchCountry(check.targetCountry)?.name ?? "United States"} · checked {timeAgo(check.lastCheckedAt)}
+              <span className="whitespace-nowrap">
+                {getResearchCountry(check.targetCountry)?.name ?? "United States"} prices · checked {timeAgo(check.lastCheckedAt)}
               </span>
             </div>
           </div>
@@ -74,7 +74,7 @@ export default async function StoreCheckReportPage({ params }: { params: Promise
       {/* Keyed by id only: it must stay mounted while router.refresh() streams in each step's results (a re-check does a full navigation). */}
       <CheckRunner key={check.id} checkId={check.id} steps={check.steps} />
 
-      <VerdictSection check={check} personal={personal} />
+      <SummarySection check={check} personal={personal} />
 
       <nav className="sticky top-14 z-20 -mx-1 flex gap-1 overflow-x-auto rounded-xl border border-border bg-white/90 p-1 backdrop-blur md:top-2" aria-label="Report sections">
         {NAV.map(([href, label]) => (

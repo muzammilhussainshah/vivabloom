@@ -226,5 +226,50 @@ export function computeScore(input: {
   else if (riskLevel === "medium" || trust < 65 || modelFit.status === "conflict" || inactive || pg?.found === "no") verdict = "caution";
   else verdict = "good";
 
-  return { trust, risk, riskLevel, confidence, verdict, categories, positives: positives.slice(0, 6), negatives: negatives.slice(0, 8), modelFit };
+  const result: ScoreResult = { trust, risk, riskLevel, confidence, verdict, categories, positives: positives.slice(0, 6), negatives: negatives.slice(0, 8), modelFit };
+  result.bottomLine = bottomLine(result, pg);
+  return result;
+}
+
+export interface BottomLine {
+  tone: "good" | "warn" | "bad" | "muted";
+  title: string;
+  detail: string;
+}
+
+/**
+ * The one-sentence answer at the top of a report: should you spend money
+ * promoting this store with YOUR ads? Combines store trust with the ad-rule
+ * fit, because a trustworthy store whose terms ban your traffic is still a
+ * "no" for you.
+ */
+export function bottomLine(score: ScoreResult, program: ProgramResult | null): BottomLine {
+  const firstNegative = score.negatives.find((n) => !n.startsWith("Your ads:"));
+  if (score.verdict === "risky") {
+    return { tone: "bad", title: "Avoid for now", detail: firstNegative ?? "There are credible problems or too many trust gaps to risk ad spend." };
+  }
+  if (score.modelFit.status === "conflict") {
+    return {
+      tone: "bad",
+      title: "Don't run your coupon ads for this store",
+      detail: `Its own affiliate terms ban how you advertise — ${score.modelFit.reasons[0]?.replace(/^The program /, "the program ").replace(/\.$/, "") ?? "see the rules below"}. Doing it anyway risks a ban and unpaid commissions.`,
+    };
+  }
+  if (program && (program.active === "no" || program.found === "no")) {
+    return { tone: "warn", title: "No open affiliate program found", detail: program.active === "no" ? "The store's own pages say the program is not active." : "We couldn't find an affiliate program for this store." };
+  }
+  if (score.verdict === "insufficient") {
+    return { tone: "muted", title: "Not enough public information", detail: "Ask the affiliate manager for the terms in writing (paste them below to analyse them) before spending." };
+  }
+  if (score.verdict === "good" && score.modelFit.status === "ok") {
+    return { tone: "good", title: "Good candidate — you can promote it", detail: "Trustworthy store, and its terms explicitly allow how you advertise." };
+  }
+  if (score.verdict === "good") {
+    return {
+      tone: "warn",
+      title: "Trustworthy store — confirm the ad rules first",
+      detail: "The store looks solid, but its rules for coupon sites and brand keywords aren't public. Get written approval from the affiliate manager before spending.",
+    };
+  }
+  return { tone: "warn", title: "Possible, but proceed with care", detail: firstNegative ?? "Some important details are missing or unclear." };
 }

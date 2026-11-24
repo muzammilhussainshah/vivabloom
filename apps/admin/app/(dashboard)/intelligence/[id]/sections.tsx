@@ -3,6 +3,7 @@ import { POLICY_KEYS } from "@monocoupon/validation";
 import type { PersonalRecord } from "@/lib/intelligence/personal";
 import { MY_TRAFFIC_MODEL } from "@/lib/intelligence/score";
 import type { EvidenceField, ProductItem, ReputationItem, StoreCheckView } from "@/lib/intelligence/types";
+import { PasteTerms } from "@/components/intelligence/PasteTerms";
 import {
   Bar,
   Card,
@@ -21,6 +22,7 @@ import {
   scoreTone,
   timeAgo,
   toneClasses,
+  type Tone,
 } from "@/components/intelligence/ui";
 
 function Pending({ label }: { label: string }) {
@@ -36,64 +38,91 @@ function Failed({ error }: { error: string | null }) {
   return <p className="px-5 py-6 text-sm text-red-600 md:px-6">This step failed{error ? `: ${error}` : ""}. Use “Retry this step” above.</p>;
 }
 
-/* ---------------- Verdict ---------------- */
+const TONE_ICON: Record<Tone, string> = { good: "✓", warn: "!", bad: "✕", muted: "?", info: "i" };
 
-export function VerdictSection({ check, personal }: { check: StoreCheckView; personal: PersonalRecord | null }) {
+/* ---------------- Bottom line + key facts ---------------- */
+
+export function SummarySection({ check, personal }: { check: StoreCheckView; personal: PersonalRecord | null }) {
   const score = check.score;
   if (!score) return null;
-  const meta = VERDICT_META[score.verdict];
+  const bottom = score.bottomLine ?? { tone: VERDICT_META[score.verdict].tone, title: VERDICT_META[score.verdict].label, detail: VERDICT_META[score.verdict].hint };
+  const tone = toneClasses[bottom.tone as Tone];
+  const verdict = VERDICT_META[score.verdict];
   const fit = FIT_META[score.modelFit.status];
   const risk = RISK_META[score.riskLevel];
-  const tone = toneClasses[meta.tone];
+  const pg = check.program;
+  const mine = new Set(MY_TRAFFIC_MODEL.map((m) => m.key));
+  const confirmed = (check.policies ?? []).filter((p) => mine.has(p.key) && p.status !== "unknown").length;
+  const network = pg?.network.value ?? pg?.detectedNetworks[0] ?? null;
+  const payout = [pg?.payoutThreshold.value ? `${pg.payoutThreshold.value} minimum` : null, pg?.payoutSchedule.value].filter(Boolean).join(" · ");
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]">
+    <div className="flex flex-col gap-4">
       <Card className={`overflow-hidden border-2 ${tone.soft}`}>
-        <div className="flex flex-col gap-5 p-5 sm:flex-row sm:items-center md:p-6">
-          <ScoreRing value={score.trust} tone={meta.tone} label="Trust" />
-          <div className="min-w-0 flex-1">
-            <p className={`text-xs font-semibold uppercase tracking-[0.14em] ${tone.text}`}>Verdict</p>
-            <h2 className="mt-1 text-2xl font-semibold tracking-tight text-text">{meta.label}</h2>
-            <p className="mt-1 text-sm text-text-muted">{meta.hint}</p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <Pill tone={risk.tone}>
-                {risk.label} · {score.risk}/100
-              </Pill>
-              <Pill tone={score.confidence >= 0.7 ? "good" : score.confidence >= 0.4 ? "warn" : "muted"} dot={false}>
-                Confidence {Math.round(score.confidence * 100)}%
-              </Pill>
-            </div>
+        <div className="flex gap-4 p-5 md:gap-5 md:p-7">
+          <span
+            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-xl font-bold text-white shadow-sm md:h-14 md:w-14 md:text-2xl"
+            style={{ background: tone.ring }}
+            aria-hidden="true"
+          >
+            {TONE_ICON[bottom.tone as Tone]}
+          </span>
+          <div className="min-w-0">
+            <p className={`text-xs font-semibold uppercase tracking-[0.14em] ${tone.text}`}>Bottom line</p>
+            <h2 className="mt-1 text-xl font-semibold leading-snug tracking-tight text-text md:text-[26px]">{bottom.title}</h2>
+            <p className="mt-1.5 max-w-3xl text-sm leading-relaxed text-text md:text-[15px]">{bottom.detail}</p>
           </div>
         </div>
-      </Card>
 
-      <Card className={`border-2 ${toneClasses[fit.tone].soft}`}>
-        <div className="p-5 md:p-6">
-          <p className={`text-xs font-semibold uppercase tracking-[0.14em] ${toneClasses[fit.tone].text}`}>Your Google Ads</p>
-          <h2 className="mt-1 text-xl font-semibold tracking-tight text-text">{fit.label}</h2>
-          <p className="mt-1 text-xs text-text-muted">Checked against how you advertise: coupon site · Google Search · brand + coupon keywords.</p>
-          <ul className="mt-3 flex flex-col gap-1.5">
-            {score.modelFit.reasons.map((r) => (
-              <li key={r} className="flex gap-2 text-sm text-text">
-                <span className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${toneClasses[fit.tone].dot}`} aria-hidden="true" />
-                {r}
-              </li>
-            ))}
-          </ul>
-          <a href="#ads" className="mt-3 inline-block text-xs font-semibold text-brand-primary hover:underline">
-            See the exact rules and quotes ↓
-          </a>
+        <div className="grid border-t border-black/5 bg-white/70 sm:grid-cols-2 lg:grid-cols-4">
+          <Fact label="Store trust">
+            <div className="flex items-center gap-3">
+              <ScoreRing value={score.trust} tone={verdict.tone} size={56} />
+              <div className="min-w-0">
+                <p className="font-semibold text-text">{verdict.label}</p>
+                <p className={`text-xs ${toneClasses[risk.tone].text}`}>
+                  {risk.label} · {Math.round(score.confidence * 100)}% confidence
+                </p>
+              </div>
+            </div>
+          </Fact>
+          <Fact label="Your Google Ads">
+            <Pill tone={fit.tone}>{fit.label}</Pill>
+            <p className="mt-1.5 text-xs text-text-muted">
+              {confirmed} of {MY_TRAFFIC_MODEL.length} rules that matter for you found ·{" "}
+              <a href="#ads" className="font-semibold text-brand-primary hover:underline">
+                see rules
+              </a>
+            </p>
+          </Fact>
+          <Fact label="Commission">
+            <p className="text-lg font-bold leading-tight text-text">{pg?.commission.value ?? <span className="text-base font-medium text-text-muted">Unknown</span>}</p>
+            <p className="mt-0.5 truncate text-xs text-text-muted">{network ? `via ${network}` : "Network unknown"}</p>
+          </Fact>
+          <Fact label="Payouts">
+            <p className="text-sm font-semibold leading-snug text-text">{payout || <span className="font-medium text-text-muted">Not published</span>}</p>
+            <p className="mt-0.5 text-xs text-text-muted">{pg?.cookieDays.value ? `${pg.cookieDays.value}-day cookie` : "Cookie length unknown"}</p>
+          </Fact>
         </div>
       </Card>
 
       {personal && <PersonalBanner record={personal} />}
 
-      <Card className="lg:col-span-2">
-        <div className="grid gap-0 md:grid-cols-2">
+      <Card>
+        <div className="grid md:grid-cols-2">
           <ReasonList title="What looks good" items={score.positives} tone="good" empty="Nothing stands out positively yet." />
           <ReasonList title="Watch out for" items={score.negatives} tone="bad" empty="No red flags found." className="border-t border-border md:border-l md:border-t-0" />
         </div>
       </Card>
+    </div>
+  );
+}
+
+function Fact({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="border-black/5 p-4 sm:border-r sm:[&:nth-child(2n)]:border-r-0 lg:[&:nth-child(2n)]:border-r lg:last:border-r-0 md:p-5">
+      <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-text-muted">{label}</p>
+      {children}
     </div>
   );
 }
@@ -105,7 +134,7 @@ function ReasonList({ title, items, tone, empty, className = "" }: { title: stri
       {items.length === 0 ? (
         <p className="mt-2 text-sm text-text-muted">{empty}</p>
       ) : (
-        <ul className="mt-3 flex flex-col gap-2">
+        <ul className="mt-3 flex flex-col gap-2.5">
           {items.map((item) => (
             <li key={item} className="flex gap-2.5 text-sm leading-snug text-text">
               <span
@@ -114,7 +143,7 @@ function ReasonList({ title, items, tone, empty, className = "" }: { title: stri
               >
                 {tone === "good" ? "✓" : "!"}
               </span>
-              {item}
+              {item.replace(/^Your ads: /, "")}
             </li>
           ))}
         </ul>
@@ -127,7 +156,7 @@ function PersonalBanner({ record }: { record: PersonalRecord }) {
   const cents = (n: number) => formatMoney(n / 100, "USD");
   const bad = record.lostCents > 0;
   return (
-    <Card className={`lg:col-span-2 border-2 ${bad ? toneClasses.bad.soft : toneClasses.info.soft}`}>
+    <Card className={`border-2 ${bad ? toneClasses.bad.soft : toneClasses.info.soft}`}>
       <div className="flex flex-col gap-4 p-5 md:flex-row md:items-center md:justify-between md:p-6">
         <div>
           <p className={`text-xs font-semibold uppercase tracking-[0.14em] ${bad ? toneClasses.bad.text : toneClasses.info.text}`}>Your own history with this store</p>
@@ -158,100 +187,144 @@ function PersonalBanner({ record }: { record: PersonalRecord }) {
 
 /* ---------------- Products ---------------- */
 
+function popularityChips(p: ProductItem): { label: string; tone: Tone; title: string }[] {
+  const chips: { label: string; tone: Tone; title: string }[] = [];
+  if (p.bestsellerRank) chips.push({ label: `#${p.bestsellerRank} best-seller`, tone: "good", title: "Position in the store's own Best Sellers list" });
+  if (p.featuredRank) chips.push({ label: p.featuredRank <= 8 ? "Featured on homepage" : "On homepage", tone: "info", title: `Product #${p.featuredRank} shown on the store's homepage` });
+  if (p.reviewCount) chips.push({ label: `${p.reviewCount.toLocaleString()} reviews`, tone: "info", title: "Number of customer reviews on the product page" });
+  if (p.webMentions) chips.push({ label: `In ${p.webMentions} web list${p.webMentions > 1 ? "s" : ""}`, tone: "info", title: "Named in search results for this brand's best-selling products" });
+  return chips;
+}
+
+function estCommission(p: ProductItem): string | null {
+  if (p.estCommissionMin == null) return null;
+  return p.estCommissionMax != null && p.estCommissionMax !== p.estCommissionMin
+    ? `${formatMoney(p.estCommissionMin, p.currency)}–${formatMoney(p.estCommissionMax, p.currency)}`
+    : formatMoney(p.estCommissionMin, p.currency);
+}
+
 export function ProductsSection({ check }: { check: StoreCheckView }) {
   const step = check.steps.products;
   const products = check.products;
+  const signals = products?.signals;
+  const [top, ...rest] = products?.top ?? [];
   return (
     <Card id="products">
       <SectionHeader
-        title="Most promising products"
-        description="Ranked from the store's own catalogue: commission, ratings, best-seller list and price. Estimates — not guaranteed sales."
-        aside={products && products.totalFound > 0 ? <Pill tone="muted" dot={false}>{products.totalFound} products scanned</Pill> : undefined}
+        title="Best products to promote"
+        description="Ranked by real popularity evidence first (the store's best-sellers, homepage, reviews, web), then commission and price. Estimates — not guaranteed sales."
+        aside={
+          signals ? (
+            <div className="flex flex-wrap justify-end gap-1.5 text-[11px]">
+              <Pill tone={signals.bestsellerList ? "good" : "muted"} dot={false}>
+                {signals.bestsellerList ? "✓" : "✕"} Best-sellers list
+              </Pill>
+              <Pill tone={signals.homepageFeatured ? "good" : "muted"} dot={false}>
+                {signals.homepageFeatured ? "✓" : "✕"} Homepage
+              </Pill>
+              <Pill tone={signals.webResults ? "good" : "muted"} dot={false}>
+                {signals.webResults ? "✓" : "✕"} Web
+              </Pill>
+            </div>
+          ) : products && products.totalFound > 0 ? (
+            <Pill tone="muted" dot={false}>
+              {products.totalFound} products scanned
+            </Pill>
+          ) : undefined
+        }
       />
       {!products ? (
-        step.status === "failed" ? <Failed error={step.error} /> : <Pending label="Reading the catalogue…" />
-      ) : products.top.length === 0 ? (
+        step.status === "failed" ? <Failed error={step.error} /> : <Pending label="Finding the most popular products…" />
+      ) : !top ? (
         <p className="px-5 py-8 text-sm text-text-muted md:px-6">{products.note ?? "No products found."}</p>
       ) : (
-        <>
-          {products.note && <p className="border-b border-border bg-amber-50 px-5 py-2.5 text-xs text-amber-800 md:px-6">{products.note}</p>}
-          <ol className="divide-y divide-border">
-            {products.top.map((p, i) => (
-              <ProductRow key={p.id} product={p} rank={i + 1} commissionKnown={check.program?.commission.status === "verified"} />
-            ))}
-          </ol>
-        </>
+        <div className="flex flex-col gap-4 p-4 md:p-6">
+          {products.note && <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">{products.note}</p>}
+          <TopPick product={top} commissionKnown={check.program?.commission.status === "verified"} />
+          {rest.length > 0 && (
+            <ol className="grid gap-4 md:grid-cols-2">
+              {rest.map((p, i) => (
+                <ProductCard key={p.id} product={p} rank={i + 2} />
+              ))}
+            </ol>
+          )}
+          <p className="text-xs text-text-muted">{products.totalFound} products scanned from the store&apos;s catalogue · variants of the same product are grouped.</p>
+        </div>
       )}
     </Card>
   );
 }
 
-function ProductRow({ product: p, rank, commissionKnown }: { product: ProductItem; rank: number; commissionKnown: boolean }) {
-  const tone = scoreTone(p.score);
-  const est =
-    p.estCommissionMin == null
-      ? null
-      : p.estCommissionMax != null && p.estCommissionMax !== p.estCommissionMin
-        ? `${formatMoney(p.estCommissionMin, p.currency)}–${formatMoney(p.estCommissionMax, p.currency)}`
-        : formatMoney(p.estCommissionMin, p.currency);
-  return (
-    <li className="grid gap-4 p-5 md:grid-cols-[auto_minmax(0,1fr)_220px] md:p-6">
-      <div className="flex items-start gap-3 md:block">
-        <div className="relative">
-          <span className="absolute -left-2 -top-2 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-text text-xs font-bold text-white shadow">#{rank}</span>
-          {p.image ? (
-            // eslint-disable-next-line @next/next/no-img-element -- remote store images; next/image would need every host allow-listed
-            <img src={p.image} alt={p.name} loading="lazy" className="h-28 w-28 rounded-xl border border-border bg-white object-contain p-1 md:h-32 md:w-32" />
-          ) : (
-            <div className="h-28 w-28 rounded-xl border border-border bg-surface md:h-32 md:w-32" />
-          )}
-        </div>
-      </div>
+function ProductImage({ src, alt, className }: { src: string | null; alt: string; className: string }) {
+  return src ? (
+    // eslint-disable-next-line @next/next/no-img-element -- remote store images; next/image would need every host allow-listed
+    <img src={src} alt={alt} loading="lazy" className={`${className} rounded-xl border border-border bg-white object-contain p-1.5`} />
+  ) : (
+    <div className={`${className} rounded-xl border border-border bg-surface`} />
+  );
+}
 
-      <div className="min-w-0">
-        <a href={p.url} target="_blank" rel="noopener noreferrer" className="text-base font-semibold leading-snug text-text hover:text-brand-primary">
-          {p.name} ↗
-        </a>
-        <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
-          <span className="font-semibold text-text">{formatMoney(p.price, p.currency)}</span>
-          {p.compareAtPrice && <span className="text-text-muted line-through">{formatMoney(p.compareAtPrice, p.currency)}</span>}
-          {p.rating != null ? (
-            <span className="text-text">
-              <span className="text-amber-500">★</span> {p.rating.toFixed(1)}
-              {p.reviewCount != null && <span className="text-text-muted"> ({p.reviewCount.toLocaleString()} reviews)</span>}
-            </span>
-          ) : (
-            <span className="text-xs text-text-muted">No rating data</span>
-          )}
-          {p.bestsellerRank != null && <Pill tone="info" dot={false}>Best-seller #{p.bestsellerRank}</Pill>}
-        </div>
-        {p.why && <p className="mt-2.5 text-sm leading-relaxed text-text">{p.why}</p>}
+function PriceLine({ p }: { p: ProductItem }) {
+  return (
+    <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+      <span className="text-base font-bold text-text">{formatMoney(p.price, p.currency)}</span>
+      {p.compareAtPrice && <span className="text-sm text-text-muted line-through">{formatMoney(p.compareAtPrice, p.currency)}</span>}
+      {p.rating != null && (
+        <span className="text-sm text-text">
+          <span className="text-amber-500">★</span> {p.rating.toFixed(1)}
+        </span>
+      )}
+    </div>
+  );
+}
+
+function Chips({ p }: { p: ProductItem }) {
+  const chips = popularityChips(p);
+  if (!chips.length) return <span className="text-xs text-text-muted">No popularity data found</span>;
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {chips.map((c) => (
+        <span key={c.label} title={c.title}>
+          <Pill tone={c.tone} dot={false}>
+            {c.label}
+          </Pill>
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function ProductDetails({ p }: { p: ProductItem }) {
+  const hasMore = p.strengths.length || p.risks.length || p.adAngle || p.keywordIdeas.length;
+  return (
+    <details className="group text-sm">
+      <summary className="cursor-pointer list-none text-xs font-semibold text-brand-primary">
+        <span className="group-open:hidden">{hasMore ? "Strengths, risks & keyword ideas ↓" : "How it's scored ↓"}</span>
+        <span className="hidden group-open:inline">Hide details ↑</span>
+      </summary>
+      <div className="mt-3 flex flex-col gap-3">
         {(p.strengths.length > 0 || p.risks.length > 0) && (
-          <div className="mt-3 grid gap-3 sm:grid-cols-2">
-            {p.strengths.length > 0 && (
-              <ul className="flex flex-col gap-1">
-                {p.strengths.map((s) => (
-                  <li key={s} className="flex gap-2 text-xs text-text">
-                    <span className="text-emerald-600" aria-hidden="true">✓</span>
-                    {s}
-                  </li>
-                ))}
-              </ul>
-            )}
-            {p.risks.length > 0 && (
-              <ul className="flex flex-col gap-1">
-                {p.risks.map((s) => (
-                  <li key={s} className="flex gap-2 text-xs text-text">
-                    <span className="text-amber-600" aria-hidden="true">!</span>
-                    {s}
-                  </li>
-                ))}
-              </ul>
-            )}
+          <div className="grid gap-3 sm:grid-cols-2">
+            <ul className="flex flex-col gap-1">
+              {p.strengths.map((s) => (
+                <li key={s} className="flex gap-2 text-xs text-text">
+                  <span className="text-emerald-600" aria-hidden="true">✓</span>
+                  {s}
+                </li>
+              ))}
+            </ul>
+            <ul className="flex flex-col gap-1">
+              {p.risks.map((s) => (
+                <li key={s} className="flex gap-2 text-xs text-text">
+                  <span className="text-amber-600" aria-hidden="true">!</span>
+                  {s}
+                </li>
+              ))}
+            </ul>
           </div>
         )}
         {p.adAngle && (
-          <p className="mt-3 text-xs text-text-muted">
+          <p className="text-xs text-text-muted">
             <span className="font-semibold text-text">Ad angle:</span> {p.adAngle}
             {p.audience && (
               <>
@@ -262,7 +335,7 @@ function ProductRow({ product: p, rank, commissionKnown }: { product: ProductIte
           </p>
         )}
         {p.keywordIdeas.length > 0 && (
-          <div className="mt-2.5 flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-1.5">
             {p.keywordIdeas.map((k) => (
               <span key={k} className="rounded-md border border-border bg-surface px-2 py-0.5 font-mono text-[11px] text-text">
                 {k}
@@ -270,34 +343,85 @@ function ProductRow({ product: p, rank, commissionKnown }: { product: ProductIte
             ))}
           </div>
         )}
+        <ul className="flex flex-col gap-1 rounded-lg bg-surface p-3">
+          {p.components.map((c) => (
+            <li key={c.key} className="flex items-center justify-between gap-2 text-xs">
+              <span className="text-text-muted">{c.label}</span>
+              <span className="tabular-nums text-text">{c.value == null ? "no data" : Math.round(c.value * 100)}</span>
+            </li>
+          ))}
+        </ul>
       </div>
+    </details>
+  );
+}
 
-      <div className="flex flex-col gap-3 rounded-xl border border-border bg-surface p-4">
-        <div>
-          <p className="text-xs font-medium text-text-muted">Est. commission / sale</p>
-          <p className="text-xl font-bold tabular-nums text-text">{est ?? "Unknown"}</p>
-          {!commissionKnown && <p className="text-[11px] text-text-muted">Commission rate not verified</p>}
-        </div>
-        <div>
-          <div className="flex items-baseline justify-between">
-            <p className="text-xs font-medium text-text-muted">Opportunity score</p>
-            <p className={`text-sm font-bold tabular-nums ${toneClasses[tone].text}`}>{p.score}</p>
-          </div>
-          <Bar value={p.score} tone={tone} className="mt-1" />
-          <p className="mt-1 text-[11px] text-text-muted">Based on {Math.round(p.confidence * 100)}% of the signals</p>
-        </div>
-        <details className="text-xs">
-          <summary className="cursor-pointer font-semibold text-brand-primary">How it&apos;s scored</summary>
-          <ul className="mt-2 flex flex-col gap-1.5">
-            {p.components.map((c) => (
-              <li key={c.key} className="flex items-center justify-between gap-2">
-                <span className="text-text-muted">{c.label}</span>
-                <span className="tabular-nums text-text">{c.value == null ? "no data" : `${Math.round(c.value * 100)}`}</span>
-              </li>
-            ))}
-          </ul>
-        </details>
+function ScoreBlock({ p, compact = false }: { p: ProductItem; compact?: boolean }) {
+  const tone = scoreTone(p.score);
+  const est = estCommission(p);
+  return (
+    <div className={`grid grid-cols-2 gap-3 rounded-xl bg-surface p-3 ${compact ? "" : "md:p-4"}`}>
+      <div>
+        <p className="text-[11px] font-medium text-text-muted">You earn per sale</p>
+        <p className={`font-bold tabular-nums text-text ${compact ? "text-base" : "text-xl"}`}>{est ?? "Unknown"}</p>
       </div>
+      <div>
+        <div className="flex items-baseline justify-between">
+          <p className="text-[11px] font-medium text-text-muted">Opportunity</p>
+          <p className={`text-sm font-bold tabular-nums ${toneClasses[tone].text}`}>{p.score}</p>
+        </div>
+        <Bar value={p.score} tone={tone} className="mt-1.5" />
+        <p className="mt-1 text-[10px] text-text-muted">{Math.round(p.confidence * 100)}% of signals</p>
+      </div>
+    </div>
+  );
+}
+
+function TopPick({ product: p, commissionKnown }: { product: ProductItem; commissionKnown: boolean }) {
+  return (
+    <div className="relative grid gap-5 rounded-2xl border-2 border-brand-primary/25 bg-gradient-to-br from-brand-primary/[0.05] to-white p-4 md:grid-cols-[180px_minmax(0,1fr)_260px] md:p-5">
+      <span className="absolute -top-3 left-4 rounded-full bg-brand-primary px-3 py-1 text-xs font-bold text-white shadow-sm">#1 Top pick</span>
+      <ProductImage src={p.image} alt={p.name} className="mx-auto h-40 w-40 md:h-44 md:w-44" />
+      <div className="flex min-w-0 flex-col gap-2.5">
+        <a href={p.url} target="_blank" rel="noopener noreferrer" className="text-lg font-semibold leading-snug text-text hover:text-brand-primary">
+          {p.name} <span className="text-text-muted">↗</span>
+        </a>
+        <PriceLine p={p} />
+        <Chips p={p} />
+        {p.why && <p className="text-sm leading-relaxed text-text">{p.why}</p>}
+        <ProductDetails p={p} />
+      </div>
+      <div className="flex flex-col gap-2">
+        <ScoreBlock p={p} />
+        {!commissionKnown && <p className="text-[11px] text-text-muted">Commission rate not verified, so earnings are unknown.</p>}
+      </div>
+    </div>
+  );
+}
+
+function ProductCard({ product: p, rank }: { product: ProductItem; rank: number }) {
+  return (
+    <li className="flex flex-col gap-3 rounded-2xl border border-border bg-white p-4 transition-shadow hover:shadow-md">
+      <div className="flex gap-3">
+        <div className="relative shrink-0">
+          <span className="absolute -left-1.5 -top-1.5 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-text text-[11px] font-bold text-white">{rank}</span>
+          <ProductImage src={p.image} alt={p.name} className="h-24 w-24" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <a href={p.url} target="_blank" rel="noopener noreferrer" className="line-clamp-2 font-semibold leading-snug text-text hover:text-brand-primary">
+            {p.name}
+          </a>
+          <div className="mt-1">
+            <PriceLine p={p} />
+          </div>
+          <div className="mt-2">
+            <Chips p={p} />
+          </div>
+        </div>
+      </div>
+      {p.why && <p className="line-clamp-3 text-sm leading-relaxed text-text">{p.why}</p>}
+      <ScoreBlock p={p} compact />
+      <ProductDetails p={p} />
     </li>
   );
 }
@@ -308,51 +432,64 @@ export function AdsRulesSection({ check }: { check: StoreCheckView }) {
   const step = check.steps.program;
   const policies = check.policies;
   const mine = new Set(MY_TRAFFIC_MODEL.map((m) => m.key));
+  const missingMine = (policies ?? []).filter((p) => mine.has(p.key) && p.status === "unknown").length;
   return (
     <Card id="ads">
       <SectionHeader
         title="Google Ads rules"
-        description="From the store's affiliate terms. A rule is only shown as allowed or not allowed when we found the exact sentence — otherwise it's “Not found”."
+        description="From the store's affiliate terms. A rule only shows as allowed or not allowed when we found the exact sentence — otherwise “Not found”."
       />
       {!policies ? (
         step.status === "failed" ? <Failed error={step.error} /> : <Pending label="Reading the affiliate terms…" />
       ) : (
-        <ul className="divide-y divide-border">
-          {POLICY_KEYS.map((key) => {
-            const p = policies.find((x) => x.key === key);
-            const status = p?.status ?? "unknown";
-            const meta = POLICY_STATUS_META[status];
-            return (
-              <li key={key} className="grid gap-2 px-5 py-4 md:grid-cols-[260px_150px_minmax(0,1fr)] md:items-start md:px-6">
-                <div>
-                  <p className="text-sm font-semibold text-text">{POLICY_LABELS[key].label}</p>
-                  <p className="text-xs text-text-muted">
-                    {POLICY_LABELS[key].hint}
-                    {mine.has(key) && <span className="ml-1 font-semibold text-brand-primary">· matters for you</span>}
-                  </p>
-                </div>
-                <div>
-                  <Pill tone={meta.tone}>{meta.label}</Pill>
-                </div>
-                <div className="min-w-0 text-sm text-text">
-                  {p?.status !== "unknown" ? (
-                    <>
-                      {p?.explanation && <p className="text-text-muted">{p.explanation}</p>}
-                      <Quote text={p?.quote ?? null} url={p?.sourceUrl ?? null} />
-                    </>
-                  ) : p?.unverifiedClaim ? (
-                    <p className="text-xs text-amber-700">
-                      The AI read this as “{POLICY_STATUS_META[p.unverifiedClaim].label}” but the quote couldn&apos;t be matched in the source, so it isn&apos;t trusted. Ask
-                      the affiliate manager.
-                    </p>
-                  ) : (
-                    <p className="text-xs text-text-muted">Not mentioned in the terms we found. Ask the affiliate manager in writing before running ads.</p>
-                  )}
-                </div>
-              </li>
-            );
-          })}
-        </ul>
+        <>
+          <ul className="divide-y divide-border">
+            {[...POLICY_KEYS]
+              .sort((a, b) => Number(mine.has(b)) - Number(mine.has(a)))
+              .map((key) => {
+                const p = policies.find((x) => x.key === key);
+                const status = p?.status ?? "unknown";
+                const meta = POLICY_STATUS_META[status];
+                return (
+                  <li key={key} className="grid gap-2 px-5 py-4 md:grid-cols-[250px_140px_minmax(0,1fr)] md:items-start md:px-6">
+                    <div>
+                      <p className="text-sm font-semibold text-text">{POLICY_LABELS[key].label}</p>
+                      <p className="text-xs text-text-muted">
+                        {POLICY_LABELS[key].hint}
+                        {mine.has(key) && <span className="ml-1 font-semibold text-brand-primary">· matters for you</span>}
+                      </p>
+                    </div>
+                    <div>
+                      <Pill tone={meta.tone}>{meta.label}</Pill>
+                    </div>
+                    <div className="min-w-0 text-sm text-text">
+                      {p && p.status !== "unknown" ? (
+                        <>
+                          {p.explanation && <p className="text-text-muted">{p.explanation}</p>}
+                          <Quote text={p.quote} url={p.sourceUrl} pasted={p.fromPastedTerms} />
+                        </>
+                      ) : p?.unverifiedClaim ? (
+                        <p className="text-xs text-amber-700">
+                          The AI read this as “{POLICY_STATUS_META[p.unverifiedClaim].label}”, but the quote couldn&apos;t be matched in the source, so it isn&apos;t trusted.
+                        </p>
+                      ) : (
+                        <p className="text-xs text-text-muted">Not mentioned in the terms we found. Ask the affiliate manager in writing before running these ads.</p>
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
+          </ul>
+          <div className={`border-t border-border px-5 py-4 md:px-6 ${missingMine > 0 ? "bg-amber-50/60" : ""}`}>
+            {missingMine > 0 && (
+              <p className="mb-2 text-xs text-amber-800">
+                {missingMine} rule{missingMine > 1 ? "s" : ""} that matter for your ads {missingMine > 1 ? "aren't" : "isn't"} public. Network terms usually sit behind a login — paste them
+                here to fill the gaps.
+              </p>
+            )}
+            <PasteTerms checkId={check.id} alreadyPasted={check.pastedTermsAt} defaultOpen={false} />
+          </div>
+        </>
       )}
     </Card>
   );
@@ -369,7 +506,7 @@ function FieldRow<T>({ label, field, render }: { label: string; field: EvidenceF
         {field.status !== "unknown" && field.quote && (
           <details className="mt-1">
             <summary className="cursor-pointer text-xs font-semibold text-brand-primary">Show source</summary>
-            <Quote text={field.quote} url={field.sourceUrl} />
+            <Quote text={field.quote} url={field.sourceUrl} pasted={field.status === "verified" && !field.sourceUrl} />
           </details>
         )}
       </dd>
@@ -442,7 +579,7 @@ export function ProgramSection({ check }: { check: StoreCheckView }) {
 
 /* ---------------- Reputation ---------------- */
 
-const KIND_META: Record<string, { label: string; tone: "good" | "warn" | "bad" | "muted" | "info" }> = {
+const KIND_META: Record<string, { label: string; tone: Tone }> = {
   affiliate_unpaid: { label: "Unpaid commission", tone: "bad" },
   affiliate_terminated: { label: "Account terminated", tone: "bad" },
   affiliate_reversal: { label: "Commission reversed", tone: "warn" },
@@ -481,7 +618,11 @@ export function ReputationSection({ check }: { check: StoreCheckView }) {
         step.status === "failed" ? <Failed error={step.error} /> : <Pending label="Searching for payment reports and reviews…" />
       ) : (
         <div className="grid md:grid-cols-2">
-          <ReputationList title="From affiliates" items={affiliate} empty={rep.coverage < 6 ? "Very little public discussion found — this is not the same as “no problems”." : "No affiliate payment or termination reports found."} />
+          <ReputationList
+            title="From affiliates"
+            items={affiliate}
+            empty={rep.coverage < 6 ? "Very little public discussion found — this is not the same as “no problems”." : "No affiliate payment or termination reports found."}
+          />
           <ReputationList title="From customers" items={customer} empty="No notable customer feedback found." className="border-t border-border md:border-l md:border-t-0" />
         </div>
       )}
@@ -530,7 +671,7 @@ export function IdentitySection({ check }: { check: StoreCheckView }) {
     );
   return (
     <Card id="store">
-      <SectionHeader title="Store identity" description="Who runs the store, how long it has existed and whether the basics a real business has are in place." />
+      <SectionHeader title="Store identity" description="Who runs the store, how long it has existed, and whether the basics of a real business are in place." />
       {!id ? (
         step.status === "failed" ? <Failed error={step.error} /> : <Pending label="Visiting the store…" />
       ) : (
@@ -540,7 +681,7 @@ export function IdentitySection({ check }: { check: StoreCheckView }) {
               ["Domain registered", id.domainCreatedAt ? `${new Date(id.domainCreatedAt).getFullYear()} · ${id.domainAgeYears} yrs` : "Unknown"],
               ["Online since (archive)", id.waybackFirstSeen ? `${new Date(id.waybackFirstSeen).getFullYear()} · ${id.onlineYears} yrs` : "Unknown"],
               ["Registrar", id.registrar ?? "Unknown"],
-              ["Platform", id.platform === "shopify" ? "Shopify" : "Unknown"],
+              ["Platform", id.platform === "shopify" ? "Shopify" : "Other / unknown"],
               ["Legal name", id.legalName ?? "Not stated"],
               ["Address", id.contact.address ?? "Not found"],
               ["Email", id.contact.emails.join(", ") || "Not found"],

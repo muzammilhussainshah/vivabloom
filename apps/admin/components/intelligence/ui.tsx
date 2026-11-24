@@ -5,10 +5,10 @@ import type { FieldStatus, ModelFit, RiskLevel, Verdict } from "@/lib/intelligen
 /* Shared, server-safe building blocks for the Store Checker pages. */
 
 export const VERDICT_META: Record<Verdict, { label: string; short: string; hint: string; tone: Tone }> = {
-  good: { label: "Looks safe to promote", short: "Looks safe", hint: "Established store, a real program and no credible payment problems found.", tone: "good" },
-  caution: { label: "Proceed with caution", short: "Caution", hint: "Some important things are missing, unclear or conflict with how you advertise.", tone: "warn" },
-  risky: { label: "High risk", short: "High risk", hint: "Credible reports of payment problems, or too many trust gaps. Don't spend on ads yet.", tone: "bad" },
-  insufficient: { label: "Not enough data", short: "No data", hint: "Too little public information to judge. Ask the affiliate manager directly before spending.", tone: "muted" },
+  good: { label: "Trustworthy store", short: "Trustworthy", hint: "Established, a real affiliate program, and no credible payment problems found.", tone: "good" },
+  caution: { label: "Some concerns", short: "Concerns", hint: "Some important details are missing, unclear or conflict with how you advertise.", tone: "warn" },
+  risky: { label: "High risk", short: "High risk", hint: "Credible reports of payment problems, or too many trust gaps.", tone: "bad" },
+  insufficient: { label: "Not enough data", short: "No data", hint: "Too little public information to judge the store.", tone: "muted" },
 };
 
 export const FIT_META: Record<ModelFit, { label: string; tone: Tone }> = {
@@ -157,11 +157,12 @@ export function SectionHeader({ title, description, aside }: { title: string; de
 }
 
 /** A verbatim quote from a source, with a link to it. */
-export function Quote({ text, url }: { text: string | null; url: string | null }) {
+export function Quote({ text, url, pasted = false }: { text: string | null; url: string | null; pasted?: boolean }) {
   if (!text) return null;
   return (
     <figure className="mt-2 rounded-lg border-l-2 border-brand-primary/40 bg-surface px-3 py-2">
       <blockquote className="text-[13px] italic leading-relaxed text-text">“{text.length > 320 ? `${text.slice(0, 320)}…` : text}”</blockquote>
+      {pasted && !url && <figcaption className="mt-1 text-xs font-medium text-brand-primary">From the terms you pasted</figcaption>}
       {url && (
         <figcaption className="mt-1 truncate text-xs">
           <a href={url} target="_blank" rel="noopener noreferrer" className="font-medium text-brand-primary hover:underline">

@@ -252,3 +252,56 @@ function verifyPolicies(data: ProgramExtraction, sources: SourceText[]): PolicyI
     return { key, status: item.status, quote: item.quote, sourceUrl: found.url, explanation: item.explanation, unverifiedClaim: null };
   });
 }
+
+/* ---------- Program terms pasted by the admin ---------- */
+
+const PASTED = "pasted-terms";
+
+/**
+ * Analyses program terms the admin pasted (network dashboards need a login,
+ * so these terms are often not public). Same extraction and the same
+ * word-for-word quote checks as public pages — the pasted text is the source.
+ */
+export async function analyzePastedTerms(args: { domain: string; name: string; text: string; deadline: number }): Promise<{
+  program: ProgramResult;
+  policies: PolicyItem[];
+  usage: StepUsage;
+}> {
+  const full: SourceText = { url: PASTED, text: args.text };
+  const llm = await llmJson({
+    task: "storeProgram",
+    system: STORE_PROGRAM_SYSTEM_PROMPT,
+    user: storeProgramPrompt({ name: args.name, domain: args.domain, signals: ["These are the program terms, pasted by the affiliate from their network dashboard."], sources: [{ url: "program terms (pasted)", text: focusTermsText(args.text, SOURCE_CHAR_BUDGET) }] }),
+    schema: programExtractionSchema,
+    maxOutputTokens: 1800,
+    deadline: args.deadline,
+  });
+  const program = buildProgram(llm.data, [full], [], []);
+  const policies = buildPolicies(llm.data, [full]).map((p) => (p.sourceUrl === PASTED ? { ...p, sourceUrl: null, fromPastedTerms: true } : p));
+  for (const key of ["network", "commission", "cookieDays", "payoutThreshold", "payoutSchedule", "paymentMethods", "validationPeriod", "approvalRequirements"] as const) {
+    if (program[key].sourceUrl === PASTED) program[key] = { ...program[key], sourceUrl: null } as never;
+  }
+  return { program, policies, usage: { tavilyCredits: 0, llmInputTokens: llm.inputTokens, llmOutputTokens: llm.outputTokens } };
+}
+
+/** Layers verified findings from pasted terms over the public research (pasted terms win where they're explicit). */
+export function mergePastedTerms(
+  program: ProgramResult | null,
+  policies: PolicyItem[] | null,
+  pasted: { program: ProgramResult; policies: PolicyItem[] }
+): { program: ProgramResult; policies: PolicyItem[] } {
+  const base = program ?? pasted.program;
+  const merged: ProgramResult = { ...base };
+  if (pasted.program.found === "yes") merged.found = "yes";
+  if (pasted.program.active !== "unclear") merged.active = pasted.program.active;
+  for (const key of ["network", "commission", "cookieDays", "payoutThreshold", "payoutSchedule", "paymentMethods", "validationPeriod", "approvalRequirements"] as const) {
+    if (pasted.program[key].status === "verified" && merged[key].status !== "verified") merged[key] = pasted.program[key] as never;
+  }
+  const mergedPolicies = POLICY_KEYS.map((key) => {
+    const fromPaste = pasted.policies.find((p) => p.key === key);
+    const existing = policies?.find((p) => p.key === key);
+    if (fromPaste && fromPaste.status !== "unknown") return fromPaste;
+    return existing ?? fromPaste ?? { key, status: "unknown" as const, quote: null, sourceUrl: null, explanation: "Not found.", unverifiedClaim: null };
+  });
+  return { program: merged, policies: mergedPolicies };
+}

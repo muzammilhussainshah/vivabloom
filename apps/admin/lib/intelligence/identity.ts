@@ -235,11 +235,16 @@ export async function runIdentityStep(args: { domain: string; startUrl: string |
     (getTitle(html)?.split(/\s[|–—-]\s/)[0]?.trim() || null) ??
     nameFromDomain(domain);
 
-  const logoCandidate =
-    logoFrom(org?.logo) ??
-    (html.match(/<link[^>]+rel=["'][^"']*apple-touch-icon[^"']*["'][^>]*href=["']([^"']+)["']/i)?.[1] ?? null) ??
-    getMeta(html, "og:image") ??
-    (html.match(/<link[^>]+rel=["'](?:shortcut )?icon["'][^>]*href=["']([^"']+)["']/i)?.[1] ?? null);
+  // The site's own app icon is the most reliable square logo; JSON-LD logos are sometimes wrong
+  // (seen: another brand's test-platform asset), and og:image is usually a sale banner.
+  const linkHref = (re: RegExp) => {
+    for (const tag of html.match(new RegExp(`<link[^>]+rel=["'][^"']*${re.source}[^"']*["'][^>]*>`, "gi")) ?? []) {
+      const href = tag.match(/href=["']([^"']+)["']/i)?.[1];
+      if (href && !/\.svg(\?|$)/i.test(href)) return href;
+    }
+    return null;
+  };
+  const logoCandidate = linkHref(/apple-touch-icon/) ?? linkHref(/\bicon\b/) ?? logoFrom(org?.logo);
   let logo: string | null = null;
   if (logoCandidate) {
     try {

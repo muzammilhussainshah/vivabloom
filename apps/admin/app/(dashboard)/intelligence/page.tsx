@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { connectToDatabase, StoreCheck } from "@monocoupon/db";
 import { STORE_CHECK_STEPS } from "@monocoupon/validation";
-import { PageShell, Thumb } from "@/components/ui";
+import { PageShell } from "@/components/ui";
+import { StoreLogo } from "@/components/intelligence/StoreLogo";
 import { CheckForm } from "@/components/intelligence/CheckForm";
 import { DiscoverPanel } from "@/components/intelligence/DiscoverPanel";
 import { FIT_META, Pill, VerdictPill, formatMoney, scoreTone, timeAgo, toneClasses } from "@/components/intelligence/ui";
@@ -89,7 +90,7 @@ export default async function StoreCheckerPage({ searchParams }: { searchParams:
                   className="group grid gap-4 rounded-2xl border border-border bg-white p-4 transition-all hover:border-brand-primary/30 hover:shadow-md md:grid-cols-[minmax(0,1.4fr)_auto_minmax(0,1fr)_minmax(0,1.2fr)_auto] md:items-center md:p-5"
                 >
                   <div className="flex min-w-0 items-center gap-3">
-                    <Thumb src={c.identity?.logo} alt={c.name ?? c.domain} fit="contain" fallback={c.name ?? c.domain} />
+                    <StoreLogo src={c.identity?.logo} domain={c.domain} name={c.name ?? c.domain} />
                     <div className="min-w-0">
                       <p className="truncate font-semibold text-text group-hover:text-brand-primary">{c.name ?? c.domain}</p>
                       <p className="truncate text-xs text-text-muted">
@@ -110,8 +111,16 @@ export default async function StoreCheckerPage({ searchParams }: { searchParams:
                   </div>
 
                   <div className="min-w-0 text-sm">
-                    <p className="text-xs font-medium text-text-muted">Your ads</p>
-                    {fit ? <Pill tone={FIT_META[fit].tone}>{FIT_META[fit].label}</Pill> : <span className="text-text-muted">—</span>}
+                    <p className="text-xs font-medium text-text-muted">Bottom line</p>
+                    {c.score?.bottomLine ? (
+                      <p className={`truncate font-semibold ${toneClasses[c.score.bottomLine.tone].text}`} title={c.score.bottomLine.detail}>
+                        {c.score.bottomLine.title}
+                      </p>
+                    ) : fit ? (
+                      <Pill tone={FIT_META[fit].tone}>{FIT_META[fit].label}</Pill>
+                    ) : (
+                      <span className="text-text-muted">—</span>
+                    )}
                   </div>
 
                   <div className="min-w-0 text-sm">
