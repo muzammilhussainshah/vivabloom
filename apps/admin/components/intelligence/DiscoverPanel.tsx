@@ -6,9 +6,9 @@ import { useMemo, useState } from "react";
 import { RESEARCH_CATEGORIES, RESEARCH_COUNTRIES, getResearchCountry } from "@monocoupon/validation";
 import { Select, Spinner } from "@/components/ui/client";
 import type { DiscoveredStore, DiscoveryHistoryItem } from "@/lib/intelligence/discover";
-import { Pill, VerdictPill, hostAndPath, timeAgo } from "./ui";
+import { Pill, VerdictPill, fieldLabelClass, hostAndPath, inputClass, selectClass, timeAgo } from "./ui";
+import { StoreLogo } from "./StoreLogo";
 
-const fieldClass = "h-10 w-full rounded-[10px] border border-border bg-white px-3 text-sm text-text focus:border-brand-primary focus:outline-none";
 
 type ShownStore = DiscoveredStore & { foundIn?: string[] };
 
@@ -109,10 +109,10 @@ export function DiscoverPanel({ history, view, totalFound }: { history: Discover
         }}
         className="flex flex-col gap-3 rounded-2xl border border-border bg-white p-4 shadow-[0_1px_2px_rgba(16,24,20,0.04)] md:p-5"
       >
-        <div className="grid gap-3 md:grid-cols-[1fr_1fr_1.2fr_auto] md:items-end">
-          <label className="flex flex-col gap-1.5 text-xs font-semibold text-text-muted">
+        <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.3fr)_auto] md:items-end">
+          <label className={fieldLabelClass}>
             Market
-            <Select name="country" defaultValue={view?.params?.country ?? "us"} className="w-full">
+            <Select name="country" defaultValue={view?.params?.country ?? "us"} className={selectClass}>
               {RESEARCH_COUNTRIES.map((c) => (
                 <option key={c.code} value={c.code}>
                   {c.name}
@@ -120,9 +120,9 @@ export function DiscoverPanel({ history, view, totalFound }: { history: Discover
               ))}
             </Select>
           </label>
-          <label className="flex flex-col gap-1.5 text-xs font-semibold text-text-muted">
+          <label className={fieldLabelClass}>
             Category
-            <Select name="category" defaultValue={view?.params?.category ?? RESEARCH_CATEGORIES[0]} className="w-full">
+            <Select name="category" defaultValue={view?.params?.category ?? RESEARCH_CATEGORIES[0]} className={selectClass}>
               {RESEARCH_CATEGORIES.map((c) => (
                 <option key={c} value={c}>
                   {c}
@@ -130,9 +130,9 @@ export function DiscoverPanel({ history, view, totalFound }: { history: Discover
               ))}
             </Select>
           </label>
-          <label className="flex flex-col gap-1.5 text-xs font-semibold text-text-muted">
-            Focus (optional)
-            <input name="keyword" maxLength={80} placeholder="e.g. cat water fountain, collagen" className={fieldClass} />
+          <label className={fieldLabelClass}>
+            Focus <span className="font-normal">(optional)</span>
+            <input name="keyword" maxLength={80} placeholder="e.g. cat water fountain, collagen" className={inputClass} />
           </label>
           <button
             type="submit"
@@ -264,11 +264,16 @@ export function DiscoverPanel({ history, view, totalFound }: { history: Discover
                     {stores.map((s) => (
                       <li key={`${s.domain ?? s.name}`} className="flex flex-col justify-between gap-3 rounded-2xl border border-border bg-white p-4 transition-shadow hover:shadow-md">
                         <div className="min-w-0">
-                          <div className="flex items-start justify-between gap-2">
-                            <p className="truncate font-semibold text-text">{s.name}</p>
-                            {s.check ? <VerdictPill verdict={s.check.verdict} /> : <Pill tone="muted" dot={false}>Not checked</Pill>}
+                          <div className="flex items-start gap-3">
+                            <StoreLogo src={null} domain={s.domain ?? ""} name={s.name} size="xs" />
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-start justify-between gap-2">
+                                <p className="truncate font-semibold leading-tight text-text">{s.name}</p>
+                                {s.check ? <VerdictPill verdict={s.check.verdict} /> : <Pill tone="muted" dot={false}>Not checked</Pill>}
+                              </div>
+                              <p className="mt-0.5 truncate text-xs text-text-muted">{s.domain ?? "Website found when checked"}</p>
+                            </div>
                           </div>
-                          <p className="truncate text-xs text-text-muted">{s.domain ?? "Website will be looked up"}</p>
                           {s.note && <p className="mt-2 line-clamp-2 text-xs text-text">{s.note}</p>}
                           {s.foundIn && s.foundIn.length > 0 && (
                             <p className="mt-2 line-clamp-2 text-[11px] text-text-muted">Found in: {s.foundIn.join(" · ")}</p>

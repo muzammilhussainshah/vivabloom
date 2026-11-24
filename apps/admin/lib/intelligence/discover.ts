@@ -52,7 +52,7 @@ async function attachChecks(stores: DiscoveredStore[]): Promise<DiscoveredStore[
   return stores.map((s) => {
     const c = checks.find((x) => (s.domain && x.domain === s.domain) || (x.name && compact(x.name) === compact(s.name)));
     const score = c?.score as ScoreResult | null | undefined;
-    return { ...s, check: c && score ? { id: String(c._id), verdict: score.verdict, trust: score.trust } : null };
+    return { ...s, domain: s.domain ?? c?.domain ?? null, check: c && score ? { id: String(c._id), verdict: score.verdict, trust: score.trust } : null };
   });
 }
 

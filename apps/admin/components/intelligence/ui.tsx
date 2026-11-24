@@ -209,3 +209,13 @@ export function timeAgo(iso: string | null | undefined): string {
 export function isOlderThanDays(iso: string | null | undefined, days: number): boolean {
   return Boolean(iso) && Date.now() - new Date(iso as string).getTime() > days * 86_400_000;
 }
+
+/**
+ * Full trigger styling for the shared <Select> — passing a className REPLACES
+ * its defaults, so it must include border, height and padding itself.
+ */
+export const selectClass =
+  "h-10 w-full rounded-[10px] border border-border bg-white px-3 text-sm text-text shadow-[0_1px_1px_rgba(16,24,20,0.03)] hover:border-text-muted/40";
+export const inputClass =
+  "h-10 w-full rounded-[10px] border border-border bg-white px-3 text-sm text-text shadow-[0_1px_1px_rgba(16,24,20,0.03)] placeholder:text-text-muted/70 hover:border-text-muted/40 focus:border-brand-primary focus:outline-none";
+export const fieldLabelClass = "flex flex-col gap-1.5 text-xs font-semibold text-text-muted";
