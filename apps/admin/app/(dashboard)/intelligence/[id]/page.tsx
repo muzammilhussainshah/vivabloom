@@ -15,6 +15,7 @@ import { allNetworks } from "@/lib/intelligence/rows";
 import { CityDemandSection } from "./CityDemandSection";
 import { getShortlistMatcher } from "@/lib/intelligence/discover";
 import { getPersonalRecord } from "@/lib/intelligence/personal";
+import { getTrafficPeers } from "@/lib/intelligence/trafficPeers";
 import { AdsRulesSection, IdentitySection, ProductsSection, ProgramSection, ReputationSection, ScoreSection, SourcesSection, SummarySection, TrafficSection } from "./sections";
 
 export const dynamic = "force-dynamic";
@@ -50,6 +51,7 @@ export default async function StoreCheckReportPage({ params }: { params: Promise
   const name = check.name ?? check.domain;
   const networks = allNetworks(check);
   const shortlisted = (await getShortlistMatcher())(check.domain, name);
+  const peers = await getTrafficPeers(check.id).catch(() => null);
   const allDone = STORE_CHECK_STEPS.every((s) => check.steps[s].status === "done");
 
   return (
@@ -113,7 +115,7 @@ export default async function StoreCheckReportPage({ params }: { params: Promise
 
       <ProductsSection check={check} />
       <CityDemandSection check={check} />
-      <TrafficSection check={check} />
+      <TrafficSection check={check} peers={peers} />
       <AdsRulesSection check={check} />
       <ProgramSection check={check} />
       <ReputationSection check={check} />

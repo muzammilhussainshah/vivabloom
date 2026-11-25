@@ -518,3 +518,39 @@ describe("city demand keywords", () => {
     expect(explainAdsError(429, {})).toMatch(/daily limit/);
   });
 });
+
+import { trafficInsights } from "./trafficInsights";
+
+describe("trafficInsights", () => {
+  const mk = (ranks: number[]) => ({
+    source: "tranco" as const,
+    checkedAt: "2026-11-24T00:00:00Z",
+    listed: true,
+    rank: ranks[ranks.length - 1]!,
+    history: ranks.map((rank, i) => ({ date: `2026-11-${String(i + 1).padStart(2, "0")}`, rank })),
+    changePct: Math.round(((ranks[0]! - ranks[ranks.length - 1]!) / ranks[0]!) * 1000) / 10,
+    best: Math.min(...ranks),
+    worst: Math.max(...ranks),
+    tier: "medium" as const,
+  });
+
+  it("reads a steady fall as falling fast with a streak", () => {
+    const ranks = Array.from({ length: 30 }, (_, i) => 115_000 + i * 860);
+    const ins = trafficInsights(mk(ranks))!;
+    expect(ins.verdict.headline).toBe("Falling fast");
+    expect(ins.streak).toEqual({ direction: "down", days: 29 });
+    expect(ins.change7Pct).toBeLessThan(0);
+    expect(ins.bestDay.rank).toBe(115_000);
+    expect(ins.beatsPct).toBeGreaterThan(85);
+  });
+
+  it("reads a flat line as steady and stable", () => {
+    const ins = trafficInsights(mk([50_000, 50_200, 49_900, 50_100, 50_000, 50_050, 49_950, 50_000]))!;
+    expect(ins.verdict.headline).toBe("Steady");
+    expect(ins.stability.label).toBe("Stable");
+  });
+
+  it("returns null when the site isn't ranked", () => {
+    expect(trafficInsights({ ...mk([1, 2]), listed: false, rank: null })).toBeNull();
+  });
+});

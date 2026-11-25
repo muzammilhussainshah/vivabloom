@@ -4,7 +4,10 @@ import type { PersonalRecord } from "@/lib/intelligence/personal";
 import { MY_TRAFFIC_MODEL } from "@/lib/intelligence/score";
 import type { EvidenceField, ProductItem, ReputationItem, StoreCheckView } from "@/lib/intelligence/types";
 import { PasteTerms } from "@/components/intelligence/PasteTerms";
-import { TrafficChart } from "@/components/intelligence/TrafficChart";
+import { TrafficChart, TrafficLegend } from "@/components/intelligence/TrafficChart";
+import { TrafficRefreshButton } from "@/components/intelligence/TrafficRefreshButton";
+import { trafficInsights } from "@/lib/intelligence/trafficInsights";
+import type { TrafficPeers } from "@/lib/intelligence/trafficPeers";
 import { TrafficAutoFetch } from "@/components/intelligence/TrafficAutoFetch";
 import {
   Bar,
@@ -828,10 +831,14 @@ const TIER_META: Record<string, { label: string; tone: Tone; hint: string }> = {
   unranked: { label: "Small site", tone: "muted", hint: "Not in the top 1 million websites" },
 };
 
-export function TrafficSection({ check }: { check: StoreCheckView }) {
+export function TrafficSection({ check, peers }: { check: StoreCheckView; peers?: TrafficPeers | null }) {
   const id = check.identity;
   const t = id?.traffic;
   const done = check.steps.identity.status === "done";
+  const ins = t ? trafficInsights(t) : null;
+  const trendCls = (n: number | null) => (n == null ? "text-text" : n > 0 ? "text-emerald-600" : n < 0 ? "text-red-600" : "text-text");
+  const trendTxt = (n: number | null) => (n == null ? "—" : `${n > 0 ? "▲" : n < 0 ? "▼" : ""} ${Math.abs(n)}%`);
+  const shortDate = (d: string) => new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
   return (
     <Card id="traffic">
       <SectionHeader
@@ -843,46 +850,149 @@ export function TrafficSection({ check }: { check: StoreCheckView }) {
         <Pending label="Waiting for the store check…" />
       ) : !t ? (
         done ? <TrafficAutoFetch checkId={check.id} /> : <Pending label="Loading popularity history…" />
-      ) : !t.listed ? (
-        <div className="px-5 py-8 text-sm md:px-6">
-          <p className="font-semibold text-text">Not in the top 1 million websites</p>
-          <p className="mt-1 text-text-muted">This is a small or new site — fewer than roughly 30,000 visitors a month is typical at this level. Exact visit counts need a paid data source.</p>
-        </div>
+      ) : !t.listed || !ins ? (
+        <>
+          <div className="px-5 py-8 text-sm md:px-6">
+            <p className="font-semibold text-text">Not in the top 1 million websites</p>
+            <p className="mt-1 text-text-muted">This is a small or new site — fewer than roughly 30,000 visitors a month is typical at this level, so brand + coupon searches will be low. Exact visit counts need a paid data source.</p>
+          </div>
+          <TrafficFooter check={check} checkedAt={t.checkedAt} />
+        </>
       ) : (
         <>
-          <dl className="grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-4">
+          <dl className="grid gap-px border-b border-border bg-border sm:grid-cols-2 lg:grid-cols-4">
             {(
               [
-                ["Popularity rank", `#${(t.rank ?? 0).toLocaleString()}`, "of about 1,000,000 sites"],
-                [
-                  "30-day trend",
-                  t.changePct == null ? "—" : `${t.changePct > 0 ? "▲" : t.changePct < 0 ? "▼" : ""} ${Math.abs(t.changePct)}%`,
-                  t.changePct == null ? "" : t.changePct > 0 ? "more popular than 30 days ago" : t.changePct < 0 ? "less popular than 30 days ago" : "unchanged",
-                ],
-                ["Best in 30 days", `#${(t.best ?? 0).toLocaleString()}`, "highest position"],
-                ["Worst in 30 days", `#${(t.worst ?? 0).toLocaleString()}`, "lowest position"],
-              ] as [string, string, string][]
-            ).map(([label, value, sub], i) => (
+                ["Popularity rank", `#${(t.rank ?? 0).toLocaleString()}`, `More popular than ${ins.beatsPct}% of ranked sites`, "text-text"],
+                ["30-day trend", trendTxt(t.changePct), t.changePct == null ? "" : t.changePct > 0 ? "more popular than 30 days ago" : t.changePct < 0 ? "less popular than 30 days ago" : "unchanged", trendCls(t.changePct)],
+                ["7-day trend", trendTxt(ins.change7Pct), ins.change7Pct == null ? "not enough days yet" : ins.change7Pct > 0 ? "more popular than last week" : ins.change7Pct < 0 ? "less popular than last week" : "unchanged", trendCls(ins.change7Pct)],
+                ["Stability", ins.stability.label, `moves about ${ins.dailyMovePct}% a day`, toneClasses[ins.stability.tone].text],
+              ] as [string, string, string, string][]
+            ).map(([label, value, sub, cls]) => (
               <div key={label} className="bg-white px-5 py-4 md:px-6">
                 <dt className="text-xs text-text-muted">{label}</dt>
-                <dd className={`mt-1 text-2xl font-bold tabular-nums ${i === 1 && t.changePct != null ? (t.changePct > 0 ? "text-emerald-600" : t.changePct < 0 ? "text-red-600" : "text-text") : "text-text"}`}>{value}</dd>
+                <dd className={`mt-1 text-2xl font-bold tabular-nums ${cls}`}>{value}</dd>
                 <p className="mt-0.5 text-xs text-text-muted">{sub}</p>
               </div>
             ))}
           </dl>
-          <div className="border-t border-border px-4 py-5 md:px-6">
-            <div className="mb-2 flex items-center justify-between">
+
+          <div className={`mx-4 mt-5 flex gap-3 rounded-xl border px-4 py-3.5 md:mx-6 ${toneClasses[ins.verdict.tone].soft}`}>
+            <span className={`mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full text-xs font-bold text-white ${toneClasses[ins.verdict.tone].dot}`} aria-hidden>
+              {ins.verdict.tone === "good" ? "▲" : ins.verdict.tone === "info" ? "•" : "▼"}
+            </span>
+            <div className="min-w-0">
+              <p className={`text-sm font-semibold ${toneClasses[ins.verdict.tone].text}`}>
+                {ins.verdict.headline}
+                {ins.streak.direction !== "flat" && ins.streak.days >= 3 ? (
+                  <span className="font-normal text-text-muted">
+                    {" "}· {ins.streak.direction === "up" ? "rising" : "falling"} {ins.streak.days} days in a row
+                  </span>
+                ) : null}
+              </p>
+              <p className="mt-0.5 text-sm leading-relaxed text-text">{ins.verdict.detail}</p>
+            </div>
+          </div>
+
+          <div className="px-4 py-5 md:px-6">
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
               <p className="text-sm font-semibold text-text">Popularity over the last 30 days</p>
               <p className="text-xs text-text-muted">Line up = more popular · {TIER_META[t.tier]!.hint}</p>
             </div>
-            <TrafficChart history={t.history} />
+            <TrafficChart history={t.history} average={ins.average} />
+            <TrafficLegend />
+            <div className="mt-4 grid gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-3">
+              {(
+                [
+                  ["Best day", `#${ins.bestDay.rank.toLocaleString()}`, shortDate(ins.bestDay.date), "text-emerald-700"],
+                  ["Worst day", `#${ins.worstDay.rank.toLocaleString()}`, shortDate(ins.worstDay.date), "text-red-700"],
+                  ["30-day average", `#${ins.average.toLocaleString()}`, `today is ${t.rank! <= ins.average ? "better" : "worse"} than average`, "text-text"],
+                ] as [string, string, string, string][]
+              ).map(([label, value, sub, cls]) => (
+                <div key={label} className="flex items-baseline justify-between gap-3 bg-white px-4 py-3">
+                  <span className="text-xs text-text-muted">{label}</span>
+                  <span className="text-right">
+                    <span className={`text-sm font-bold tabular-nums ${cls}`}>{value}</span>
+                    <span className="block text-[11px] text-text-muted">{sub}</span>
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
-          <p className="border-t border-border bg-surface/60 px-5 py-3 text-xs text-text-muted md:px-6">
-            This is a popularity <strong className="text-text">ranking</strong>, not a visit count. Exact monthly visits and country-wise traffic need a paid source (for example
-            Similarweb), which isn&apos;t connected.
-          </p>
+
+          {peers ? <TrafficPeersBlock peers={peers} /> : null}
+          <TrafficFooter check={check} checkedAt={t.checkedAt} />
         </>
       )}
     </Card>
+  );
+}
+
+function TrafficPeersBlock({ peers }: { peers: TrafficPeers }) {
+  const top = Math.max(1, Math.round((peers.position / peers.total) * 100));
+  return (
+    <div className="border-t border-border px-4 py-5 md:px-6">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <p className="text-sm font-semibold text-text">Compared with stores you&apos;ve checked</p>
+        <p className="text-xs text-text-muted">
+          <strong className="text-text">#{peers.position}</strong> of {peers.total} by popularity (top {top}%)
+          {peers.category ? (
+            <>
+              {" "}· <strong className="text-text">#{peers.category.position}</strong> of {peers.category.total} in {peers.category.name}
+            </>
+          ) : null}
+        </p>
+      </div>
+      <ol className="mt-3 divide-y divide-border overflow-hidden rounded-xl border border-border">
+        {peers.nearby.map((p) => {
+          const pos = peers.position - peers.nearby.findIndex((x) => x.current) + peers.nearby.indexOf(p);
+          const row = (
+            <>
+              <span className="w-8 shrink-0 text-xs tabular-nums text-text-muted">#{pos}</span>
+              <span className="min-w-0 flex-1">
+                <span className={`block truncate text-sm ${p.current ? "font-semibold text-text" : "text-text"}`}>
+                  {p.name}
+                  {p.current ? <span className="ml-2 rounded bg-brand-primary/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand-primary">This store</span> : null}
+                </span>
+                <span className="block truncate text-[11px] text-text-muted">{p.domain}</span>
+              </span>
+              <span className="text-right">
+                <span className="block text-sm font-semibold tabular-nums text-text">#{p.rank.toLocaleString()}</span>
+                {p.changePct != null ? (
+                  <span className={`block text-[11px] tabular-nums ${p.changePct > 0 ? "text-emerald-600" : p.changePct < 0 ? "text-red-600" : "text-text-muted"}`}>
+                    {p.changePct > 0 ? "▲" : p.changePct < 0 ? "▼" : ""} {Math.abs(p.changePct)}% / 30d
+                  </span>
+                ) : null}
+              </span>
+            </>
+          );
+          return (
+            <li key={p.id}>
+              {p.current ? (
+                <div className="flex items-center gap-3 bg-brand-primary/5 px-4 py-2.5">{row}</div>
+              ) : (
+                <a href={`/intelligence/${p.id}`} className="flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-surface">
+                  {row}
+                </a>
+              )}
+            </li>
+          );
+        })}
+      </ol>
+    </div>
+  );
+}
+
+function TrafficFooter({ check, checkedAt }: { check: StoreCheckView; checkedAt: string }) {
+  return (
+    <div className="flex flex-col gap-2 border-t border-border bg-surface/60 px-5 py-3 text-xs text-text-muted sm:flex-row sm:items-center sm:justify-between md:px-6">
+      <p>
+        This is a popularity <strong className="text-text">ranking</strong>, not a visit count. Exact monthly visits and country-wise traffic need a paid source (for example Similarweb), which isn&apos;t connected.
+      </p>
+      <p className="flex shrink-0 items-center gap-2">
+        <span>Tranco · updated {timeAgo(checkedAt)}</span>
+        <TrafficRefreshButton checkId={check.id} />
+      </p>
+    </div>
   );
 }
