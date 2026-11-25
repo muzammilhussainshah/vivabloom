@@ -39,6 +39,30 @@ export interface LinkSignals {
   fromGoogleAds: boolean;
 }
 
+/** Monthly Google searches per city (Google Ads Keyword Planner) — demand, not sales. */
+export interface CityDemandRow {
+  keyword: string;
+  kind: "brand" | "coupon" | "product";
+  /** The store product this keyword stands for (product rows only). */
+  product: string | null;
+  /** Average monthly searches in the whole market. */
+  national: number | null;
+  /** Top-of-page bid range in the Ads account's currency. */
+  bidLow: number | null;
+  bidHigh: number | null;
+  competition: string | null;
+  /** city id → average monthly searches (null = too little data). */
+  byCity: Record<string, number | null>;
+}
+
+export interface CityDemandResult {
+  source: "google_ads_keyword_planner";
+  checkedAt: string;
+  market: string;
+  cities: { id: string; name: string }[];
+  rows: CityDemandRow[];
+}
+
 export interface TrafficResult {
   source: "tranco";
   checkedAt: string;
@@ -260,6 +284,8 @@ export interface StoreCheckView {
   sources: SourceRef[];
   usage: { tavilyCredits: number; llmInputTokens: number; llmOutputTokens: number };
   lastCheckedAt: string | null;
+  /** City-level search demand, loaded on request (needs Google Ads). */
+  cityDemand: CityDemandResult | null;
   /** Saved category, or inferred from the store's text when none was set. */
   category: string | null;
   archived: boolean;

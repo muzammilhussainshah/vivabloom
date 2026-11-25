@@ -221,6 +221,7 @@ export function toView(doc: Record<string, unknown>): StoreCheckView {
     usage: (plain.usage as StoreCheckView["usage"]) ?? { tavilyCredits: 0, llmInputTokens: 0, llmOutputTokens: 0 },
     lastCheckedAt: (plain.lastCheckedAt as string | null) ?? null,
     category: (plain.category as string | null) ?? null,
+    cityDemand: (plain.cityDemand as StoreCheckView["cityDemand"]) ?? null,
     archived: Boolean(plain.archived),
     pastedTermsAt: ((plain.pastedTerms as { addedAt?: string } | null)?.addedAt as string | undefined) ?? null,
   };

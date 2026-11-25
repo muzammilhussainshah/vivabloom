@@ -52,6 +52,8 @@ const StoreCheckSchema = new Schema(
       llmOutputTokens: { type: Number, default: 0 },
     },
     lastCheckedAt: { type: Date, default: null },
+    /** Monthly Google searches per city for the brand, brand + coupon and top products (Google Ads Keyword Planner). */
+    cityDemand: { type: Schema.Types.Mixed, default: null },
     /** Shelf the admin (or the discovery search) filed the store under, one of RESEARCH_CATEGORIES; null = inferred when listing. */
     category: { type: String, default: null },
     /** Archived stores are hidden from the main lists (never deleted) and can be restored. */
@@ -67,7 +69,7 @@ StoreCheckSchema.index({ updatedAt: -1 });
 export type IStoreCheck = InferSchemaType<typeof StoreCheckSchema>;
 
 // In dev, hot reload keeps the previously compiled model; drop it when the schema has since gained fields (otherwise Mongoose silently ignores them).
-if (models.StoreCheck && !models.StoreCheck.schema.path("archived")) mongoose.deleteModel("StoreCheck");
+if (models.StoreCheck && !models.StoreCheck.schema.path("cityDemand")) mongoose.deleteModel("StoreCheck");
 
 export const StoreCheck: Model<IStoreCheck> =
   (models.StoreCheck as Model<IStoreCheck>) ?? model<IStoreCheck>("StoreCheck", StoreCheckSchema);

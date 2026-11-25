@@ -501,3 +501,20 @@ describe("early lead signals", () => {
     expect(bad.score).toBeLessThan(good.score);
   });
 });
+
+describe("city demand keywords", () => {
+  it("turns product names into short searchable keywords with the brand, plus brand + coupon rows", async () => {
+    const { productKeyword, buildCityKeywords } = await import("./cityDemand");
+    expect(productKeyword("Impact Whey Protein Powder - Chocolate, 1kg", "Myprotein")).toBe("myprotein impact whey protein powder");
+    expect(productKeyword("Grass-Fed Whey Protein Isolate (2.2 lbs)", "Transparent Labs")).toBe("transparent labs grass fed whey protein isolate");
+    expect(productKeyword("Myprotein Clear Whey | 20 servings", "Myprotein")).toBe("myprotein clear whey");
+    const rows = buildCityKeywords("Myprotein", []);
+    expect(rows.map((r) => r.keyword)).toEqual(["myprotein", "myprotein coupon", "myprotein promo code", "myprotein discount code"]);
+  });
+
+  it("explains Google Ads API errors in plain words", async () => {
+    const { explainAdsError } = await import("./googleAds");
+    expect(explainAdsError(403, { error: { message: "The developer token is only approved for use with test accounts." } })).toMatch(/Basic access/);
+    expect(explainAdsError(429, {})).toMatch(/daily limit/);
+  });
+});
